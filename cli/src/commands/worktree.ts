@@ -12,9 +12,9 @@ import {
   symlinkSync,
   writeFileSync,
 } from "node:fs";
+import * as childProcess from "node:child_process";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 import { createServer } from "node:net";
 import { Readable } from "node:stream";
 import * as p from "@clack/prompts";
@@ -78,6 +78,10 @@ import {
   type PlannedIssueDocumentMerge,
   type PlannedIssueInsert,
 } from "./worktree-merge-history-lib.js";
+
+export const worktreeProcess = {
+  execFileSync: childProcess.execFileSync,
+};
 
 type WorktreeInitOptions = {
   name?: string;
@@ -403,7 +407,7 @@ function extractExecSyncErrorMessage(error: unknown): string | null {
 
 function localBranchExists(cwd: string, branchName: string): boolean {
   try {
-    execFileSync("git", ["show-ref", "--verify", "--quiet", `refs/heads/${branchName}`], {
+    worktreeProcess.execFileSync("git", ["show-ref", "--verify", "--quiet", `refs/heads/${branchName}`], {
       cwd,
       stdio: "ignore",
     });
@@ -526,7 +530,7 @@ function collectClaimedWorktreePorts(homeDir: string, currentInstanceId: string,
 
 function detectGitBranchName(cwd: string): string | null {
   try {
-    const value = execFileSync("git", ["branch", "--show-current"], {
+    const value = worktreeProcess.execFileSync("git", ["branch", "--show-current"], {
       cwd,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
@@ -539,22 +543,22 @@ function detectGitBranchName(cwd: string): string | null {
 
 function detectGitWorkspaceInfo(cwd: string): GitWorkspaceInfo | null {
   try {
-    const root = execFileSync("git", ["rev-parse", "--show-toplevel"], {
+    const root = worktreeProcess.execFileSync("git", ["rev-parse", "--show-toplevel"], {
       cwd,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
-    const commonDirRaw = execFileSync("git", ["rev-parse", "--git-common-dir"], {
+    const commonDirRaw = worktreeProcess.execFileSync("git", ["rev-parse", "--git-common-dir"], {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
-    const gitDirRaw = execFileSync("git", ["rev-parse", "--git-dir"], {
+    const gitDirRaw = worktreeProcess.execFileSync("git", ["rev-parse", "--git-dir"], {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
-    const hooksPathRaw = execFileSync("git", ["rev-parse", "--git-path", "hooks"], {
+    const hooksPathRaw = worktreeProcess.execFileSync("git", ["rev-parse", "--git-path", "hooks"], {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
@@ -1073,7 +1077,7 @@ export async function worktreeMakeCommand(nameArg: string, opts: WorktreeMakeOpt
   if (startPoint) {
     const [remote] = startPoint.split("/", 1);
     try {
-      execFileSync("git", ["fetch", remote], {
+      worktreeProcess.execFileSync("git", ["fetch", remote], {
         cwd: sourceCwd,
         stdio: ["ignore", "pipe", "pipe"],
       });
@@ -1094,7 +1098,7 @@ export async function worktreeMakeCommand(nameArg: string, opts: WorktreeMakeOpt
   const spinner = p.spinner();
   spinner.start(`Creating git worktree at ${targetPath}...`);
   try {
-    execFileSync("git", worktreeArgs, {
+    worktreeProcess.execFileSync("git", worktreeArgs, {
       cwd: sourceCwd,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -1108,7 +1112,7 @@ export async function worktreeMakeCommand(nameArg: string, opts: WorktreeMakeOpt
   installSpinner.start("Installing dependencies...");
   try {
     const pnpmInstall = buildPnpmProcessSpec(["install"]);
-    execFileSync(pnpmInstall.command, pnpmInstall.args, {
+    worktreeProcess.execFileSync(pnpmInstall.command, pnpmInstall.args, {
       cwd: targetPath,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -1164,7 +1168,7 @@ type ResolvedWorktreeEndpoint = {
 };
 
 function parseGitWorktreeList(cwd: string): GitWorktreeListEntry[] {
-  const raw = execFileSync("git", ["worktree", "list", "--porcelain"], {
+  const raw = worktreeProcess.execFileSync("git", ["worktree", "list", "--porcelain"], {
     cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
@@ -1218,7 +1222,7 @@ function toMergeSourceChoices(cwd: string): MergeSourceChoice[] {
 
 function branchHasUniqueCommits(cwd: string, branchName: string): boolean {
   try {
-    const output = execFileSync(
+    const output = worktreeProcess.execFileSync(
       "git",
       ["log", "--oneline", branchName, "--not", "--remotes", "--exclude", `refs/heads/${branchName}`, "--branches"],
       { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
@@ -1231,7 +1235,7 @@ function branchHasUniqueCommits(cwd: string, branchName: string): boolean {
 
 function branchExistsOnAnyRemote(cwd: string, branchName: string): boolean {
   try {
-    const output = execFileSync(
+    const output = worktreeProcess.execFileSync(
       "git",
       ["branch", "-r", "--list", `*/${branchName}`],
       { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
@@ -1244,7 +1248,7 @@ function branchExistsOnAnyRemote(cwd: string, branchName: string): boolean {
 
 function worktreePathHasUncommittedChanges(worktreePath: string): boolean {
   try {
-    const output = execFileSync(
+    const output = worktreeProcess.execFileSync(
       "git",
       ["status", "--porcelain"],
       { cwd: worktreePath, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
@@ -1330,7 +1334,7 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
       try {
         const removeArgs = ["worktree", "remove", linkedWorktree.worktree];
         if (opts.force) removeArgs.push("--force");
-        execFileSync("git", removeArgs, {
+        worktreeProcess.execFileSync("git", removeArgs, {
           cwd: sourceCwd,
           stdio: ["ignore", "pipe", "pipe"],
         });
@@ -1341,7 +1345,7 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
       }
     } else {
       spinner.start("Pruning stale worktree entry...");
-      execFileSync("git", ["worktree", "prune"], {
+      worktreeProcess.execFileSync("git", ["worktree", "prune"], {
         cwd: sourceCwd,
         stdio: ["ignore", "pipe", "pipe"],
       });
@@ -1349,7 +1353,7 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
     }
   } else {
     // Even without a linked worktree, prune to clean up any orphaned entries
-    execFileSync("git", ["worktree", "prune"], {
+    worktreeProcess.execFileSync("git", ["worktree", "prune"], {
       cwd: sourceCwd,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -1369,7 +1373,7 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
     spinner.start(`Deleting local branch "${name}"...`);
     try {
       const deleteFlag = opts.force ? "-D" : "-d";
-      execFileSync("git", ["branch", deleteFlag, name], {
+      worktreeProcess.execFileSync("git", ["branch", deleteFlag, name], {
         cwd: sourceCwd,
         stdio: ["ignore", "pipe", "pipe"],
       });

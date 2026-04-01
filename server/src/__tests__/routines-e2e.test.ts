@@ -76,6 +76,7 @@ vi.mock("../services/index.js", async () => {
   };
 });
 
+const routineRoutesPromise = import("../routes/routines.js");
 const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
 const describeEmbeddedPostgres = embeddedPostgresSupport.supported ? describe : describe.skip;
 const EMBEDDED_POSTGRES_HOOK_TIMEOUT = process.platform === "win32" ? 60_000 : 20_000;
@@ -117,7 +118,7 @@ describeEmbeddedPostgres("routine routes end-to-end", () => {
   });
 
   async function createApp(actor: Record<string, unknown>) {
-    const { routineRoutes } = await import("../routes/routines.js");
+    const { routineRoutes } = await routineRoutesPromise;
     const app = express();
     app.use(express.json());
     app.use((req, _res, next) => {
@@ -174,103 +175,107 @@ describeEmbeddedPostgres("routine routes end-to-end", () => {
     return { companyId, agentId, projectId, userId };
   }
 
-  it("supports creating, scheduling, and manually running a routine through the API", async () => {
-    const { companyId, agentId, projectId, userId } = await seedFixture();
-    const app = await createApp({
-      type: "board",
-      userId,
-      source: "session",
-      isInstanceAdmin: false,
-      companyIds: [companyId],
-    });
-
-    const createRes = await request(app)
-      .post(`/api/companies/${companyId}/routines`)
-      .send({
-        projectId,
-        title: "Daily standup prep",
-        description: "Summarize blockers and open PRs",
-        assigneeAgentId: agentId,
-        priority: "high",
-        concurrencyPolicy: "coalesce_if_active",
-        catchUpPolicy: "skip_missed",
+  it(
+    "supports creating, scheduling, and manually running a routine through the API",
+    async () => {
+      const { companyId, agentId, projectId, userId } = await seedFixture();
+      const app = await createApp({
+        type: "board",
+        userId,
+        source: "session",
+        isInstanceAdmin: false,
+        companyIds: [companyId],
       });
 
-    expect(createRes.status).toBe(201);
-    expect(createRes.body.title).toBe("Daily standup prep");
-    expect(createRes.body.assigneeAgentId).toBe(agentId);
+      const createRes = await request(app)
+        .post(`/api/companies/${companyId}/routines`)
+        .send({
+          projectId,
+          title: "Daily standup prep",
+          description: "Summarize blockers and open PRs",
+          assigneeAgentId: agentId,
+          priority: "high",
+          concurrencyPolicy: "coalesce_if_active",
+          catchUpPolicy: "skip_missed",
+        });
 
-    const routineId = createRes.body.id as string;
+      expect(createRes.status).toBe(201);
+      expect(createRes.body.title).toBe("Daily standup prep");
+      expect(createRes.body.assigneeAgentId).toBe(agentId);
 
-    const triggerRes = await request(app)
-      .post(`/api/routines/${routineId}/triggers`)
-      .send({
-        kind: "schedule",
-        label: "Weekday morning",
-        cronExpression: "0 10 * * 1-5",
-        timezone: "UTC",
+      const routineId = createRes.body.id as string;
+
+      const triggerRes = await request(app)
+        .post(`/api/routines/${routineId}/triggers`)
+        .send({
+          kind: "schedule",
+          label: "Weekday morning",
+          cronExpression: "0 10 * * 1-5",
+          timezone: "UTC",
+        });
+
+      expect(triggerRes.status).toBe(201);
+      expect(triggerRes.body.trigger.kind).toBe("schedule");
+      expect(triggerRes.body.trigger.enabled).toBe(true);
+      expect(triggerRes.body.secretMaterial).toBeNull();
+
+      const runRes = await request(app)
+        .post(`/api/routines/${routineId}/run`)
+        .send({
+          source: "manual",
+          payload: { origin: "e2e-test" },
+        });
+
+      expect(runRes.status).toBe(202);
+      expect(runRes.body.status).toBe("issue_created");
+      expect(runRes.body.source).toBe("manual");
+      expect(runRes.body.linkedIssueId).toBeTruthy();
+
+      const detailRes = await request(app).get(`/api/routines/${routineId}`);
+      expect(detailRes.status).toBe(200);
+      expect(detailRes.body.triggers).toHaveLength(1);
+      expect(detailRes.body.triggers[0]?.id).toBe(triggerRes.body.trigger.id);
+      expect(detailRes.body.recentRuns).toHaveLength(1);
+      expect(detailRes.body.recentRuns[0]?.id).toBe(runRes.body.id);
+      expect(detailRes.body.activeIssue?.id).toBe(runRes.body.linkedIssueId);
+
+      const runsRes = await request(app).get(`/api/routines/${routineId}/runs?limit=10`);
+      expect(runsRes.status).toBe(200);
+      expect(runsRes.body).toHaveLength(1);
+      expect(runsRes.body[0]?.id).toBe(runRes.body.id);
+
+      const [issue] = await db
+        .select({
+          id: issues.id,
+          originId: issues.originId,
+          originKind: issues.originKind,
+          executionRunId: issues.executionRunId,
+        })
+        .from(issues)
+        .where(eq(issues.id, runRes.body.linkedIssueId));
+
+      expect(issue).toMatchObject({
+        id: runRes.body.linkedIssueId,
+        originId: routineId,
+        originKind: "routine_execution",
       });
+      expect(issue?.executionRunId).toBeTruthy();
 
-    expect(triggerRes.status).toBe(201);
-    expect(triggerRes.body.trigger.kind).toBe("schedule");
-    expect(triggerRes.body.trigger.enabled).toBe(true);
-    expect(triggerRes.body.secretMaterial).toBeNull();
+      const actions = await db
+        .select({
+          action: activityLog.action,
+        })
+        .from(activityLog)
+        .where(eq(activityLog.companyId, companyId));
 
-    const runRes = await request(app)
-      .post(`/api/routines/${routineId}/run`)
-      .send({
-        source: "manual",
-        payload: { origin: "e2e-test" },
-      });
-
-    expect(runRes.status).toBe(202);
-    expect(runRes.body.status).toBe("issue_created");
-    expect(runRes.body.source).toBe("manual");
-    expect(runRes.body.linkedIssueId).toBeTruthy();
-
-    const detailRes = await request(app).get(`/api/routines/${routineId}`);
-    expect(detailRes.status).toBe(200);
-    expect(detailRes.body.triggers).toHaveLength(1);
-    expect(detailRes.body.triggers[0]?.id).toBe(triggerRes.body.trigger.id);
-    expect(detailRes.body.recentRuns).toHaveLength(1);
-    expect(detailRes.body.recentRuns[0]?.id).toBe(runRes.body.id);
-    expect(detailRes.body.activeIssue?.id).toBe(runRes.body.linkedIssueId);
-
-    const runsRes = await request(app).get(`/api/routines/${routineId}/runs?limit=10`);
-    expect(runsRes.status).toBe(200);
-    expect(runsRes.body).toHaveLength(1);
-    expect(runsRes.body[0]?.id).toBe(runRes.body.id);
-
-    const [issue] = await db
-      .select({
-        id: issues.id,
-        originId: issues.originId,
-        originKind: issues.originKind,
-        executionRunId: issues.executionRunId,
-      })
-      .from(issues)
-      .where(eq(issues.id, runRes.body.linkedIssueId));
-
-    expect(issue).toMatchObject({
-      id: runRes.body.linkedIssueId,
-      originId: routineId,
-      originKind: "routine_execution",
-    });
-    expect(issue?.executionRunId).toBeTruthy();
-
-    const actions = await db
-      .select({
-        action: activityLog.action,
-      })
-      .from(activityLog)
-      .where(eq(activityLog.companyId, companyId));
-
-    expect(actions.map((entry) => entry.action)).toEqual(
-      expect.arrayContaining([
-        "routine.created",
-        "routine.trigger_created",
-        "routine.run_triggered",
-      ]),
-    );
-  });
+      expect(actions.map((entry) => entry.action)).toEqual(
+        expect.arrayContaining([
+          "routine.created",
+          "routine.trigger_created",
+          "routine.run_triggered",
+        ]),
+      );
+    },
+    process.platform === "win32" ? 15_000 : 5_000,
+  );
 });

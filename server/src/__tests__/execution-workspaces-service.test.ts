@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";
+import { setTimeout as delay } from "node:timers/promises";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   companies,
@@ -97,6 +98,7 @@ describe("execution workspace config helpers", () => {
 const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
 const describeEmbeddedPostgres = embeddedPostgresSupport.supported ? describe : describe.skip;
 const EMBEDDED_POSTGRES_HOOK_TIMEOUT = process.platform === "win32" ? 60_000 : 20_000;
+const GIT_WORKTREE_TEST_TIMEOUT = process.platform === "win32" ? 45_000 : 20_000;
 
 if (!embeddedPostgresSupport.supported) {
   console.warn(
@@ -120,6 +122,31 @@ async function createTempRepo() {
   return repoRoot;
 }
 
+function getFsErrorCode(error: unknown) {
+  if (typeof error !== "object" || error === null || !("code" in error)) return "";
+  return String((error as { code?: unknown }).code ?? "");
+}
+
+function isTransientDirectoryRemovalError(error: unknown) {
+  const code = getFsErrorCode(error);
+  return code === "EPERM" || code === "EBUSY";
+}
+
+async function removeTempDir(dir: string) {
+  const attempts = process.platform === "win32" ? 5 : 1;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      await fs.rm(dir, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (!isTransientDirectoryRemovalError(error) || attempt === attempts - 1) {
+        throw error;
+      }
+      await delay(200 * (attempt + 1));
+    }
+  }
+}
+
 describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
   let db!: ReturnType<typeof createDb>;
   let svc!: ReturnType<typeof executionWorkspaceService>;
@@ -139,8 +166,8 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
     await db.delete(projects);
     await db.delete(companies);
 
-    for (const dir of tempDirs) {
-      await fs.rm(dir, { recursive: true, force: true });
+    for (const dir of [...tempDirs].reverse()) {
+      await removeTempDir(dir);
     }
     tempDirs.clear();
   });
@@ -228,8 +255,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
     const worktreePath = path.join(path.dirname(repoRoot), `paperclip-worktree-${randomUUID()}`);
     tempDirs.add(worktreePath);
 
-    await runGit(repoRoot, ["branch", "paperclip-close-check"]);
-    await runGit(repoRoot, ["worktree", "add", worktreePath, "paperclip-close-check"]);
+    await runGit(repoRoot, ["worktree", "add", "-b", "paperclip-close-check", worktreePath, "main"]);
     await fs.writeFile(path.join(worktreePath, "feature.txt"), "hello\n", "utf8");
     await runGit(worktreePath, ["add", "feature.txt"]);
     await runGit(worktreePath, ["commit", "-m", "Feature commit"]);
@@ -322,5 +348,5 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
       "git_worktree_remove",
       "git_branch_delete",
     ]));
-  }, 20_000);
+  }, GIT_WORKTREE_TEST_TIMEOUT);
 });

@@ -1,20 +1,16 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-let resolveDynamicForbiddenTokens: typeof import("../../../scripts/check-forbidden-tokens.mjs").resolveDynamicForbiddenTokens;
-let resolveForbiddenTokens: typeof import("../../../scripts/check-forbidden-tokens.mjs").resolveForbiddenTokens;
-let runForbiddenTokenCheck: typeof import("../../../scripts/check-forbidden-tokens.mjs").runForbiddenTokenCheck;
+let forbiddenTokensModule: typeof import("../../../scripts/check-forbidden-tokens.mjs");
 
-beforeAll(async () => {
-  ({
-    resolveDynamicForbiddenTokens,
-    resolveForbiddenTokens,
-    runForbiddenTokenCheck,
-  } = await import("../../../scripts/check-forbidden-tokens.mjs"));
+beforeAll(() => {
+  return import("../../../scripts/check-forbidden-tokens.mjs").then((module) => {
+    forbiddenTokensModule = module;
+  });
 });
 
 describe("forbidden token check", () => {
   it("derives username tokens without relying on whoami", () => {
-    const tokens = resolveDynamicForbiddenTokens(
+    const tokens = forbiddenTokensModule.resolveDynamicForbiddenTokens(
       { USER: "paperclip", LOGNAME: "paperclip", USERNAME: "pc" },
       {
         userInfo: () => ({ username: "paperclip" }),
@@ -25,7 +21,7 @@ describe("forbidden token check", () => {
   });
 
   it("falls back cleanly when user resolution fails", () => {
-    const tokens = resolveDynamicForbiddenTokens(
+    const tokens = forbiddenTokensModule.resolveDynamicForbiddenTokens(
       {},
       {
         userInfo: () => {
@@ -46,7 +42,7 @@ describe("forbidden token check", () => {
     fs.writeFileSync(tokensFile, "# comment\npaperclip\ncustom-token\n");
 
     try {
-      const tokens = resolveForbiddenTokens(tokensFile, { USER: "paperclip" }, {
+      const tokens = forbiddenTokensModule.resolveForbiddenTokens(tokensFile, { USER: "paperclip" }, {
         userInfo: () => ({ username: "paperclip" }),
       });
 
@@ -66,7 +62,7 @@ describe("forbidden token check", () => {
     const log = vi.fn();
     const error = vi.fn();
 
-    const exitCode = runForbiddenTokenCheck({
+    const exitCode = forbiddenTokensModule.runForbiddenTokenCheck({
       repoRoot: "/repo",
       tokens: ["paperclip", "custom-token"],
       exec,

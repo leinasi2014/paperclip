@@ -1,13 +1,13 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFile, execFileSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
+import { execFileSync } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   copyGitHooksToWorktreeGitDir,
   copySeededSecretsKey,
+  worktreeMakeCommand,
+  worktreeProcess,
   readSourceAttachmentBody,
   rebindWorkspaceCwd,
   resolveSourceConfigPath,
@@ -27,36 +27,93 @@ import {
 } from "../commands/worktree-lib.js";
 import type { PaperclipConfig } from "../config/schema.js";
 
+const pnpmInstallMockState = vi.hoisted(() => ({
+  mode: "success" as "success" | "fail",
+}));
+
+vi.mock("../utils/pnpm-process.js", async () => {
+  const actual = await vi.importActual<typeof import("../utils/pnpm-process.js")>(
+    "../utils/pnpm-process.js",
+  );
+
+  return {
+    ...actual,
+    buildPnpmProcessSpec: vi.fn(() =>
+      pnpmInstallMockState.mode === "fail"
+        ? {
+            command: process.execPath,
+            args: ["-e", "process.exit(1)"],
+          }
+        : {
+            command: process.execPath,
+            args: ["-e", "process.exit(0)"],
+          },
+    ),
+  };
+});
+
 const ORIGINAL_CWD = process.cwd();
 const ORIGINAL_ENV = { ...process.env };
-const execFileAsync = promisify(execFile);
-const CLI_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const TSX_CLI_PATH = path.resolve(CLI_ROOT, "node_modules", "tsx", "dist", "cli.mjs");
-const CLI_ENTRY_PATH = path.resolve(CLI_ROOT, "src", "index.ts");
 
-function buildCliEnv(homeDir: string): NodeJS.ProcessEnv {
-  const env = { ...process.env };
-  env.HOME = homeDir;
-  env.USERPROFILE = homeDir;
+function applyHomeDirEnv(homeDir: string): void {
+  process.env.HOME = homeDir;
+  process.env.USERPROFILE = homeDir;
   const parsed = path.parse(homeDir);
-  env.HOMEDRIVE = parsed.root.replace(/[\\/]+$/, "");
-  env.HOMEPATH = homeDir.startsWith(parsed.root)
+  process.env.HOMEDRIVE = parsed.root.replace(/[\\/]+$/, "");
+  process.env.HOMEPATH = homeDir.startsWith(parsed.root)
     ? homeDir.slice(Math.max(parsed.root.length - 1, 0))
     : homeDir;
-  return env;
 }
 
-async function runCliWorktreeCommand(repoRoot: string, args: string[], homeDir: string): Promise<string> {
-  const result = await execFileAsync(process.execPath, [TSX_CLI_PATH, CLI_ENTRY_PATH, ...args], {
-    cwd: repoRoot,
-    encoding: "utf8",
-    env: buildCliEnv(homeDir),
-    maxBuffer: 10 * 1024 * 1024,
-  });
-  return result.stdout;
+function mockGitWorktreeCreate(sourceRepoRoot: string, targetPath: string): () => void {
+  const realExecFileSync = worktreeProcess.execFileSync;
+  worktreeProcess.execFileSync = ((command, args, options) => {
+    if (command === "git" && Array.isArray(args)) {
+      if (args[0] === "worktree" && args[1] === "add") {
+        const targetIndex = args[2] === "-b" ? 4 : 2;
+        const targetDir = String(args[targetIndex]);
+        fs.mkdirSync(targetDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(targetDir, ".git"),
+          `gitdir: ${path.join(sourceRepoRoot, ".git", "worktrees", path.basename(targetDir))}\n`,
+          "utf8",
+        );
+        return Buffer.from("");
+      }
+
+      if (args[0] === "rev-parse" && args[1] === "--show-toplevel") {
+        return targetPath;
+      }
+
+      if (args[0] === "rev-parse" && args[1] === "--git-common-dir") {
+        return path.join(sourceRepoRoot, ".git");
+      }
+
+      if (args[0] === "rev-parse" && args[1] === "--git-dir") {
+        return path.join(sourceRepoRoot, ".git", "worktrees", path.basename(targetPath));
+      }
+
+      if (args[0] === "rev-parse" && args[1] === "--git-path" && args[2] === "hooks") {
+        return path.join(
+          sourceRepoRoot,
+          ".git",
+          "worktrees",
+          path.basename(targetPath),
+          "hooks",
+        );
+      }
+    }
+
+    return realExecFileSync(command, args as never, options as never);
+  }) as typeof worktreeProcess.execFileSync;
+
+  return () => {
+    worktreeProcess.execFileSync = realExecFileSync;
+  };
 }
 
 afterEach(() => {
+  pnpmInstallMockState.mode = "success";
   process.chdir(ORIGINAL_CWD);
   for (const key of Object.keys(process.env)) {
     if (!(key in ORIGINAL_ENV)) delete process.env[key];
@@ -590,10 +647,12 @@ describe("worktree helpers", () => {
     const fakeHome = path.join(tempRoot, "home");
     const worktreePath = path.join(fakeHome, "paperclip-make-test");
     const originalCwd = process.cwd();
+    let restoreGitMock: (() => void) | null = null;
 
     try {
       fs.mkdirSync(repoRoot, { recursive: true });
       fs.mkdirSync(fakeHome, { recursive: true });
+      applyHomeDirEnv(fakeHome);
       execFileSync("git", ["init"], { cwd: repoRoot, stdio: "ignore" });
       execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: repoRoot, stdio: "ignore" });
       execFileSync("git", ["config", "user.name", "Test User"], { cwd: repoRoot, stdio: "ignore" });
@@ -603,17 +662,19 @@ describe("worktree helpers", () => {
       execFileSync("git", ["commit", "-m", "Initial commit"], { cwd: repoRoot, stdio: "ignore" });
 
       process.chdir(repoRoot);
-
-      await runCliWorktreeCommand(
-        repoRoot,
-        ["worktree:make", "paperclip-make-test", "--no-seed", "--home", path.join(tempRoot, ".paperclip-worktrees")],
-        fakeHome,
-      );
+      restoreGitMock = mockGitWorktreeCreate(repoRoot, worktreePath);
+      await worktreeMakeCommand("paperclip-make-test", {
+        seed: false,
+        serverPort: 3110,
+        dbPort: 54339,
+        home: path.join(tempRoot, ".paperclip-worktrees"),
+      });
 
       expect(fs.existsSync(path.join(worktreePath, ".git"))).toBe(true);
       expect(fs.existsSync(path.join(worktreePath, ".paperclip", "config.json"))).toBe(true);
       expect(fs.existsSync(path.join(worktreePath, ".paperclip", ".env"))).toBe(true);
     } finally {
+      restoreGitMock?.();
       process.chdir(originalCwd);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
@@ -624,10 +685,12 @@ describe("worktree helpers", () => {
     const repoRoot = path.join(tempRoot, "repo");
     const fakeHome = path.join(tempRoot, "home");
     const originalCwd = process.cwd();
+    let restoreGitMock: (() => void) | null = null;
 
     try {
       fs.mkdirSync(repoRoot, { recursive: true });
       fs.mkdirSync(fakeHome, { recursive: true });
+      applyHomeDirEnv(fakeHome);
       execFileSync("git", ["init"], { cwd: repoRoot, stdio: "ignore" });
       execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: repoRoot, stdio: "ignore" });
       execFileSync("git", ["config", "user.name", "Test User"], { cwd: repoRoot, stdio: "ignore" });
@@ -636,15 +699,19 @@ describe("worktree helpers", () => {
       execFileSync("git", ["commit", "-m", "Initial commit"], { cwd: repoRoot, stdio: "ignore" });
 
       process.chdir(repoRoot);
+      restoreGitMock = mockGitWorktreeCreate(repoRoot, path.join(fakeHome, "paperclip-make-fail"));
+      pnpmInstallMockState.mode = "fail";
 
       await expect(
-        runCliWorktreeCommand(
-          repoRoot,
-          ["worktree:make", "paperclip-make-fail", "--no-seed", "--home", path.join(tempRoot, ".paperclip-worktrees")],
-          fakeHome,
-        ),
+        worktreeMakeCommand("paperclip-make-fail", {
+          seed: false,
+          serverPort: 3110,
+          dbPort: 54339,
+          home: path.join(tempRoot, ".paperclip-worktrees"),
+        }),
       ).rejects.toThrow(/Failed to install dependencies/);
     } finally {
+      restoreGitMock?.();
       process.chdir(originalCwd);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
