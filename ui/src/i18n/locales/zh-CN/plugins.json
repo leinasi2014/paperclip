@@ -1,0 +1,83 @@
+{
+  "breadcrumbs": {
+    "company": "公司",
+    "settings": "设置",
+    "plugins": "插件"
+  },
+  "loading": "正在加载插件…",
+  "error": "加载插件失败。",
+  "title": "插件管理器",
+  "actions": {
+    "installPlugin": "安装插件",
+    "install": "安装",
+    "installing": "安装中…",
+    "uninstalling": "卸载中…",
+    "cancel": "取消",
+    "openSettings": "打开设置",
+    "review": "查看",
+    "enable": "启用",
+    "disable": "停用",
+    "configure": "配置",
+    "uninstall": "卸载",
+    "viewFullError": "查看完整错误",
+    "close": "关闭",
+    "installExample": "安装示例"
+  },
+  "dialogs": {
+    "install": {
+      "title": "安装插件",
+      "description": "输入你想安装的插件 npm 包名。",
+      "packageName": "npm 包名"
+    },
+    "uninstall": {
+      "title": "卸载插件",
+      "description": "确定要卸载 {{name}} 吗？此操作无法撤销。"
+    },
+    "errorDetails": {
+      "title": "错误详情",
+      "description": "{{name}} 进入了错误状态。",
+      "whatErrored": "出错项",
+      "fullError": "完整错误输出",
+      "noStoredError": "没有保存的错误信息。",
+      "noErrorSummary": "没有可用的错误摘要。"
+    }
+  },
+  "banner": {
+    "alphaTitle": "插件仍处于 Alpha 阶段。",
+    "alphaDescription": "插件运行时和 API 仍在变化。功能稳定前可能会出现破坏性变更。"
+  },
+  "sections": {
+    "available": "可用插件",
+    "installed": "已安装插件"
+  },
+  "states": {
+    "loadingExamples": "正在加载内置示例…",
+    "failedExamples": "加载内置示例失败。",
+    "noExamples": "当前检出中没有找到内置示例插件。",
+    "noPlugins": "尚未安装插件",
+    "noPluginsDescription": "安装插件以扩展功能。",
+    "notInstalled": "未安装",
+    "example": "示例",
+    "noDescription": "未提供描述。",
+    "pluginError": "插件错误",
+    "installed": "已安装",
+    "disabled": "已停用",
+    "upgrade_pending": "等待升级",
+    "uninstalled": "已卸载",
+    "ready": "就绪",
+    "error": "错误"
+  },
+  "toasts": {
+    "installSucceeded": "插件安装成功",
+    "installFailed": "安装插件失败",
+    "uninstallSucceeded": "插件卸载成功",
+    "uninstallFailed": "卸载插件失败",
+    "enableSucceeded": "插件已启用",
+    "enableFailed": "启用插件失败",
+    "disableSucceeded": "插件已停用",
+    "disableFailed": "停用插件失败"
+  },
+  "labels": {
+    "plugin": "插件"
+  }
+}

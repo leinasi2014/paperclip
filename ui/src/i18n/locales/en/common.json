@@ -1,0 +1,239 @@
+{
+  "loading": "Loading...",
+  "skipToMainContent": "Skip to Main Content",
+  "language": {
+    "en": "EN",
+    "zhCN": "中文",
+    "switcher": "Language switcher"
+  },
+  "theme": {
+    "light": "light",
+    "dark": "dark",
+    "switchToMode": "Switch to {{mode}} mode"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "inbox": "Inbox",
+    "issues": "Issues",
+    "routines": "Routines",
+    "goals": "Goals",
+    "org": "Org",
+    "skills": "Skills",
+    "costs": "Costs",
+    "activity": "Activity",
+    "settings": "Settings"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "newIssue": "New Issue",
+    "newCompany": "New Company"
+  },
+  "company": {
+    "selectCompany": "Select company",
+    "createFirstTitle": "Create your first company",
+    "createFirstDescription": "Get started by creating a company."
+  },
+  "bootstrap": {
+    "title": "Instance setup required",
+    "activeInviteDescription": "No instance admin exists yet. A bootstrap invite is already active. Check your Paperclip startup logs for the first admin invite URL, or run this command to rotate it:",
+    "noAdminDescription": "No instance admin exists yet. Run this command in your Paperclip environment to generate the first admin invite URL:"
+  },
+  "onboarding": {
+    "route": {
+      "title": {
+        "addAnotherAgent": "Add another agent to {{companyName}}",
+        "createAnotherCompany": "Create another company",
+        "createFirstCompany": "Create your first company"
+      },
+      "description": {
+        "addAnotherAgent": "Run onboarding again to add an agent and a starter task for this company.",
+        "createAnotherCompany": "Run onboarding again to create another company and seed its first agent.",
+        "createFirstCompany": "Get started by creating a company and your first agent."
+      },
+      "actions": {
+        "addAgent": "Add Agent",
+        "start": "Start Onboarding"
+      }
+    },
+    "wizard": {
+      "close": "Close",
+      "steps": {
+        "company": "Company",
+        "agent": "Agent",
+        "task": "Task",
+        "launch": "Launch"
+      },
+      "navigation": {
+        "back": "Back",
+        "next": "Next",
+        "creating": "Creating...",
+        "createAndOpenIssue": "Create & Open Issue"
+      },
+      "company": {
+        "title": "Name your company",
+        "description": "This is the organization your agents will work for.",
+        "nameLabel": "Company name",
+        "namePlaceholder": "Acme Corp",
+        "goalLabel": "Mission / goal (optional)",
+        "goalPlaceholder": "What is this company trying to achieve?"
+      },
+      "agent": {
+        "title": "Create your first agent",
+        "description": "Choose how this agent will run tasks.",
+        "nameLabel": "Agent name",
+        "namePlaceholder": "CEO",
+        "adapterTypeLabel": "Adapter type",
+        "moreAdapterTypes": "More Agent Adapter Types",
+        "modelLabel": "Model",
+        "selectModelRequired": "Select model (required)",
+        "defaultModel": "Default",
+        "searchModelsPlaceholder": "Search models...",
+        "noModelsDiscovered": "No models discovered.",
+        "environmentCheckTitle": "Adapter environment check",
+        "environmentCheckDescription": "Runs a live probe that asks the adapter CLI to respond with hello.",
+        "environmentPassed": "Passed",
+        "recommended": "Recommended",
+        "comingSoon": "Coming soon",
+        "testNow": "Test now",
+        "testing": "Testing...",
+        "unsetAnthropicApiKey": "Unset ANTHROPIC_API_KEY",
+        "retrying": "Retrying...",
+        "suggestUnsetAnthropicApiKey": "Claude failed while ANTHROPIC_API_KEY is set. You can clear it in this CEO adapter config and retry the probe.",
+        "manualDebugTitle": "Manual debug",
+        "manualPromptLabel": "Prompt:",
+        "manualPromptValue": "Respond with hello.",
+        "loginRequired": "If login is required, run claude login and retry.",
+        "gatewayUrlLabel": "Gateway URL",
+        "webhookUrlLabel": "Webhook URL",
+        "gatewayPlaceholder": "ws://127.0.0.1:18789",
+        "webhookPlaceholder": "https://...",
+        "adapters": {
+          "claudeCode": "Claude Code",
+          "codex": "Codex",
+          "geminiCli": "Gemini CLI",
+          "opencode": "OpenCode",
+          "pi": "Pi",
+          "cursor": "Cursor",
+          "hermes": "Hermes Agent",
+          "openclawGateway": "OpenClaw Gateway"
+        },
+        "adapterDescriptions": {
+          "localClaude": "Local Claude agent",
+          "localCodex": "Local Codex agent",
+          "localGemini": "Local Gemini agent",
+          "localMultiProvider": "Local multi-provider agent",
+          "localPi": "Local Pi agent",
+          "localCursor": "Local Cursor agent",
+          "appConfiguredOpenClaw": "Configure OpenClaw within the App",
+          "gatewayProtocol": "Invoke OpenClaw via gateway protocol"
+        }
+      },
+      "task": {
+        "title": "Give it something to do",
+        "description": "Give your agent a small task to start with - a bug fix, a research question, writing a script.",
+        "titleLabel": "Task title",
+        "titlePlaceholder": "e.g. Research competitor pricing",
+        "descriptionLabel": "Description (optional)",
+        "descriptionPlaceholder": "Add more detail about what the agent should do...",
+        "defaultTitle": "Hire your first engineer and create a hiring plan",
+        "defaultDescription": "You are the CEO. You set the direction for the company.\n\n- hire a founding engineer\n- write a hiring plan\n- break the roadmap into concrete tasks and start delegating work"
+      },
+      "launch": {
+        "title": "Ready to launch",
+        "description": "Everything is set up. Launching now will create the starter task, wake the agent, and open the issue.",
+        "summaryCompany": "Company",
+        "summaryTask": "Task"
+      },
+      "statuses": {
+        "passed": "Passed",
+        "warnings": "Warnings",
+        "failed": "Failed"
+      },
+      "errors": {
+        "selectCompanyBeforeTesting": "Create or select a company before testing adapter environment.",
+        "adapterEnvironmentTestFailed": "Adapter environment test failed",
+        "retryUnsetStillFailing": "Retried with ANTHROPIC_API_KEY unset in adapter config, but the environment test is still failing.",
+        "failedToUnsetAndRetry": "Failed to unset ANTHROPIC_API_KEY and retry."
+      }
+    }
+  },
+  "layout": {
+    "closeSidebar": "Close sidebar",
+    "documentation": "Documentation"
+  },
+  "sidebar": {
+    "sections": {
+      "work": "Work",
+      "company": "Company"
+    },
+    "beta": "Beta"
+  },
+  "errors": {
+    "failedToLoadAppState": "Failed to load app state"
+  },
+  "instanceSettings": {
+    "title": "Instance Settings",
+    "general": "General",
+    "heartbeats": "Heartbeats",
+    "experimental": "Experimental",
+    "plugins": "Plugins"
+  },
+  "status": {
+    "active": "Active",
+    "paused": "Paused",
+    "running": "Running",
+    "error": "Error",
+    "pending_approval": "Pending approval",
+    "terminated": "Terminated",
+    "backlog": "Backlog",
+    "todo": "To do",
+    "in_progress": "In progress",
+    "in_review": "In review",
+    "done": "Done",
+    "blocked": "Blocked",
+    "cancelled": "Cancelled",
+    "planned": "Planned",
+    "completed": "Completed",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "idle": "Idle",
+    "achieved": "Achieved",
+    "revision_requested": "Revision requested",
+    "queued": "Queued",
+    "timed_out": "Timed out",
+    "archived": "Archived"
+  },
+  "commandPalette": {
+    "searchPlaceholder": "Search issues, agents, projects...",
+    "empty": "No results found.",
+    "groups": {
+      "actions": "Actions",
+      "pages": "Pages",
+      "issues": "Issues",
+      "agents": "Agents",
+      "projects": "Projects"
+    },
+    "actions": {
+      "createIssue": "Create new issue",
+      "createAgent": "Create new agent",
+      "createProject": "Create new project"
+    },
+    "pages": {
+      "dashboard": "Dashboard",
+      "inbox": "Inbox",
+      "issues": "Issues",
+      "projects": "Projects",
+      "goals": "Goals",
+      "agents": "Agents",
+      "costs": "Costs",
+      "activity": "Activity"
+    },
+    "shortcuts": {
+      "createIssue": "C"
+    }
+  }
+}

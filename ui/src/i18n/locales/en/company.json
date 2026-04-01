@@ -1,0 +1,260 @@
+{
+  "settings": {
+    "breadcrumbs": {
+      "company": "Company",
+      "settings": "Settings"
+    },
+    "emptyState": "No company selected. Select a company from the switcher above.",
+    "title": "Company Settings",
+    "sections": {
+      "general": "General",
+      "appearance": "Appearance",
+      "hiring": "Hiring",
+      "invites": "Invites",
+      "packages": "Company Packages",
+      "dangerZone": "Danger Zone"
+    },
+    "fields": {
+      "companyName": "Company name",
+      "companyNameHint": "The display name for your company.",
+      "description": "Description",
+      "descriptionHint": "Optional description shown in the company profile.",
+      "descriptionPlaceholder": "Optional company description",
+      "logo": "Logo",
+      "logoHint": "Upload a PNG, JPEG, WEBP, GIF, or SVG logo image.",
+      "brandColor": "Brand color",
+      "brandColorHint": "Sets the hue for the company icon. Leave empty for auto-generated color.",
+      "brandColorPlaceholder": "Auto",
+      "requireBoardApproval": "Require board approval for new hires",
+      "requireBoardApprovalHint": "New agent hires stay pending until approved by board."
+    },
+    "invites": {
+      "description": "Generate an OpenClaw agent invite snippet.",
+      "hint": "Creates a short-lived OpenClaw agent invite and renders a copy-ready prompt.",
+      "generate": "Generate OpenClaw Invite Prompt",
+      "generating": "Generating...",
+      "title": "OpenClaw Invite Prompt",
+      "copied": "Copied",
+      "copySnippet": "Copy snippet",
+      "copiedSnippet": "Copied snippet"
+    },
+    "packages": {
+      "description": "Import and export have moved to dedicated pages accessible from the Org Chart header.",
+      "orgChart": "Org Chart",
+      "export": "Export",
+      "import": "Import"
+    },
+    "dangerZone": {
+      "description": "Archive this company to hide it from the sidebar. This persists in the database.",
+      "archive": "Archive company",
+      "archiving": "Archiving...",
+      "alreadyArchived": "Already archived",
+      "confirm": "Archive company \"{{name}}\"? It will be hidden from the sidebar."
+    },
+    "actions": {
+      "removeLogo": "Remove logo",
+      "removingLogo": "Removing...",
+      "clear": "Clear",
+      "saveChanges": "Save changes",
+      "saving": "Saving..."
+    },
+    "states": {
+      "saved": "Saved",
+      "uploadingLogo": "Uploading logo..."
+    },
+    "errors": {
+      "createInvite": "Failed to create invite",
+      "logoUploadFailed": "Logo upload failed",
+      "failedToSave": "Failed to save",
+      "failedToArchive": "Failed to archive company"
+    }
+  },
+  "import": {
+    "breadcrumbs": {
+      "orgChart": "Org Chart",
+      "import": "Import"
+    },
+    "emptyState": "Select a company to import into.",
+    "title": "Import source",
+    "description": "Choose a GitHub repo or upload a local Paperclip zip package.",
+    "sourceModes": {
+      "github": "GitHub repo",
+      "local": "Local zip"
+    },
+    "local": {
+      "chooseZip": "Choose zip",
+      "summary_one": "{{name}} with {{count}} file",
+      "summary_other": "{{name}} with {{count}} files",
+      "help": "Upload a .zip exported directly from Paperclip. Re-zipped archives created by Finder, Explorer, or other zip tools may not import correctly."
+    },
+    "fields": {
+      "githubUrl": "GitHub URL",
+      "githubUrlHint": "Repo tree path or blob URL to COMPANY.md (e.g. github.com/owner/repo/tree/main/company).",
+      "githubUrlPlaceholder": "https://github.com/owner/repo/tree/main/company",
+      "target": "Target",
+      "targetHint": "Import into this company or create a new one.",
+      "createNewCompany": "Create new company",
+      "existingCompany": "Existing company: {{name}}",
+      "newCompanyName": "New company name",
+      "newCompanyNameHint": "Optional override. Leave blank to use the package name.",
+      "newCompanyNamePlaceholder": "Imported Company",
+      "collisionStrategy": "Collision strategy",
+      "collisionStrategyHint": "Board imports can rename, skip, or replace matching company content.",
+      "collisionRename": "Rename on conflict",
+      "collisionSkip": "Skip on conflict",
+      "collisionReplace": "Replace existing"
+    },
+    "actions": {
+      "preview": "Preview import",
+      "previewing": "Previewing...",
+      "importFiles_one": "Import {{count}} file",
+      "importFiles_other": "Import {{count}} files",
+      "importing": "Importing..."
+    },
+    "preview": {
+      "title": "Import preview",
+      "selected_one": "{{count}} / {{total}} file selected",
+      "selected_other": "{{count}} / {{total}} files selected",
+      "conflicts_one": "{{count}} conflict",
+      "conflicts_other": "{{count}} conflicts",
+      "errors_one": "{{count}} error",
+      "errors_other": "{{count}} errors",
+      "packageFiles": "Package files"
+    },
+    "toasts": {
+      "previewFailed": "Preview failed",
+      "previewFailedBody": "Failed to preview import.",
+      "importComplete": "Import complete",
+      "importCompleteBody_one": "{{name}}: {{count}} agent processed.",
+      "importCompleteBody_other": "{{name}}: {{count}} agents processed.",
+      "importFailed": "Import failed",
+      "importFailedBody": "Failed to apply import.",
+      "packageReadFailed": "Package read failed",
+      "packageReadFailedBody": "Failed to read folder."
+    },
+    "errors": {
+      "noSourceConfigured": "No source configured."
+    }
+  },
+  "export": {
+    "breadcrumbs": {
+      "orgChart": "Org Chart",
+      "export": "Export"
+    },
+    "emptyState": {
+      "selectCompany": "Select a company to export.",
+      "loading": "Loading export data..."
+    },
+    "header": {
+      "title": "{{name}} export",
+      "selected_one": "{{count}} / {{total}} file selected",
+      "selected_other": "{{count}} / {{total}} files selected",
+      "warnings_one": "{{count}} warning",
+      "warnings_other": "{{count}} warnings"
+    },
+    "actions": {
+      "exportFiles_one": "Export {{count}} file",
+      "exportFiles_other": "Export {{count}} files",
+      "building": "Building export..."
+    },
+    "packageFiles": "Package files",
+    "searchPlaceholder": "Search files...",
+    "showMoreIssues": "Show more issues ({{visible}} of {{total}})",
+    "toasts": {
+      "exportFailed": "Export failed",
+      "exportFailedBody": "Failed to load export data.",
+      "exportDownloaded": "Export downloaded",
+      "exportDownloadedBody_one": "{{count}} file exported as {{name}}.zip",
+      "exportDownloadedBody_other": "{{count}} files exported as {{name}}.zip",
+      "buildFailedBody": "Failed to build export package."
+    }
+  },
+  "skills": {
+    "breadcrumbs": {
+      "skills": "Skills",
+      "detail": "Detail"
+    },
+    "emptyState": {
+      "selectCompany": "Select a company to manage skills.",
+      "selectSkill": "Select a skill to inspect its files.",
+      "selectFile": "Select a file to inspect."
+    },
+    "title": "Skills",
+    "available_one": "{{count}} available",
+    "available_other": "{{count}} available",
+    "actions": {
+      "add": "Add",
+      "edit": "Edit",
+      "stopEditing": "Stop editing",
+      "save": "Save",
+      "saving": "Saving...",
+      "preview": "Preview",
+      "code": "Code",
+      "checkUpdates": "Check updates",
+      "installUpdate": "Install update",
+      "upToDate": "Up to date"
+    },
+    "placeholders": {
+      "filter": "Filter skills",
+      "addSource": "Paste path, GitHub URL, or skills.sh command",
+      "skillName": "Skill name",
+      "shortname": "optional-shortname",
+      "description": "Short description"
+    },
+    "addSourceDialog": {
+      "title": "Add a skill source",
+      "description": "Paste a local path, GitHub URL, or `skills.sh` command into the field first.",
+      "browseSkills": "Browse skills.sh",
+      "browseSkillsDescription": "Find install commands and paste one here.",
+      "searchGithub": "Search GitHub",
+      "searchGithubDescription": "Look for repositories with `SKILL.md`, then paste the repo URL here."
+    },
+    "scan": {
+      "title": "Scan project workspaces for skills",
+      "scanning": "Scanning project workspaces for skills...",
+      "refreshing": "Refreshing skills list...",
+      "complete": "Project skill scan complete",
+      "conflicts": "Skill conflicts found",
+      "warnings": "Scan warnings",
+      "failed": "Project skill scan failed"
+    },
+    "create": {
+      "createSkill": "Create skill",
+      "creating": "Creating...",
+      "created": "Skill created",
+      "createdBody": "{{name}} is now editable in the Paperclip workspace.",
+      "failed": "Skill creation failed"
+    },
+    "import": {
+      "imported": "Skills imported",
+      "importedBody_one": "{{count}} skill added.",
+      "importedBody_other": "{{count}} skills added.",
+      "warnings": "Import warnings",
+      "failed": "Skill import failed",
+      "failedBody": "Failed to import skill source."
+    },
+    "save": {
+      "saved": "Skill saved",
+      "failed": "Save failed",
+      "failedBody": "Failed to save skill file."
+    },
+    "update": {
+      "updated": "Skill updated",
+      "failed": "Update failed",
+      "failedBody": "Failed to install skill update."
+    },
+    "labels": {
+      "source": "Source",
+      "pin": "Pin",
+      "key": "Key",
+      "mode": "Mode",
+      "usedBy": "Used by",
+      "noAgentsAttached": "No agents attached",
+      "editable": "Editable",
+      "readOnly": "Read only",
+      "packageFiles": "Package files",
+      "copiedPathToWorkspace": "Copied path to workspace",
+      "untracked": "untracked"
+    }
+  }
+}

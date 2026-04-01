@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useCallback } from "react";
 import { useLocation, useSearchParams } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { issuesApi } from "../api/issues";
 import { agentsApi } from "../api/agents";
 import { projectsApi } from "../api/projects";
@@ -14,6 +15,7 @@ import { IssuesList } from "../components/IssuesList";
 import { CircleDot } from "lucide-react";
 
 export function Issues() {
+  const { t } = useTranslation("issues");
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const location = useLocation();
@@ -68,16 +70,16 @@ export function Issues() {
   const issueLinkState = useMemo(
     () =>
       createIssueDetailLocationState(
-        "Issues",
+        t("breadcrumbs.issues", { defaultValue: "Issues" }),
         `${location.pathname}${location.search}${location.hash}`,
         "issues",
       ),
-    [location.pathname, location.search, location.hash],
+    [location.pathname, location.search, location.hash, t],
   );
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Issues" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("breadcrumbs.issues", { defaultValue: "Issues" }) }]);
+  }, [setBreadcrumbs, t]);
 
   const { data: issues, isLoading, error } = useQuery({
     queryKey: [...queryKeys.issues.list(selectedCompanyId!), "participant-agent", participantAgentId ?? "__all__"],
@@ -94,7 +96,12 @@ export function Issues() {
   });
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={CircleDot} message="Select a company to view issues." />;
+    return (
+      <EmptyState
+        icon={CircleDot}
+        message={t("empty.selectCompany", { defaultValue: "Select a company to view issues." })}
+      />
+    );
   }
 
   return (

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Issue } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { createIssueDetailPath } from "../lib/issueDetailBreadcrumb";
 import { cn } from "../lib/utils";
 import { StatusIcon } from "./StatusIcon";
@@ -41,11 +42,14 @@ export function IssueRow({
   archiveDisabled,
   className,
 }: IssueRowProps) {
+  const { t } = useTranslation("issues");
   const issuePathId = issue.identifier ?? issue.id;
   const identifier = issue.identifier ?? issue.id.slice(0, 8);
   const showUnreadSlot = unreadState !== null;
   const showUnreadDot = unreadState === "visible" || unreadState === "fading";
   const selectedStatusClass = selected ? "!text-muted-foreground !border-muted-foreground" : undefined;
+  const markAsReadLabel = t("row.actions.markAsRead", { defaultValue: "Mark as read" });
+  const dismissFromInboxLabel = t("row.actions.dismissFromInbox", { defaultValue: "Dismiss from inbox" });
 
   return (
     <Link
@@ -118,7 +122,7 @@ export function IssueRow({
                 "inline-flex h-4 w-4 items-center justify-center rounded-full transition-colors",
                 selected ? "hover:bg-muted/80" : "hover:bg-blue-500/20",
               )}
-              aria-label="Mark as read"
+              aria-label={markAsReadLabel}
             >
               <span
                 className={cn(
@@ -144,7 +148,7 @@ export function IssueRow({
               }}
               disabled={archiveDisabled}
               className="inline-flex h-4 w-4 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100 disabled:pointer-events-none disabled:opacity-30"
-              aria-label="Dismiss from inbox"
+              aria-label={dismissFromInboxLabel}
             >
               <X className="h-3.5 w-3.5" />
             </button>

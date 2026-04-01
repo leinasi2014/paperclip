@@ -1,0 +1,58 @@
+{
+  "closeDialog": {
+    "actions": {
+      "retryClose": "Retry close",
+      "closeWorkspace": "Close workspace",
+      "cancel": "Cancel"
+    },
+    "toasts": {
+      "retried": "Workspace close retried",
+      "closed": "Workspace closed",
+      "failed": "Failed to close workspace",
+      "unknownError": "Unknown error"
+    },
+    "description": "Archive {{name}} and clean up any owned workspace artifacts. Paperclip keeps the workspace record and issue history, but removes it from active workspace views.",
+    "loading": "Checking whether this workspace is safe to close...",
+    "readinessError": "Failed to inspect workspace close readiness.",
+    "readiness": {
+      "blocked": "Close is blocked",
+      "readyWithWarnings": "Close is allowed with warnings",
+      "ready": "Close is ready",
+      "sharedWorkspace": "This is a shared workspace session. Archiving it removes this session record but keeps the underlying project workspace.",
+      "independentWorkspace": "This execution workspace has its own checkout path and can be archived independently.",
+      "primaryWorkspace": "This execution workspace currently points at the project's primary workspace path.",
+      "disposableWorkspace": "This workspace is disposable and can be archived."
+    },
+    "sections": {
+      "blockingIssues": "Blocking issues",
+      "blockingReasons": "Blocking reasons",
+      "warnings": "Warnings",
+      "gitStatus": "Git status",
+      "otherLinkedIssues": "Other linked issues",
+      "runtimeServices": "Attached runtime services",
+      "cleanupActions": "Cleanup actions"
+    },
+    "git": {
+      "branch": "Branch",
+      "baseRef": "Base ref",
+      "mergedIntoBase": "Merged into base",
+      "aheadBehind": "Ahead / behind",
+      "dirtyTrackedFiles": "Dirty tracked files",
+      "untrackedFiles": "Untracked files",
+      "unknown": "Unknown",
+      "notSet": "Not set",
+      "yes": "Yes",
+      "no": "No",
+      "repoRoot": "Repo root",
+      "workspacePath": "Workspace path"
+    },
+    "runtime": {
+      "noAdditionalDetails": "No additional details"
+    },
+    "currentStatus": {
+      "cleanupFailed": "Cleanup previously failed on this workspace. Retrying close will rerun the cleanup flow and update the workspace status if it succeeds.",
+      "archived": "This workspace is already archived."
+    },
+    "lastChecked": "Last checked {{time}}"
+  }
+}

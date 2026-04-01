@@ -1,0 +1,146 @@
+{
+  "breadcrumbs": {
+    "issues": "议题"
+  },
+  "empty": {
+    "selectCompany": "选择一家公司以查看议题。"
+  },
+  "row": {
+    "actions": {
+      "markAsRead": "标记为已读",
+      "dismissFromInbox": "从收件箱中隐藏"
+    }
+  },
+  "shared": {
+    "me": "我",
+    "issue": "议题",
+    "none": "无",
+    "document": "文档"
+  },
+  "priority": {
+    "critical": "紧急",
+    "high": "高",
+    "medium": "中",
+    "low": "低"
+  },
+  "toasts": {
+    "commentFailed": {
+      "title": "评论失败",
+      "body": "无法发布评论"
+    },
+    "interruptRequested": {
+      "title": "已请求中断",
+      "body": "当前运行正在停止，排队中的评论随后会继续。"
+    },
+    "interruptFailed": {
+      "title": "中断失败",
+      "body": "无法中断当前运行"
+    },
+    "copiedToClipboard": {
+      "title": "已复制到剪贴板"
+    }
+  },
+  "errors": {
+    "noCompanySelected": "未选择公司"
+  },
+  "banner": {
+    "hidden": "此议题已隐藏"
+  },
+  "badges": {
+    "live": "实时",
+    "routine": "例行任务"
+  },
+  "project": {
+    "none": "无项目"
+  },
+  "actions": {
+    "copyAsMarkdown": "以 Markdown 复制议题",
+    "properties": "属性",
+    "showProperties": "显示属性",
+    "hideIssue": "隐藏此议题"
+  },
+  "fields": {
+    "description": {
+      "placeholder": "添加描述..."
+    }
+  },
+  "attachments": {
+    "title": "附件",
+    "fallbackAlt": "附件",
+    "actions": {
+      "uploading": "上传中...",
+      "uploadAttachment": "上传附件",
+      "upload": "上传",
+      "deleteAttachment": "删除附件"
+    },
+    "errors": {
+      "uploadFailed": "上传失败",
+      "documentImportFailed": "导入文档失败",
+      "deleteFailed": "删除失败"
+    }
+  },
+  "tabs": {
+    "comments": "评论",
+    "subissues": "子议题",
+    "activity": "活动"
+  },
+  "subissues": {
+    "empty": "暂无子议题。"
+  },
+  "activity": {
+    "empty": "暂无活动。",
+    "actors": {
+      "system": "系统",
+      "board": "董事会",
+      "unknown": "未知"
+    },
+    "actions": {
+      "issue.created": "创建了议题",
+      "issue.updated": "更新了议题",
+      "issue.checked_out": "签出了议题",
+      "issue.released": "释放了议题",
+      "issue.comment_added": "添加了评论",
+      "issue.attachment_added": "添加了附件",
+      "issue.attachment_removed": "移除了附件",
+      "issue.document_created": "创建了文档",
+      "issue.document_updated": "更新了文档",
+      "issue.document_deleted": "删除了文档",
+      "issue.deleted": "删除了议题",
+      "agent.created": "创建了代理",
+      "agent.updated": "更新了代理",
+      "agent.paused": "暂停了代理",
+      "agent.resumed": "恢复了代理",
+      "agent.terminated": "终止了代理",
+      "heartbeat.invoked": "触发了心跳",
+      "heartbeat.cancelled": "取消了心跳",
+      "approval.created": "发起了审批请求",
+      "approval.approved": "批准了请求",
+      "approval.rejected": "拒绝了请求"
+    },
+    "messages": {
+      "issueAssigned": "分配了议题",
+      "issueUnassigned": "取消了议题分配",
+      "titleUpdated": "更新了标题",
+      "descriptionUpdated": "更新了描述",
+      "statusChanged": "将状态改为 {{to}}",
+      "statusChangedFromTo": "将状态从 {{from}} 改为 {{to}}",
+      "priorityChanged": "将优先级改为 {{to}}",
+      "priorityChangedFromTo": "将优先级从 {{from}} 改为 {{to}}"
+    },
+    "costSummary": {
+      "title": "成本汇总",
+      "empty": "暂无成本数据。",
+      "tokens": "令牌 {{value}}",
+      "tokensBreakdown": "（输入 {{input}}，输出 {{output}}）",
+      "tokensBreakdownWithCache": "（输入 {{input}}，输出 {{output}}，缓存 {{cached}}）"
+    }
+  },
+  "approvals": {
+    "linked": "关联审批（{{count}}）",
+    "types": {
+      "hire_agent": "招聘代理",
+      "approve_ceo_strategy": "批准 CEO 战略",
+      "budget_override_required": "需要预算覆盖"
+    }
+  }
+}

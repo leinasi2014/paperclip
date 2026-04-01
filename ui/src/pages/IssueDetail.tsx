@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent 
 import { pickTextColorForPillBg } from "@/lib/color-contrast";
 import { Link, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { issuesApi } from "../api/issues";
 import { activityApi } from "../api/activity";
 import { heartbeatsApi } from "../api/heartbeats";
@@ -75,7 +76,7 @@ type IssueDetailComment = (IssueComment | OptimisticIssueComment) & {
   queueTargetRunId?: string | null;
 };
 
-const ACTION_LABELS: Record<string, string> = {
+const DEFAULT_ACTION_LABELS: Record<string, string> = {
   "issue.created": "created the issue",
   "issue.updated": "updated the issue",
   "issue.checked_out": "checked out the issue",
@@ -102,6 +103,10 @@ const ACTION_LABELS: Record<string, string> = {
 function humanizeValue(value: unknown): string {
   if (typeof value !== "string") return String(value ?? "none");
   return value.replace(/_/g, " ");
+}
+
+function humanizeLabel(value: string): string {
+  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -153,7 +158,25 @@ function titleizeFilename(input: string) {
     .join(" ");
 }
 
-function formatAction(action: string, details?: Record<string, unknown> | null): string {
+function formatAction(
+  action: string,
+  details: Record<string, unknown> | null | undefined,
+  labels: {
+    none: string;
+    statusLabel: (value: string) => string;
+    priorityLabel: (value: string) => string;
+    actionLabel: (value: string) => string;
+    issueAssigned: string;
+    issueUnassigned: string;
+    titleUpdated: string;
+    descriptionUpdated: string;
+    statusChanged: string;
+    statusChangedFromTo: string;
+    priorityChanged: string;
+    priorityChangedFromTo: string;
+    documentLabel: string;
+  },
+): string {
   if (action === "issue.updated" && details) {
     const previous = (details._previous ?? {}) as Record<string, unknown>;
     const parts: string[] = [];
@@ -162,27 +185,31 @@ function formatAction(action: string, details?: Record<string, unknown> | null):
       const from = previous.status;
       parts.push(
         from
-          ? `changed the status from ${humanizeValue(from)} to ${humanizeValue(details.status)}`
-          : `changed the status to ${humanizeValue(details.status)}`
+          ? labels.statusChangedFromTo
+              .replace("{{from}}", labels.statusLabel(String(from)))
+              .replace("{{to}}", labels.statusLabel(String(details.status)))
+          : labels.statusChanged.replace("{{to}}", labels.statusLabel(String(details.status)))
       );
     }
     if (details.priority !== undefined) {
       const from = previous.priority;
       parts.push(
         from
-          ? `changed the priority from ${humanizeValue(from)} to ${humanizeValue(details.priority)}`
-          : `changed the priority to ${humanizeValue(details.priority)}`
+          ? labels.priorityChangedFromTo
+              .replace("{{from}}", labels.priorityLabel(String(from)))
+              .replace("{{to}}", labels.priorityLabel(String(details.priority)))
+          : labels.priorityChanged.replace("{{to}}", labels.priorityLabel(String(details.priority)))
       );
     }
     if (details.assigneeAgentId !== undefined || details.assigneeUserId !== undefined) {
       parts.push(
         details.assigneeAgentId || details.assigneeUserId
-          ? "assigned the issue"
-          : "unassigned the issue",
+          ? labels.issueAssigned
+          : labels.issueUnassigned,
       );
     }
-    if (details.title !== undefined) parts.push("updated the title");
-    if (details.description !== undefined) parts.push("updated the description");
+    if (details.title !== undefined) parts.push(labels.titleUpdated);
+    if (details.description !== undefined) parts.push(labels.descriptionUpdated);
 
     if (parts.length > 0) return parts.join(", ");
   }
@@ -190,25 +217,39 @@ function formatAction(action: string, details?: Record<string, unknown> | null):
     (action === "issue.document_created" || action === "issue.document_updated" || action === "issue.document_deleted") &&
     details
   ) {
-    const key = typeof details.key === "string" ? details.key : "document";
+    const key = typeof details.key === "string" ? details.key : labels.documentLabel;
     const title = typeof details.title === "string" && details.title ? ` (${details.title})` : "";
-    return `${ACTION_LABELS[action] ?? action} ${key}${title}`;
+    return `${labels.actionLabel(action)} ${key}${title}`;
   }
-  return ACTION_LABELS[action] ?? action.replace(/[._]/g, " ");
+  return labels.actionLabel(action);
 }
 
-function ActorIdentity({ evt, agentMap }: { evt: ActivityEvent; agentMap: Map<string, Agent> }) {
+function ActorIdentity({
+  evt,
+  agentMap,
+  labels,
+}: {
+  evt: ActivityEvent;
+  agentMap: Map<string, Agent>;
+  labels: {
+    system: string;
+    board: string;
+    unknown: string;
+  };
+}) {
   const id = evt.actorId;
   if (evt.actorType === "agent") {
     const agent = agentMap.get(id);
     return <Identity name={agent?.name ?? id.slice(0, 8)} size="sm" />;
   }
-  if (evt.actorType === "system") return <Identity name="System" size="sm" />;
-  if (evt.actorType === "user") return <Identity name="Board" size="sm" />;
-  return <Identity name={id || "Unknown"} size="sm" />;
+  if (evt.actorType === "system") return <Identity name={labels.system} size="sm" />;
+  if (evt.actorType === "user") return <Identity name={labels.board} size="sm" />;
+  return <Identity name={id || labels.unknown} size="sm" />;
 }
 
 export function IssueDetail() {
+  const { t } = useTranslation("issues");
+  const { t: tCommon } = useTranslation("common");
   const { issueId } = useParams<{ issueId: string }>();
   const { selectedCompanyId } = useCompany();
   const { openPanel, closePanel, panelVisible, setPanelVisible } = usePanel();
@@ -229,6 +270,14 @@ export function IssueDetail() {
   const [optimisticComments, setOptimisticComments] = useState<OptimisticIssueComment[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const lastMarkedReadIssueIdRef = useRef<string | null>(null);
+  const statusLabel = (value: string) =>
+    tCommon(`status.${value}`, { defaultValue: humanizeValue(value) });
+  const priorityLabel = (value: string) =>
+    t(`priority.${value}`, { defaultValue: humanizeValue(value) });
+  const actionLabel = (value: string) =>
+    t(`activity.actions.${value}`, {
+      defaultValue: DEFAULT_ACTION_LABELS[value] ?? value.replace(/[._]/g, " "),
+    });
 
   const { data: issue, isLoading, error } = useQuery({
     queryKey: queryKeys.issues.detail(issueId!),
@@ -292,8 +341,14 @@ export function IssueDetail() {
     [activeRun, liveRuns],
   );
   const sourceBreadcrumb = useMemo(
-    () => readIssueDetailBreadcrumb(location.state, location.search) ?? { label: "Issues", href: "/issues" },
-    [location.state, location.search],
+    () => readIssueDetailBreadcrumb(location.state, location.search, {
+      issues: t("breadcrumbs.issues", { defaultValue: "Issues" }),
+      inbox: tCommon("navigation.inbox", { defaultValue: "Inbox" }),
+    }) ?? {
+      label: t("breadcrumbs.issues", { defaultValue: "Issues" }),
+      href: "/issues",
+    },
+    [location.state, location.search, t, tCommon],
   );
 
   // Filter out runs already shown by the live widget to avoid duplication
@@ -397,10 +452,10 @@ export function IssueDetail() {
       options.push({ id: `agent:${agent.id}`, label: agent.name });
     }
     if (currentUserId) {
-      options.push({ id: `user:${currentUserId}`, label: "Me" });
+      options.push({ id: `user:${currentUserId}`, label: t("shared.me", { defaultValue: "Me" }) });
     }
     return options;
-  }, [agents, currentUserId]);
+  }, [agents, currentUserId, t]);
 
   const actualAssigneeValue = useMemo(
     () => assigneeValueFromSelection(issue ?? {}),
@@ -605,8 +660,10 @@ export function IssueDetail() {
         queryClient.setQueryData(queryKeys.issues.detail(issueId!), context.previousIssue);
       }
       pushToast({
-        title: "Comment failed",
-        body: err instanceof Error ? err.message : "Unable to post comment",
+        title: t("toasts.commentFailed.title", { defaultValue: "Comment failed" }),
+        body: err instanceof Error
+          ? err.message
+          : t("toasts.commentFailed.body", { defaultValue: "Unable to post comment" }),
         tone: "error",
       });
     },
@@ -693,8 +750,10 @@ export function IssueDetail() {
         queryClient.setQueryData(queryKeys.issues.detail(issueId!), context.previousIssue);
       }
       pushToast({
-        title: "Comment failed",
-        body: err instanceof Error ? err.message : "Unable to post comment",
+        title: t("toasts.commentFailed.title", { defaultValue: "Comment failed" }),
+        body: err instanceof Error
+          ? err.message
+          : t("toasts.commentFailed.body", { defaultValue: "Unable to post comment" }),
         tone: "error",
       });
     },
@@ -709,15 +768,19 @@ export function IssueDetail() {
     onSuccess: () => {
       invalidateIssue();
       pushToast({
-        title: "Interrupt requested",
-        body: "The active run is stopping so queued comments can continue next.",
+        title: t("toasts.interruptRequested.title", { defaultValue: "Interrupt requested" }),
+        body: t("toasts.interruptRequested.body", {
+          defaultValue: "The active run is stopping so queued comments can continue next.",
+        }),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Interrupt failed",
-        body: err instanceof Error ? err.message : "Unable to interrupt the active run",
+        title: t("toasts.interruptFailed.title", { defaultValue: "Interrupt failed" }),
+        body: err instanceof Error
+          ? err.message
+          : t("toasts.interruptFailed.body", { defaultValue: "Unable to interrupt the active run" }),
         tone: "error",
       });
     },
@@ -725,7 +788,9 @@ export function IssueDetail() {
 
   const uploadAttachment = useMutation({
     mutationFn: async (file: File) => {
-      if (!selectedCompanyId) throw new Error("No company selected");
+      if (!selectedCompanyId) {
+        throw new Error(t("errors.noCompanySelected", { defaultValue: "No company selected" }));
+      }
       return issuesApi.uploadAttachment(selectedCompanyId, issueId!, file);
     },
     onSuccess: () => {
@@ -734,7 +799,9 @@ export function IssueDetail() {
       invalidateIssue();
     },
     onError: (err) => {
-      setAttachmentError(err instanceof Error ? err.message : "Upload failed");
+      setAttachmentError(
+        err instanceof Error ? err.message : t("attachments.errors.uploadFailed", { defaultValue: "Upload failed" }),
+      );
     },
   });
 
@@ -758,7 +825,11 @@ export function IssueDetail() {
       invalidateIssue();
     },
     onError: (err) => {
-      setAttachmentError(err instanceof Error ? err.message : "Document import failed");
+      setAttachmentError(
+        err instanceof Error
+          ? err.message
+          : t("attachments.errors.documentImportFailed", { defaultValue: "Document import failed" }),
+      );
     },
   });
 
@@ -770,17 +841,19 @@ export function IssueDetail() {
       invalidateIssue();
     },
     onError: (err) => {
-      setAttachmentError(err instanceof Error ? err.message : "Delete failed");
+      setAttachmentError(
+        err instanceof Error ? err.message : t("attachments.errors.deleteFailed", { defaultValue: "Delete failed" }),
+      );
     },
   });
 
   useEffect(() => {
-    const titleLabel = issue?.title ?? issueId ?? "Issue";
+    const titleLabel = issue?.title ?? issueId ?? t("shared.issue", { defaultValue: "Issue" });
     setBreadcrumbs([
       sourceBreadcrumb,
       { label: hasLiveRuns ? `🔵 ${titleLabel}` : titleLabel },
     ]);
-  }, [setBreadcrumbs, sourceBreadcrumb, issue, issueId, hasLiveRuns]);
+  }, [setBreadcrumbs, sourceBreadcrumb, issue, issueId, hasLiveRuns, t]);
 
   // Redirect to identifier-based URL if navigated via UUID
   useEffect(() => {
@@ -820,11 +893,20 @@ export function IssueDetail() {
     const md = `# ${issue.identifier}: ${title}\n\n${body}`.trimEnd();
     await navigator.clipboard.writeText(md);
     setCopied(true);
-    pushToast({ title: "Copied to clipboard", tone: "success" });
+    pushToast({
+      title: t("toasts.copiedToClipboard.title", { defaultValue: "Copied to clipboard" }),
+      tone: "success",
+    });
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading...</p>;
+  if (isLoading) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        {tCommon("loading", { defaultValue: "Loading..." })}
+      </p>
+    );
+  }
   if (error) return <p className="text-sm text-destructive">{error.message}</p>;
   if (!issue) return null;
 
@@ -883,10 +965,16 @@ export function IssueDetail() {
         )}
       >
         <Paperclip className="h-3.5 w-3.5 mr-1.5" />
-        {uploadAttachment.isPending || importMarkdownDocument.isPending ? "Uploading..." : (
+        {uploadAttachment.isPending || importMarkdownDocument.isPending ? t("attachments.actions.uploading", {
+          defaultValue: "Uploading...",
+        }) : (
           <>
-            <span className="hidden sm:inline">Upload attachment</span>
-            <span className="sm:hidden">Upload</span>
+            <span className="hidden sm:inline">
+              {t("attachments.actions.uploadAttachment", { defaultValue: "Upload attachment" })}
+            </span>
+            <span className="sm:hidden">
+              {t("attachments.actions.upload", { defaultValue: "Upload" })}
+            </span>
           </>
         )}
       </Button>
@@ -919,7 +1007,7 @@ export function IssueDetail() {
       {issue.hiddenAt && (
         <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           <EyeOff className="h-4 w-4 shrink-0" />
-          This issue is hidden
+          {t("banner.hidden", { defaultValue: "This issue is hidden" })}
         </div>
       )}
 
@@ -941,7 +1029,7 @@ export function IssueDetail() {
                 <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
               </span>
-              Live
+              {t("badges.live", { defaultValue: "Live" })}
             </span>
           )}
 
@@ -951,7 +1039,7 @@ export function IssueDetail() {
               className="inline-flex items-center gap-1 rounded-full bg-violet-500/10 border border-violet-500/30 px-2 py-0.5 text-[10px] font-medium text-violet-600 dark:text-violet-400 shrink-0 hover:bg-violet-500/20 transition-colors"
             >
               <Repeat className="h-3 w-3" />
-              Routine
+              {t("badges.routine", { defaultValue: "Routine" })}
             </Link>
           )}
 
@@ -966,7 +1054,7 @@ export function IssueDetail() {
           ) : (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground opacity-50 px-1 -mx-1 py-0.5">
               <Hexagon className="h-3 w-3 shrink-0" />
-              No project
+              {t("project.none", { defaultValue: "No project" })}
             </span>
           )}
 
@@ -996,7 +1084,7 @@ export function IssueDetail() {
               variant="ghost"
               size="icon-xs"
               onClick={copyIssueToClipboard}
-              title="Copy issue as markdown"
+              title={t("actions.copyAsMarkdown", { defaultValue: "Copy issue as markdown" })}
             >
               {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
             </Button>
@@ -1004,7 +1092,7 @@ export function IssueDetail() {
               variant="ghost"
               size="icon-xs"
               onClick={() => setMobilePropsOpen(true)}
-              title="Properties"
+              title={t("actions.properties", { defaultValue: "Properties" })}
             >
               <SlidersHorizontal className="h-4 w-4" />
             </Button>
@@ -1015,7 +1103,7 @@ export function IssueDetail() {
               variant="ghost"
               size="icon-xs"
               onClick={copyIssueToClipboard}
-              title="Copy issue as markdown"
+              title={t("actions.copyAsMarkdown", { defaultValue: "Copy issue as markdown" })}
             >
               {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
             </Button>
@@ -1027,7 +1115,7 @@ export function IssueDetail() {
                 panelVisible ? "opacity-0 pointer-events-none w-0 overflow-hidden" : "opacity-100",
               )}
               onClick={() => setPanelVisible(true)}
-              title="Show properties"
+              title={t("actions.showProperties", { defaultValue: "Show properties" })}
             >
               <SlidersHorizontal className="h-4 w-4" />
             </Button>
@@ -1050,7 +1138,7 @@ export function IssueDetail() {
                 }}
               >
                 <EyeOff className="h-3 w-3" />
-                Hide this Issue
+                {t("actions.hideIssue", { defaultValue: "Hide this Issue" })}
               </button>
             </PopoverContent>
             </Popover>
@@ -1069,7 +1157,7 @@ export function IssueDetail() {
           onSave={(description) => updateIssue.mutateAsync({ description })}
           as="p"
           className="text-[15px] leading-7 text-foreground"
-          placeholder="Add a description..."
+          placeholder={t("fields.description.placeholder", { defaultValue: "Add a description..." })}
           multiline
           mentions={mentionOptions}
           imageUploadHandler={async (file) => {
@@ -1151,7 +1239,9 @@ export function IssueDetail() {
         onDrop={(evt) => void handleAttachmentDrop(evt)}
       >
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-medium text-muted-foreground">Attachments</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">
+            {t("attachments.title", { defaultValue: "Attachments" })}
+          </h3>
           {attachmentUploadButton}
         </div>
 
@@ -1177,7 +1267,7 @@ export function IssueDetail() {
                   className="text-muted-foreground hover:text-destructive"
                   onClick={() => deleteAttachment.mutate(attachment.id)}
                   disabled={deleteAttachment.isPending}
-                  title="Delete attachment"
+                  title={t("attachments.actions.deleteAttachment", { defaultValue: "Delete attachment" })}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -1189,7 +1279,7 @@ export function IssueDetail() {
                 <a href={attachment.contentPath} target="_blank" rel="noreferrer">
                   <img
                     src={attachment.contentPath}
-                    alt={attachment.originalFilename ?? "attachment"}
+                    alt={attachment.originalFilename ?? t("attachments.fallbackAlt", { defaultValue: "attachment" })}
                     className="mt-2 max-h-56 rounded border border-border object-contain bg-accent/10"
                     loading="lazy"
                   />
@@ -1213,15 +1303,15 @@ export function IssueDetail() {
         <TabsList variant="line" className="w-full justify-start gap-1">
           <TabsTrigger value="comments" className="gap-1.5">
             <MessageSquare className="h-3.5 w-3.5" />
-            Comments
+            {t("tabs.comments", { defaultValue: "Comments" })}
           </TabsTrigger>
           <TabsTrigger value="subissues" className="gap-1.5">
             <ListTree className="h-3.5 w-3.5" />
-            Sub-issues
+            {t("tabs.subissues", { defaultValue: "Sub-issues" })}
           </TabsTrigger>
           <TabsTrigger value="activity" className="gap-1.5">
             <ActivityIcon className="h-3.5 w-3.5" />
-            Activity
+            {t("tabs.activity", { defaultValue: "Activity" })}
           </TabsTrigger>
           {issuePluginTabItems.map((item) => (
             <TabsTrigger key={item.value} value={item.value}>
@@ -1269,7 +1359,9 @@ export function IssueDetail() {
 
         <TabsContent value="subissues">
           {childIssues.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No sub-issues.</p>
+            <p className="text-xs text-muted-foreground">
+              {t("subissues.empty", { defaultValue: "No sub-issues." })}
+            </p>
           ) : (
             <div className="border border-border rounded-lg divide-y divide-border">
               {childIssues.map((child) => (
@@ -1302,9 +1394,13 @@ export function IssueDetail() {
         <TabsContent value="activity">
           {linkedRuns && linkedRuns.length > 0 && (
             <div className="mb-3 px-3 py-2 rounded-lg border border-border">
-              <div className="text-sm font-medium text-muted-foreground mb-1">Cost Summary</div>
+              <div className="text-sm font-medium text-muted-foreground mb-1">
+                {t("activity.costSummary.title", { defaultValue: "Cost Summary" })}
+              </div>
               {!issueCostSummary.hasCost && !issueCostSummary.hasTokens ? (
-                <div className="text-xs text-muted-foreground">No cost data yet.</div>
+                <div className="text-xs text-muted-foreground">
+                  {t("activity.costSummary.empty", { defaultValue: "No cost data yet." })}
+                </div>
               ) : (
                 <div className="flex flex-wrap gap-3 text-xs text-muted-foreground tabular-nums">
                   {issueCostSummary.hasCost && (
@@ -1314,10 +1410,22 @@ export function IssueDetail() {
                   )}
                   {issueCostSummary.hasTokens && (
                     <span>
-                      Tokens {formatTokens(issueCostSummary.totalTokens)}
+                      {t("activity.costSummary.tokens", {
+                        defaultValue: "Tokens {{value}}",
+                        value: formatTokens(issueCostSummary.totalTokens),
+                      })}
                       {issueCostSummary.cached > 0
-                        ? ` (in ${formatTokens(issueCostSummary.input)}, out ${formatTokens(issueCostSummary.output)}, cached ${formatTokens(issueCostSummary.cached)})`
-                        : ` (in ${formatTokens(issueCostSummary.input)}, out ${formatTokens(issueCostSummary.output)})`}
+                        ? t("activity.costSummary.tokensBreakdownWithCache", {
+                            defaultValue: " (in {{input}}, out {{output}}, cached {{cached}})",
+                            input: formatTokens(issueCostSummary.input),
+                            output: formatTokens(issueCostSummary.output),
+                            cached: formatTokens(issueCostSummary.cached),
+                          })
+                        : t("activity.costSummary.tokensBreakdown", {
+                            defaultValue: " (in {{input}}, out {{output}})",
+                            input: formatTokens(issueCostSummary.input),
+                            output: formatTokens(issueCostSummary.output),
+                          })}
                     </span>
                   )}
                 </div>
@@ -1325,13 +1433,43 @@ export function IssueDetail() {
             </div>
           )}
           {!activity || activity.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No activity yet.</p>
+            <p className="text-xs text-muted-foreground">
+              {t("activity.empty", { defaultValue: "No activity yet." })}
+            </p>
           ) : (
             <div className="space-y-1.5">
               {activity.slice(0, 20).map((evt) => (
                 <div key={evt.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <ActorIdentity evt={evt} agentMap={agentMap} />
-                  <span>{formatAction(evt.action, evt.details)}</span>
+                  <ActorIdentity
+                    evt={evt}
+                    agentMap={agentMap}
+                    labels={{
+                      system: t("activity.actors.system", { defaultValue: "System" }),
+                      board: t("activity.actors.board", { defaultValue: "Board" }),
+                      unknown: t("activity.actors.unknown", { defaultValue: "Unknown" }),
+                    }}
+                  />
+                  <span>{formatAction(evt.action, evt.details, {
+                    none: t("shared.none", { defaultValue: "none" }),
+                    statusLabel,
+                    priorityLabel,
+                    actionLabel,
+                    issueAssigned: t("activity.messages.issueAssigned", { defaultValue: "assigned the issue" }),
+                    issueUnassigned: t("activity.messages.issueUnassigned", { defaultValue: "unassigned the issue" }),
+                    titleUpdated: t("activity.messages.titleUpdated", { defaultValue: "updated the title" }),
+                    descriptionUpdated: t("activity.messages.descriptionUpdated", { defaultValue: "updated the description" }),
+                    statusChanged: t("activity.messages.statusChanged", { defaultValue: "changed the status to {{to}}" }),
+                    statusChangedFromTo: t("activity.messages.statusChangedFromTo", {
+                      defaultValue: "changed the status from {{from}} to {{to}}",
+                    }),
+                    priorityChanged: t("activity.messages.priorityChanged", {
+                      defaultValue: "changed the priority to {{to}}",
+                    }),
+                    priorityChangedFromTo: t("activity.messages.priorityChangedFromTo", {
+                      defaultValue: "changed the priority from {{from}} to {{to}}",
+                    }),
+                    documentLabel: t("shared.document", { defaultValue: "document" }),
+                  })}</span>
                   <span className="ml-auto shrink-0">{relativeTime(evt.createdAt)}</span>
                 </div>
               ))}
@@ -1363,7 +1501,10 @@ export function IssueDetail() {
         >
           <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-left">
             <span className="text-sm font-medium text-muted-foreground">
-              Linked Approvals ({linkedApprovals.length})
+              {t("approvals.linked", {
+                defaultValue: "Linked Approvals ({{count}})",
+                count: linkedApprovals.length,
+              })}
             </span>
             <ChevronDown
               className={cn("h-4 w-4 text-muted-foreground transition-transform", secondaryOpen.approvals && "rotate-180")}
@@ -1380,7 +1521,9 @@ export function IssueDetail() {
                   <div className="flex items-center gap-2">
                     <StatusBadge status={approval.status} />
                     <span className="font-medium">
-                      {approval.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                      {t(`approvals.types.${approval.type}`, {
+                        defaultValue: humanizeLabel(approval.type),
+                      })}
                     </span>
                     <span className="font-mono text-muted-foreground">{approval.id.slice(0, 8)}</span>
                   </div>
@@ -1397,7 +1540,9 @@ export function IssueDetail() {
       <Sheet open={mobilePropsOpen} onOpenChange={setMobilePropsOpen}>
         <SheetContent side="bottom" className="max-h-[85dvh] pb-[env(safe-area-inset-bottom)]">
           <SheetHeader>
-            <SheetTitle className="text-sm">Properties</SheetTitle>
+            <SheetTitle className="text-sm">
+              {t("actions.properties", { defaultValue: "Properties" })}
+            </SheetTitle>
           </SheetHeader>
           <ScrollArea className="flex-1 overflow-y-auto">
             <div className="px-4 pb-4">

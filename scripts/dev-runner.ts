@@ -1,17 +1,53 @@
 #!/usr/bin/env -S node --import tsx
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { shouldTrackDevServerPath } from "./dev-runner-paths.mjs";
 import { createDevServiceIdentity, repoRoot } from "./dev-service-profile.ts";
+import { resolvePaperclipEnvPath } from "../server/src/paths.js";
 import {
   findAdoptableLocalService,
   removeLocalServiceRegistryRecord,
   touchLocalServiceRegistryRecord,
   writeLocalServiceRegistryRecord,
 } from "../server/src/services/local-service-supervisor.ts";
+
+const cwdEnvPath = path.resolve(repoRoot, ".env");
+if (existsSync(cwdEnvPath)) {
+  process.loadEnvFile(cwdEnvPath);
+}
+
+const paperclipEnvPath = resolvePaperclipEnvPath();
+const envFilesMatch = existsSync(cwdEnvPath) && existsSync(paperclipEnvPath)
+  ? realpathSync(cwdEnvPath) === realpathSync(paperclipEnvPath)
+  : cwdEnvPath === paperclipEnvPath;
+
+const instanceIsolationKeys = new Set([
+  "PAPERCLIP_HOME",
+  "PAPERCLIP_INSTANCE_ID",
+  "PAPERCLIP_CONFIG",
+  "PORT",
+  "DATABASE_URL",
+]);
+
+if (!envFilesMatch && existsSync(paperclipEnvPath)) {
+  const savedIsolationValues: Record<string, string | undefined> = {};
+  for (const key of instanceIsolationKeys) {
+    if (process.env[key] !== undefined) {
+      savedIsolationValues[key] = process.env[key];
+    }
+  }
+
+  process.loadEnvFile(paperclipEnvPath);
+
+  for (const [key, value] of Object.entries(savedIsolationValues)) {
+    if (value !== undefined) {
+      process.env[key] = value;
+    }
+  }
+}
 
 const mode = process.argv[2] === "watch" ? "watch" : "dev";
 const cliArgs = process.argv.slice(3);

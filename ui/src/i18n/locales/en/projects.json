@@ -1,0 +1,12 @@
+{
+  "breadcrumbs": {
+    "projects": "Projects"
+  },
+  "empty": {
+    "selectCompany": "Select a company to view projects.",
+    "noProjects": "No projects yet."
+  },
+  "actions": {
+    "addProject": "Add Project"
+  }
+}

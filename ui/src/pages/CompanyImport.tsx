@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   CompanyPortabilityCollisionStrategy,
@@ -652,6 +654,7 @@ export function CompanyImport() {
   const { setBreadcrumbs } = useBreadcrumbs();
   const { pushToast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation("company");
   const packageInputRef = useRef<HTMLInputElement | null>(null);
   const { data: session } = useQuery({
     queryKey: queryKeys.auth.session,
@@ -1085,7 +1088,7 @@ export function CompanyImport() {
   const selectedAction = selectedFile ? (actionMap.get(selectedFile) ?? null) : null;
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Download} message="Select a company to import into." />;
+    return <EmptyState icon={Download} message={t("import.emptyState")} />;
   }
 
   return (
@@ -1093,17 +1096,17 @@ export function CompanyImport() {
       {/* Source form section */}
       <div className="border-b border-border px-5 py-5 space-y-4">
         <div>
-          <h2 className="text-base font-semibold">Import source</h2>
+          <h2 className="text-base font-semibold">{t("import.title")}</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Choose a GitHub repo or upload a local Paperclip zip package.
+            {t("import.description")}
           </p>
         </div>
 
         <div className="grid gap-2 md:grid-cols-2">
           {(
             [
-              { key: "github", icon: Github, label: "GitHub repo" },
-              { key: "local", icon: Upload, label: "Local zip" },
+              { key: "github", icon: Github, label: t("import.sourceModes.github") },
+              { key: "local", icon: Upload, label: t("import.sourceModes.local") },
             ] as const
           ).map(({ key, icon: Icon, label }) => (
             <button
@@ -1143,13 +1146,14 @@ export function CompanyImport() {
                 variant="outline"
                 onClick={() => packageInputRef.current?.click()}
               >
-                Choose zip
+                {t("import.local.chooseZip")}
               </Button>
               {localPackage && (
                 <span className="text-xs text-muted-foreground">
-                  {localPackage.name} with{" "}
-                  {Object.keys(localPackage.files).length} file
-                  {Object.keys(localPackage.files).length === 1 ? "" : "s"}
+                  {t("import.local.summary", {
+                    count: Object.keys(localPackage.files).length,
+                    name: localPackage.name,
+                  })}
                 </span>
               )}
             </div>
@@ -1161,14 +1165,14 @@ export function CompanyImport() {
           </div>
         ) : (
           <Field
-            label="GitHub URL"
-            hint="Repo tree path or blob URL to COMPANY.md (e.g. github.com/owner/repo/tree/main/company)."
+            label={t("import.fields.githubUrl")}
+            hint={t("import.fields.githubUrlHint")}
           >
             <input
               className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
               type="text"
               value={importUrl}
-              placeholder="https://github.com/owner/repo/tree/main/company"
+              placeholder={t("import.fields.githubUrlPlaceholder")}
               onChange={(e) => {
                 setImportUrl(e.target.value);
                 setImportPreview(null);
@@ -1177,7 +1181,10 @@ export function CompanyImport() {
           </Field>
         )}
 
-        <Field label="Target" hint="Import into this company or create a new one.">
+        <Field
+          label={t("import.fields.target")}
+          hint={t("import.fields.targetHint")}
+        >
           <select
             className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
             value={targetMode}
@@ -1186,31 +1193,31 @@ export function CompanyImport() {
               setImportPreview(null);
             }}
           >
-            <option value="new">Create new company</option>
+            <option value="new">{t("import.fields.createNewCompany")}</option>
             <option value="existing">
-              Existing company: {selectedCompany?.name}
+              {t("import.fields.existingCompany", { name: selectedCompany?.name ?? "" })}
             </option>
           </select>
         </Field>
 
         {targetMode === "new" && (
           <Field
-            label="New company name"
-            hint="Optional override. Leave blank to use the package name."
+            label={t("import.fields.newCompanyName")}
+            hint={t("import.fields.newCompanyNameHint")}
           >
             <input
               className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
               type="text"
               value={newCompanyName}
               onChange={(e) => setNewCompanyName(e.target.value)}
-              placeholder="Imported Company"
+              placeholder={t("import.fields.newCompanyNamePlaceholder")}
             />
           </Field>
         )}
 
         <Field
-          label="Collision strategy"
-          hint="Board imports can rename, skip, or replace matching company content."
+          label={t("import.fields.collisionStrategy")}
+          hint={t("import.fields.collisionStrategyHint")}
         >
           <select
             className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
@@ -1220,9 +1227,9 @@ export function CompanyImport() {
               setImportPreview(null);
             }}
           >
-            <option value="rename">Rename on conflict</option>
-            <option value="skip">Skip on conflict</option>
-            <option value="replace">Replace existing</option>
+            <option value="rename">{t("import.fields.collisionRename")}</option>
+            <option value="skip">{t("import.fields.collisionSkip")}</option>
+            <option value="replace">{t("import.fields.collisionReplace")}</option>
           </select>
         </Field>
 
@@ -1233,7 +1240,7 @@ export function CompanyImport() {
             onClick={() => previewMutation.mutate()}
             disabled={previewMutation.isPending || !hasSource}
           >
-            {previewMutation.isPending ? "Previewing..." : "Preview import"}
+            {previewMutation.isPending ? t("import.actions.previewing") : t("import.actions.preview")}
           </Button>
         </div>
       </div>
@@ -1245,7 +1252,7 @@ export function CompanyImport() {
           <div className="sticky top-0 z-10 border-b border-border bg-background px-5 py-3">
             <div className="flex flex-wrap items-center gap-4 text-sm">
               <span className="font-medium">
-                Import preview
+                {t("import.preview.title")}
               </span>
               <span className="text-muted-foreground">
                 {selectedCount} / {totalFiles} file{totalFiles === 1 ? "" : "s"} selected
@@ -1321,7 +1328,7 @@ export function CompanyImport() {
           <div className="grid h-[calc(100vh-16rem)] gap-0 xl:grid-cols-[19rem_minmax(0,1fr)]">
             <aside className="flex flex-col border-r border-border overflow-hidden">
               <div className="border-b border-border px-4 py-3 shrink-0">
-                <h2 className="text-base font-semibold">Package files</h2>
+                <h2 className="text-base font-semibold">{t("import.preview.packageFiles")}</h2>
               </div>
               <div className="flex-1 overflow-y-auto">
                 <PackageFileTree

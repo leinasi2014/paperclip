@@ -11,7 +11,10 @@ import { EmptyState } from "../components/EmptyState";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { AgentIcon } from "../components/AgentIconPicker";
 import { Download, Network, Upload } from "lucide-react";
-import { AGENT_ROLE_LABELS, type Agent } from "@paperclipai/shared";
+import type { Agent } from "@paperclipai/shared";
+import { getAgentRoleLabel } from "../i18n/label-helpers";
+import { useAppLocale } from "../i18n/useAppLocale";
+import { getAgentOverviewAdapterLabel, getAgentsMessages } from "../components/agent-config-primitives";
 
 // Layout constants
 const CARD_W = 200;
@@ -116,18 +119,6 @@ function collectEdges(nodes: LayoutNode[]): Array<{ parent: LayoutNode; child: L
 
 // ── Status dot colors (raw hex for SVG) ─────────────────────────────────
 
-const adapterLabels: Record<string, string> = {
-  claude_local: "Claude",
-  codex_local: "Codex",
-  gemini_local: "Gemini",
-  opencode_local: "OpenCode",
-  cursor: "Cursor",
-  hermes_local: "Hermes",
-  openclaw_gateway: "OpenClaw Gateway",
-  process: "Process",
-  http: "HTTP",
-};
-
 const statusDotColor: Record<string, string> = {
   running: "#22d3ee",
   active: "#4ade80",
@@ -144,6 +135,8 @@ export function OrgChart() {
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const navigate = useNavigate();
+  const { language } = useAppLocale();
+  const messages = getAgentsMessages(language).pages.orgChart;
 
   const { data: orgTree, isLoading } = useQuery({
     queryKey: queryKeys.org(selectedCompanyId!),
@@ -164,8 +157,8 @@ export function OrgChart() {
   }, [agents]);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Org Chart" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: messages.breadcrumb }]);
+  }, [messages.breadcrumb, setBreadcrumbs]);
 
   // Layout computation
   const layout = useMemo(() => layoutForest(orgTree ?? []), [orgTree]);
@@ -257,7 +250,7 @@ export function OrgChart() {
   }, [zoom, pan]);
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Network} message="Select a company to view the org chart." />;
+    return <EmptyState icon={Network} message={messages.selectionRequired} />;
   }
 
   if (isLoading) {
@@ -265,7 +258,7 @@ export function OrgChart() {
   }
 
   if (orgTree && orgTree.length === 0) {
-    return <EmptyState icon={Network} message="No organizational hierarchy defined." />;
+    return <EmptyState icon={Network} message={messages.empty} />;
   }
 
   return (
@@ -274,13 +267,13 @@ export function OrgChart() {
       <Link to="/company/import">
         <Button variant="outline" size="sm">
           <Upload className="mr-1.5 h-3.5 w-3.5" />
-          Import company
+          {messages.actions.importCompany}
         </Button>
       </Link>
       <Link to="/company/export">
         <Button variant="outline" size="sm">
           <Download className="mr-1.5 h-3.5 w-3.5" />
-          Export company
+          {messages.actions.exportCompany}
         </Button>
       </Link>
     </div>
@@ -309,7 +302,8 @@ export function OrgChart() {
             }
             setZoom(newZoom);
           }}
-          aria-label="Zoom in"
+          aria-label={messages.zoom.in}
+          title={messages.zoom.in}
         >
           +
         </button>
@@ -326,7 +320,8 @@ export function OrgChart() {
             }
             setZoom(newZoom);
           }}
-          aria-label="Zoom out"
+          aria-label={messages.zoom.out}
+          title={messages.zoom.out}
         >
           &minus;
         </button>
@@ -344,10 +339,10 @@ export function OrgChart() {
             setZoom(fitZoom);
             setPan({ x: (cW - chartW) / 2, y: (cH - chartH) / 2 });
           }}
-          title="Fit to screen"
-          aria-label="Fit chart to screen"
+          title={messages.zoom.fit}
+          aria-label={messages.zoom.fit}
         >
-          Fit
+          {messages.zoom.fitShort}
         </button>
       </div>
 
@@ -422,11 +417,11 @@ export function OrgChart() {
                     {node.name}
                   </span>
                   <span className="text-[11px] text-muted-foreground leading-tight mt-0.5">
-                    {agent?.title ?? roleLabel(node.role)}
+                    {agent?.title ?? getAgentRoleLabel(node.role, language)}
                   </span>
                   {agent && (
                     <span className="text-[10px] text-muted-foreground/60 font-mono leading-tight mt-1">
-                      {adapterLabels[agent.adapterType] ?? agent.adapterType}
+                      {getAgentOverviewAdapterLabel(agent.adapterType, language) ?? agent.adapterType}
                     </span>
                   )}
                 </div>
@@ -440,8 +435,3 @@ export function OrgChart() {
   );
 }
 
-const roleLabels: Record<string, string> = AGENT_ROLE_LABELS;
-
-function roleLabel(role: string): string {
-  return roleLabels[role] ?? role;
-}

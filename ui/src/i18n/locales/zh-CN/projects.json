@@ -1,0 +1,12 @@
+{
+  "breadcrumbs": {
+    "projects": "项目"
+  },
+  "empty": {
+    "selectCompany": "选择一家公司以查看项目。",
+    "noProjects": "暂无项目。"
+  },
+  "actions": {
+    "addProject": "添加项目"
+  }
+}

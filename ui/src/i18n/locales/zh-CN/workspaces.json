@@ -1,0 +1,58 @@
+{
+  "closeDialog": {
+    "actions": {
+      "retryClose": "重新关闭",
+      "closeWorkspace": "关闭工作区",
+      "cancel": "取消"
+    },
+    "toasts": {
+      "retried": "已重新尝试关闭工作区",
+      "closed": "工作区已关闭",
+      "failed": "关闭工作区失败",
+      "unknownError": "未知错误"
+    },
+    "description": "归档 {{name}} 并清理其持有的工作区产物。Paperclip 会保留工作区记录和议题历史，但会将其从活跃工作区视图中移除。",
+    "loading": "正在检查该工作区是否可以安全关闭...",
+    "readinessError": "检查工作区关闭状态失败。",
+    "readiness": {
+      "blocked": "无法关闭",
+      "readyWithWarnings": "可关闭，但有警告",
+      "ready": "可以关闭",
+      "sharedWorkspace": "这是一个共享工作区会话。归档后会移除此会话记录，但会保留底层项目工作区。",
+      "independentWorkspace": "这个执行工作区有独立的检出路径，可以单独归档。",
+      "primaryWorkspace": "这个执行工作区当前指向项目的主工作区路径。",
+      "disposableWorkspace": "这个工作区是一次性的，可以归档。"
+    },
+    "sections": {
+      "blockingIssues": "阻塞中的议题",
+      "blockingReasons": "阻塞原因",
+      "warnings": "警告",
+      "gitStatus": "Git 状态",
+      "otherLinkedIssues": "其他关联议题",
+      "runtimeServices": "附加的运行时服务",
+      "cleanupActions": "清理动作"
+    },
+    "git": {
+      "branch": "分支",
+      "baseRef": "基线引用",
+      "mergedIntoBase": "已合并到基线",
+      "aheadBehind": "领先 / 落后",
+      "dirtyTrackedFiles": "已跟踪脏文件",
+      "untrackedFiles": "未跟踪文件",
+      "unknown": "未知",
+      "notSet": "未设置",
+      "yes": "是",
+      "no": "否",
+      "repoRoot": "仓库根目录",
+      "workspacePath": "工作区路径"
+    },
+    "runtime": {
+      "noAdditionalDetails": "没有更多详情"
+    },
+    "currentStatus": {
+      "cleanupFailed": "这个工作区之前清理失败过。重新关闭会再次执行清理流程，并在成功时更新工作区状态。",
+      "archived": "这个工作区已经归档。"
+    },
+    "lastChecked": "最后检查于 {{time}}"
+  }
+}

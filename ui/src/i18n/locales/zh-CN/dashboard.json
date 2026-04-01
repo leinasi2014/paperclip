@@ -1,0 +1,56 @@
+{
+  "breadcrumb": "仪表盘",
+  "empty": {
+    "welcome": "欢迎使用 Paperclip。先创建你的第一家公司和代理以开始使用。",
+    "getStarted": "开始使用",
+    "selectCompany": "创建或选择一家公司以查看仪表盘。",
+    "noAgents": "你还没有任何代理。",
+    "createAgent": "在这里创建一个",
+    "noTasks": "还没有任务。"
+  },
+  "budgetBanner": {
+    "title_one": "{{count}} 个活跃预算事件",
+    "title_other": "{{count}} 个活跃预算事件",
+    "summary": "{{pausedAgents}} 个代理已暂停 · {{pausedProjects}} 个项目已暂停 · {{pendingApprovals}} 个预算审批待处理",
+    "action": "打开预算"
+  },
+  "metrics": {
+    "agentsEnabled": {
+      "label": "已启用代理",
+      "description": "{{running}} 个运行中，{{paused}} 个已暂停，{{error}} 个错误"
+    },
+    "tasksInProgress": {
+      "label": "进行中的任务",
+      "description": "{{open}} 个开放中，{{blocked}} 个已阻塞"
+    },
+    "monthSpend": {
+      "label": "本月支出",
+      "budgeted": "已用 {{budget}} 预算的 {{percent}}%",
+      "unlimited": "预算不限"
+    },
+    "pendingApprovals": {
+      "label": "待审批",
+      "budgetOverrides": "{{count}} 个预算覆盖等待董事会审核",
+      "default": "等待董事会审核"
+    }
+  },
+  "charts": {
+    "runActivity": {
+      "title": "运行活动"
+    },
+    "issuesByPriority": {
+      "title": "按优先级统计的问题"
+    },
+    "issuesByStatus": {
+      "title": "按状态统计的问题"
+    },
+    "successRate": {
+      "title": "成功率"
+    },
+    "last14Days": "最近 14 天"
+  },
+  "sections": {
+    "recentActivity": "最近活动",
+    "recentTasks": "最近任务"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "breadcrumb": "Approvals",
+  "tabs": {
+    "pending": "Pending",
+    "all": "All"
+  },
+  "errors": {
+    "approve": "Failed to approve",
+    "reject": "Failed to reject"
+  },
+  "empty": {
+    "selectCompany": "Select a company first.",
+    "pending": "No pending approvals.",
+    "all": "No approvals yet."
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "tabs": {
+    "mine": "Mine",
+    "recent": "Recent",
+    "unread": "Unread",
+    "all": "All"
+  },
+  "actions": {
+    "markAllAsRead": "Mark all as read",
+    "marking": "Marking…",
+    "retry": "Retry",
+    "retrying": "Retrying…",
+    "approve": "Approve",
+    "reject": "Reject",
+    "dismiss": "Dismiss",
+    "markAsRead": "Mark as read",
+    "dismissFromInbox": "Dismiss from inbox",
+    "dismissAlert": "Dismiss"
+  },
+  "filters": {
+    "categoryPlaceholder": "Category",
+    "approvalStatusPlaceholder": "Approval status",
+    "categories": {
+      "everything": "All categories",
+      "issues_i_touched": "My recent issues",
+      "join_requests": "Join requests",
+      "approvals": "Approvals",
+      "failed_runs": "Failed runs",
+      "alerts": "Alerts"
+    },
+    "approvalStatuses": {
+      "all": "All approval statuses",
+      "actionable": "Needs action",
+      "resolved": "Resolved"
+    }
+  },
+  "empty": {
+    "selectCompany": "Select a company to view inbox.",
+    "mine": "Inbox zero.",
+    "unread": "No new inbox items.",
+    "recent": "No recent inbox items.",
+    "all": "No inbox items match these filters."
+  },
+  "dividers": {
+    "earlier": "Earlier"
+  },
+  "breadcrumb": "Inbox",
+  "meta": {
+    "live": "Live",
+    "failedRun": "Failed run",
+    "runError": "Run exited with an error."
+  },
+  "errors": {
+    "approve": "Approval failed.",
+    "reject": "Rejection failed.",
+    "approveJoinRequest": "Join request approval failed.",
+    "rejectJoinRequest": "Join request rejection failed.",
+    "retrySkipped": "Retry skipped.",
+    "archiveIssue": "Archive failed."
+  },
+  "rows": {
+    "commented": "commented {{time}}",
+    "requestedBy": "requested by {{name}}",
+    "updated": "updated {{time}}",
+    "requested": "requested {{time}} from IP {{ip}}",
+    "adapter": "adapter: {{adapter}}",
+    "humanJoinRequest": "Human join request",
+    "agentJoinRequest": "Agent join request",
+    "agentJoinRequestNamed": "Agent join request: {{name}}",
+    "joinRequestPending": "Your request is pending admin approval. You will not have access until approved.",
+    "requestId": "Request ID:",
+    "oneTimeClaimSecret": "One-time claim secret (save now)",
+    "skillBootstrap": "Paperclip skill bootstrap",
+    "onboardingText": "Agent-readable onboarding text",
+    "connectivityDiagnostics": "Connectivity diagnostics",
+    "issueFallback": "Failed run{{agentSuffix}}"
+  },
+  "alerts": {
+    "section": "Alerts",
+    "agentErrors": "{{count}} agent has errors",
+    "agentErrors_plural": "{{count}} agents have errors",
+    "budget": "Budget at {{percent}}% utilization this month"
+  },
+  "labels": {
+    "fallbackIssue": "Failed run",
+    "markAsRead": "Mark as read",
+    "dismiss": "Dismiss"
+  }
+}

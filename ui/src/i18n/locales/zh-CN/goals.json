@@ -1,0 +1,13 @@
+{
+  "breadcrumbs": {
+    "goals": "目标"
+  },
+  "empty": {
+    "selectCompany": "选择一家公司以查看目标。",
+    "noGoals": "暂无目标。"
+  },
+  "actions": {
+    "addGoal": "添加目标",
+    "newGoal": "新建目标"
+  }
+}

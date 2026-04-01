@@ -1,0 +1,13 @@
+{
+  "breadcrumbs": {
+    "goals": "Goals"
+  },
+  "empty": {
+    "selectCompany": "Select a company to view goals.",
+    "noGoals": "No goals yet."
+  },
+  "actions": {
+    "addGoal": "Add Goal",
+    "newGoal": "New Goal"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "breadcrumb": "Not Found",
+  "titles": {
+    "global": "Page not found",
+    "company": "Company not found"
+  },
+  "descriptions": {
+    "global": "This route does not exist.",
+    "company": "No company matches prefix \"{{prefix}}\"."
+  },
+  "requestedPath": "Requested path:",
+  "actions": {
+    "openDashboard": "Open dashboard",
+    "goHome": "Go home"
+  },
+  "labels": {
+    "unknownPrefix": "unknown"
+  }
+}

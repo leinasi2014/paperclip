@@ -1,0 +1,42 @@
+{
+  "breadcrumbs": {
+    "settings": "实例设置",
+    "heartbeats": "心跳"
+  },
+  "loading": "正在加载调度器心跳…",
+  "errors": {
+    "load": "加载调度器心跳失败。",
+    "update": "更新心跳失败。",
+    "disableAll": "关闭全部心跳失败。",
+    "unknown": "未知错误",
+    "disableAllOne": "关闭 1 个定时心跳失败：{{detail}}",
+    "disableAllMany": "关闭 {{count}} / {{enabled}} 个定时心跳失败。首个错误：{{detail}}"
+  },
+  "title": "调度器心跳",
+  "description": "已在所有公司中启用定时心跳的代理。",
+  "summary": {
+    "active": "{{count}} 个活跃",
+    "disabled": "{{count}} 个已禁用",
+    "company": "{{count}} 家公司",
+    "companies": "{{count}} 家公司"
+  },
+  "actions": {
+    "disableAll": "全部关闭",
+    "disabling": "关闭中…",
+    "disableHeartbeat": "关闭定时心跳",
+    "enableHeartbeat": "开启定时心跳"
+  },
+  "states": {
+    "on": "开",
+    "off": "关",
+    "never": "从未"
+  },
+  "empty": "当前条件下没有匹配的调度器心跳。",
+  "labels": {
+    "fullAgentConfig": "完整代理配置"
+  },
+  "confirm": {
+    "disableAllOne": "要为全部 {{count}} 个已启用代理关闭定时心跳吗？",
+    "disableAllMany": "要为全部 {{count}} 个已启用代理关闭定时心跳吗？"
+  }
+}

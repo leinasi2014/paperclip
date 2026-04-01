@@ -1,0 +1,56 @@
+{
+  "breadcrumb": "Dashboard",
+  "empty": {
+    "welcome": "Welcome to Paperclip. Set up your first company and agent to get started.",
+    "getStarted": "Get Started",
+    "selectCompany": "Create or select a company to view the dashboard.",
+    "noAgents": "You have no agents.",
+    "createAgent": "Create one here",
+    "noTasks": "No tasks yet."
+  },
+  "budgetBanner": {
+    "title_one": "{{count}} active budget incident",
+    "title_other": "{{count}} active budget incidents",
+    "summary": "{{pausedAgents}} agents paused · {{pausedProjects}} projects paused · {{pendingApprovals}} pending budget approvals",
+    "action": "Open budgets"
+  },
+  "metrics": {
+    "agentsEnabled": {
+      "label": "Agents Enabled",
+      "description": "{{running}} running, {{paused}} paused, {{error}} errors"
+    },
+    "tasksInProgress": {
+      "label": "Tasks In Progress",
+      "description": "{{open}} open, {{blocked}} blocked"
+    },
+    "monthSpend": {
+      "label": "Month Spend",
+      "budgeted": "{{percent}}% of {{budget}} budget",
+      "unlimited": "Unlimited budget"
+    },
+    "pendingApprovals": {
+      "label": "Pending Approvals",
+      "budgetOverrides": "{{count}} budget overrides awaiting board review",
+      "default": "Awaiting board review"
+    }
+  },
+  "charts": {
+    "runActivity": {
+      "title": "Run Activity"
+    },
+    "issuesByPriority": {
+      "title": "Issues by Priority"
+    },
+    "issuesByStatus": {
+      "title": "Issues by Status"
+    },
+    "successRate": {
+      "title": "Success Rate"
+    },
+    "last14Days": "Last 14 days"
+  },
+  "sections": {
+    "recentActivity": "Recent Activity",
+    "recentTasks": "Recent Tasks"
+  }
+}

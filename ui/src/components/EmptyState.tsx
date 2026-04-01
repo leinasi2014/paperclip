@@ -1,11 +1,12 @@
 import { Plus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
   icon: LucideIcon;
-  message: string;
-  action?: string;
+  message: ReactNode;
+  action?: ReactNode;
   onAction?: () => void;
 }
 

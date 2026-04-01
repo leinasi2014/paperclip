@@ -1,0 +1,19 @@
+{
+  "breadcrumb": "未找到",
+  "titles": {
+    "global": "页面未找到",
+    "company": "未找到公司"
+  },
+  "descriptions": {
+    "global": "此路由不存在。",
+    "company": "没有公司匹配前缀 \"{{prefix}}\"。"
+  },
+  "requestedPath": "请求路径：",
+  "actions": {
+    "openDashboard": "打开控制台",
+    "goHome": "返回首页"
+  },
+  "labels": {
+    "unknownPrefix": "未知"
+  }
+}

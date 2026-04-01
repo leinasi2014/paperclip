@@ -15,61 +15,94 @@ import {
 import { Button } from "@/components/ui/button";
 import { HelpCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "../lib/utils";
-import { AGENT_ROLE_LABELS } from "@paperclipai/shared";
+import i18n from "../i18n";
+import { normalizeLanguage } from "../i18n/formatters";
+import { getAgentRoleLabel } from "../i18n/label-helpers";
+import { useAppLocale } from "../i18n/useAppLocale";
+import enAgents from "../i18n/locales/en/agents.json";
+import zhCnAgents from "../i18n/locales/zh-CN/agents.json";
+
+type AgentsMessages = typeof enAgents;
+
+const agentsMessagesByLanguage = {
+  en: enAgents,
+  "zh-CN": zhCnAgents,
+} as const;
+
+function currentLanguage() {
+  return normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
+}
+
+function interpolate(template: string, values: Record<string, string | number> = {}) {
+  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key: string) => String(values[key] ?? ""));
+}
+
+export function getAgentsMessages(language: string): AgentsMessages {
+  return agentsMessagesByLanguage[normalizeLanguage(language)];
+}
+
+type AgentAdapterLabelOptions = {
+  compact?: boolean;
+};
+
+export function getAgentAdapterLabel(
+  adapterType: string,
+  language: string,
+  options?: AgentAdapterLabelOptions,
+): string | undefined {
+  const messages = getAgentsMessages(language);
+  const labels = (options?.compact ? messages.adaptersCompact : messages.adapters) as Record<string, string>;
+  return labels[adapterType];
+}
+
+export function getAgentOverviewAdapterLabel(adapterType: string, language: string): string | undefined {
+  return getAgentAdapterLabel(adapterType, language, { compact: true });
+}
+
+export function getAgentConfigHelpText(key: string, language: string): string | undefined {
+  const helpText = getAgentsMessages(language).config.help as Record<string, string>;
+  return helpText[key];
+}
+
+export function formatAgentCountLabel(count: number, language: string): string {
+  const messages = getAgentsMessages(language).pages.agents.count;
+  return interpolate(count === 1 ? messages.one : messages.other, { count });
+}
+
+export function formatLiveRunLabel(liveCount: number, language: string): string {
+  const messages = getAgentsMessages(language).pages.agents.live;
+  return interpolate(liveCount === 1 ? messages.one : messages.other, { count: liveCount });
+}
+
+function createLocalizedRecord(
+  validKeys: readonly string[],
+  resolver: (key: string, language: string) => string | undefined,
+): Record<string, string | undefined> {
+  const knownKeys = new Set(validKeys);
+
+  return new Proxy(
+    {},
+    {
+      get: (_target, property) => {
+        if (typeof property !== "string") {
+          return undefined;
+        }
+        if (!knownKeys.has(property)) {
+          return undefined;
+        }
+        return resolver(property, currentLanguage());
+      },
+    },
+  ) as Record<string, string | undefined>;
+}
 
 /* ---- Help text for (?) tooltips ---- */
-export const help: Record<string, string> = {
-  name: "Display name for this agent.",
-  title: "Job title shown in the org chart.",
-  role: "Organizational role. Determines position and capabilities.",
-  reportsTo: "The agent this one reports to in the org hierarchy.",
-  capabilities: "Describes what this agent can do. Shown in the org chart and used for task routing.",
-  adapterType: "How this agent runs: local CLI (Claude/Codex/OpenCode), OpenClaw Gateway, spawned process, or generic HTTP webhook.",
-  cwd: "Deprecated legacy working directory fallback for local adapters. Existing agents may still carry this value, but new configurations should use project workspaces instead.",
-  promptTemplate: "Sent on every heartbeat. Keep this small and dynamic. Use it for current-task framing, not large static instructions. Supports {{ agent.id }}, {{ agent.name }}, {{ agent.role }} and other template variables.",
-  model: "Override the default model used by the adapter.",
-  thinkingEffort: "Control model reasoning depth. Supported values vary by adapter/model.",
-  chrome: "Enable Claude's Chrome integration by passing --chrome.",
-  dangerouslySkipPermissions: "Run unattended by auto-approving adapter permission prompts when supported.",
-  dangerouslyBypassSandbox: "Run Codex without sandbox restrictions. Required for filesystem/network access.",
-  search: "Enable Codex web search capability during runs.",
-  workspaceStrategy: "How Paperclip should realize an execution workspace for this agent. Keep project_primary for normal cwd execution, or use git_worktree for issue-scoped isolated checkouts.",
-  workspaceBaseRef: "Base git ref used when creating a worktree branch. Leave blank to use the resolved workspace ref or HEAD.",
-  workspaceBranchTemplate: "Template for naming derived branches. Supports {{issue.identifier}}, {{issue.title}}, {{agent.name}}, {{project.id}}, {{workspace.repoRef}}, and {{slug}}.",
-  worktreeParentDir: "Directory where derived worktrees should be created. Absolute, ~-prefixed, and repo-relative paths are supported.",
-  runtimeServicesJson: "Optional workspace runtime service definitions. Use this for shared app servers, workers, or other long-lived companion processes attached to the workspace.",
-  maxTurnsPerRun: "Maximum number of agentic turns (tool calls) per heartbeat run.",
-  command: "The command to execute (e.g. node, python).",
-  localCommand: "Override the path to the CLI command you want the adapter to call (e.g. /usr/local/bin/claude, codex, opencode).",
-  args: "Command-line arguments, comma-separated.",
-  extraArgs: "Extra CLI arguments for local adapters, comma-separated.",
-  envVars: "Environment variables injected into the adapter process. Use plain values or secret references.",
-  bootstrapPrompt: "Only sent when Paperclip starts a fresh session. Use this for stable setup guidance that should not be repeated on every heartbeat.",
-  payloadTemplateJson: "Optional JSON merged into remote adapter request payloads before Paperclip adds its standard wake and workspace fields.",
-  webhookUrl: "The URL that receives POST requests when the agent is invoked.",
-  heartbeatInterval: "Run this agent automatically on a timer. Useful for periodic tasks like checking for new work.",
-  intervalSec: "Seconds between automatic heartbeat invocations.",
-  timeoutSec: "Maximum seconds a run can take before being terminated. 0 means no timeout.",
-  graceSec: "Seconds to wait after sending interrupt before force-killing the process.",
-  wakeOnDemand: "Allow this agent to be woken by assignments, API calls, UI actions, or automated systems.",
-  cooldownSec: "Minimum seconds between consecutive heartbeat runs.",
-  maxConcurrentRuns: "Maximum number of heartbeat runs that can execute simultaneously for this agent.",
-  budgetMonthlyCents: "Monthly spending limit in cents. 0 means no limit.",
-};
-
-export const adapterLabels: Record<string, string> = {
-  claude_local: "Claude (local)",
-  codex_local: "Codex (local)",
-  gemini_local: "Gemini CLI (local)",
-  opencode_local: "OpenCode (local)",
-  openclaw_gateway: "OpenClaw Gateway",
-  cursor: "Cursor (local)",
-  hermes_local: "Hermes Agent",
-  process: "Process",
-  http: "HTTP",
-};
-
-export const roleLabels = AGENT_ROLE_LABELS as Record<string, string>;
+export const help = createLocalizedRecord(Object.keys(enAgents.config.help), getAgentConfigHelpText);
+export const adapterLabels = createLocalizedRecord(Object.keys(enAgents.adapters), getAgentAdapterLabel);
+export const roleLabels = createLocalizedRecord(
+  ["ceo", "cto", "cmo", "cfo", "engineer", "designer", "pm", "qa", "devops", "researcher", "general"],
+  (role, language) => getAgentRoleLabel(role, language),
+);
 
 /* ---- Primitive components ---- */
 
@@ -401,6 +434,9 @@ export function DraftNumberInput({
  */
 export function ChoosePathButton() {
   const [open, setOpen] = useState(false);
+  const { language } = useAppLocale();
+  const dialog = getAgentsMessages(language).config.choosePathDialog;
+
   return (
     <>
       <button
@@ -408,54 +444,49 @@ export function ChoosePathButton() {
         className="inline-flex items-center rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors shrink-0"
         onClick={() => setOpen(true)}
       >
-        Choose
+        {dialog.choose}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Specify path manually</DialogTitle>
-            <DialogDescription>
-              Browser security blocks apps from reading full local paths via a file picker.
-              Copy the absolute path and paste it into the input.
-            </DialogDescription>
+            <DialogTitle>{dialog.title}</DialogTitle>
+            <DialogDescription>{dialog.description}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <section className="space-y-1.5">
-              <p className="font-medium">macOS (Finder)</p>
+              <p className="font-medium">{dialog.sections.macos}</p>
               <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
-                <li>Find the folder in Finder.</li>
-                <li>Hold <kbd>Option</kbd> and right-click the folder.</li>
-                <li>Click "Copy &lt;folder name&gt; as Pathname".</li>
-                <li>Paste the result into the path input.</li>
+                {dialog.steps.macos.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
               </ol>
               <p className="rounded-md bg-muted px-2 py-1 font-mono text-xs">
-                /Users/yourname/Documents/project
+                {dialog.examples.macos}
               </p>
             </section>
             <section className="space-y-1.5">
-              <p className="font-medium">Windows (File Explorer)</p>
+              <p className="font-medium">{dialog.sections.windows}</p>
               <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
-                <li>Find the folder in File Explorer.</li>
-                <li>Hold <kbd>Shift</kbd> and right-click the folder.</li>
-                <li>Click "Copy as path".</li>
-                <li>Paste the result into the path input.</li>
+                {dialog.steps.windows.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
               </ol>
               <p className="rounded-md bg-muted px-2 py-1 font-mono text-xs">
-                C:\Users\yourname\Documents\project
+                {dialog.examples.windows}
               </p>
             </section>
             <section className="space-y-1.5">
-              <p className="font-medium">Terminal fallback (macOS/Linux)</p>
+              <p className="font-medium">{dialog.sections.terminal}</p>
               <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
-                <li>Run <code>cd /path/to/folder</code>.</li>
-                <li>Run <code>pwd</code>.</li>
-                <li>Copy the output and paste it into the path input.</li>
+                {dialog.steps.terminal.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
               </ol>
             </section>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              OK
+              {dialog.ok}
             </Button>
           </DialogFooter>
         </DialogContent>

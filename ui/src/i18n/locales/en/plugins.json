@@ -1,0 +1,83 @@
+{
+  "breadcrumbs": {
+    "company": "Company",
+    "settings": "Settings",
+    "plugins": "Plugins"
+  },
+  "loading": "Loading plugins...",
+  "error": "Failed to load plugins.",
+  "title": "Plugin Manager",
+  "actions": {
+    "installPlugin": "Install Plugin",
+    "install": "Install",
+    "installing": "Installing...",
+    "uninstalling": "Uninstalling...",
+    "cancel": "Cancel",
+    "openSettings": "Open Settings",
+    "review": "Review",
+    "enable": "Enable",
+    "disable": "Disable",
+    "configure": "Configure",
+    "uninstall": "Uninstall",
+    "viewFullError": "View full error",
+    "close": "Close",
+    "installExample": "Install Example"
+  },
+  "dialogs": {
+    "install": {
+      "title": "Install Plugin",
+      "description": "Enter the npm package name of the plugin you wish to install.",
+      "packageName": "npm Package Name"
+    },
+    "uninstall": {
+      "title": "Uninstall Plugin",
+      "description": "Are you sure you want to uninstall {{name}}? This action cannot be undone."
+    },
+    "errorDetails": {
+      "title": "Error Details",
+      "description": "{{name}} hit an error state.",
+      "whatErrored": "What errored",
+      "fullError": "Full error output",
+      "noStoredError": "No stored error message.",
+      "noErrorSummary": "No error summary available."
+    }
+  },
+  "banner": {
+    "alphaTitle": "Plugins are alpha.",
+    "alphaDescription": "The plugin runtime and API surface are still changing. Expect breaking changes while this feature settles."
+  },
+  "sections": {
+    "available": "Available Plugins",
+    "installed": "Installed Plugins"
+  },
+  "states": {
+    "loadingExamples": "Loading bundled examples...",
+    "failedExamples": "Failed to load bundled examples.",
+    "noExamples": "No bundled example plugins were found in this checkout.",
+    "noPlugins": "No plugins installed",
+    "noPluginsDescription": "Install a plugin to extend functionality.",
+    "notInstalled": "Not installed",
+    "example": "Example",
+    "noDescription": "No description provided.",
+    "pluginError": "Plugin error",
+    "installed": "Installed",
+    "disabled": "Disabled",
+    "upgrade_pending": "Upgrade pending",
+    "uninstalled": "Uninstalled",
+    "ready": "ready",
+    "error": "error"
+  },
+  "toasts": {
+    "installSucceeded": "Plugin installed successfully",
+    "installFailed": "Failed to install plugin",
+    "uninstallSucceeded": "Plugin uninstalled successfully",
+    "uninstallFailed": "Failed to uninstall plugin",
+    "enableSucceeded": "Plugin enabled",
+    "enableFailed": "Failed to enable plugin",
+    "disableSucceeded": "Plugin disabled",
+    "disableFailed": "Failed to disable plugin"
+  },
+  "labels": {
+    "plugin": "Plugin"
+  }
+}

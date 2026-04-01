@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
 import { useCompany } from "../context/CompanyContext";
@@ -35,6 +36,7 @@ import { agentUrl, projectUrl } from "../lib/utils";
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const { selectedCompanyId } = useCompany();
   const { openNewIssue, openNewAgent } = useDialog();
@@ -80,6 +82,7 @@ export function CommandPalette() {
     queryFn: () => projectsApi.list(selectedCompanyId!),
     enabled: !!selectedCompanyId && open,
   });
+
   const projects = useMemo(
     () => allProjects.filter((p) => !p.archivedAt),
     [allProjects],
@@ -101,19 +104,22 @@ export function CommandPalette() {
   );
 
   return (
-    <CommandDialog open={open} onOpenChange={(v) => {
+    <CommandDialog
+      open={open}
+      onOpenChange={(v) => {
         setOpen(v);
         if (v && isMobile) setSidebarOpen(false);
-      }}>
+      }}
+    >
       <CommandInput
-        placeholder="Search issues, agents, projects..."
+        placeholder={t("commandPalette.searchPlaceholder")}
         value={query}
         onValueChange={setQuery}
       />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>{t("commandPalette.empty")}</CommandEmpty>
 
-        <CommandGroup heading="Actions">
+        <CommandGroup heading={t("commandPalette.groups.actions")}>
           <CommandItem
             onSelect={() => {
               setOpen(false);
@@ -121,8 +127,10 @@ export function CommandPalette() {
             }}
           >
             <SquarePen className="mr-2 h-4 w-4" />
-            Create new issue
-            <span className="ml-auto text-xs text-muted-foreground">C</span>
+            {t("commandPalette.actions.createIssue")}
+            <span className="ml-auto text-xs text-muted-foreground">
+              {t("commandPalette.shortcuts.createIssue")}
+            </span>
           </CommandItem>
           <CommandItem
             onSelect={() => {
@@ -131,55 +139,55 @@ export function CommandPalette() {
             }}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Create new agent
+            {t("commandPalette.actions.createAgent")}
           </CommandItem>
           <CommandItem onSelect={() => go("/projects")}>
             <Plus className="mr-2 h-4 w-4" />
-            Create new project
+            {t("commandPalette.actions.createProject")}
           </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />
 
-        <CommandGroup heading="Pages">
+        <CommandGroup heading={t("commandPalette.groups.pages")}>
           <CommandItem onSelect={() => go("/dashboard")}>
             <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
+            {t("commandPalette.pages.dashboard")}
           </CommandItem>
           <CommandItem onSelect={() => go("/inbox")}>
             <Inbox className="mr-2 h-4 w-4" />
-            Inbox
+            {t("commandPalette.pages.inbox")}
           </CommandItem>
           <CommandItem onSelect={() => go("/issues")}>
             <CircleDot className="mr-2 h-4 w-4" />
-            Issues
+            {t("commandPalette.pages.issues")}
           </CommandItem>
           <CommandItem onSelect={() => go("/projects")}>
             <Hexagon className="mr-2 h-4 w-4" />
-            Projects
+            {t("commandPalette.pages.projects")}
           </CommandItem>
           <CommandItem onSelect={() => go("/goals")}>
             <Target className="mr-2 h-4 w-4" />
-            Goals
+            {t("commandPalette.pages.goals")}
           </CommandItem>
           <CommandItem onSelect={() => go("/agents")}>
             <Bot className="mr-2 h-4 w-4" />
-            Agents
+            {t("commandPalette.pages.agents")}
           </CommandItem>
           <CommandItem onSelect={() => go("/costs")}>
             <DollarSign className="mr-2 h-4 w-4" />
-            Costs
+            {t("commandPalette.pages.costs")}
           </CommandItem>
           <CommandItem onSelect={() => go("/activity")}>
             <History className="mr-2 h-4 w-4" />
-            Activity
+            {t("commandPalette.pages.activity")}
           </CommandItem>
         </CommandGroup>
 
         {visibleIssues.length > 0 && (
           <>
             <CommandSeparator />
-            <CommandGroup heading="Issues">
+            <CommandGroup heading={t("commandPalette.groups.issues")}>
               {visibleIssues.slice(0, 10).map((issue) => (
                 <CommandItem
                   key={issue.id}
@@ -195,10 +203,17 @@ export function CommandPalette() {
                     {issue.identifier ?? issue.id.slice(0, 8)}
                   </span>
                   <span className="flex-1 truncate">{issue.title}</span>
-                  {issue.assigneeAgentId && (() => {
-                    const name = agentName(issue.assigneeAgentId);
-                    return name ? <Identity name={name} size="sm" className="ml-2 hidden sm:inline-flex" /> : null;
-                  })()}
+                  {issue.assigneeAgentId &&
+                    (() => {
+                      const name = agentName(issue.assigneeAgentId);
+                      return name ? (
+                        <Identity
+                          name={name}
+                          size="sm"
+                          className="ml-2 hidden sm:inline-flex"
+                        />
+                      ) : null;
+                    })()}
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -208,12 +223,14 @@ export function CommandPalette() {
         {agents.length > 0 && (
           <>
             <CommandSeparator />
-            <CommandGroup heading="Agents">
+            <CommandGroup heading={t("commandPalette.groups.agents")}>
               {agents.slice(0, 10).map((agent) => (
                 <CommandItem key={agent.id} onSelect={() => go(agentUrl(agent))}>
                   <Bot className="mr-2 h-4 w-4" />
                   {agent.name}
-                  <span className="text-xs text-muted-foreground ml-2">{agent.role}</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    {agent.role}
+                  </span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -223,9 +240,12 @@ export function CommandPalette() {
         {projects.length > 0 && (
           <>
             <CommandSeparator />
-            <CommandGroup heading="Projects">
+            <CommandGroup heading={t("commandPalette.groups.projects")}>
               {projects.slice(0, 10).map((project) => (
-                <CommandItem key={project.id} onSelect={() => go(projectUrl(project))}>
+                <CommandItem
+                  key={project.id}
+                  onSelect={() => go(projectUrl(project))}
+                >
                   <Hexagon className="mr-2 h-4 w-4" />
                   {project.name}
                 </CommandItem>

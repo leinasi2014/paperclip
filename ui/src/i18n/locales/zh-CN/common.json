@@ -1,0 +1,239 @@
+{
+  "loading": "加载中...",
+  "skipToMainContent": "跳转到主内容",
+  "language": {
+    "en": "EN",
+    "zhCN": "中文",
+    "switcher": "语言切换"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "switchToMode": "切换到{{mode}}模式"
+  },
+  "navigation": {
+    "dashboard": "仪表盘",
+    "inbox": "收件箱",
+    "issues": "议题",
+    "routines": "例行任务",
+    "goals": "目标",
+    "org": "组织",
+    "skills": "技能",
+    "costs": "成本",
+    "activity": "活动",
+    "settings": "设置"
+  },
+  "actions": {
+    "save": "保存",
+    "cancel": "取消",
+    "newIssue": "新建议题",
+    "newCompany": "新建公司"
+  },
+  "company": {
+    "selectCompany": "选择公司",
+    "createFirstTitle": "创建你的第一家公司",
+    "createFirstDescription": "从创建公司开始。"
+  },
+  "bootstrap": {
+    "title": "需要完成实例设置",
+    "activeInviteDescription": "当前还没有实例管理员。引导邀请已激活。请查看 Paperclip 启动日志中的首个管理员邀请链接，或运行此命令轮换邀请：",
+    "noAdminDescription": "当前还没有实例管理员。请在你的 Paperclip 环境中运行此命令生成首个管理员邀请链接："
+  },
+  "onboarding": {
+    "route": {
+      "title": {
+        "addAnotherAgent": "为 {{companyName}} 再添加一个代理",
+        "createAnotherCompany": "创建另一家公司",
+        "createFirstCompany": "创建你的第一家公司"
+      },
+      "description": {
+        "addAnotherAgent": "重新运行引导，为该公司添加一个代理和一个起始任务。",
+        "createAnotherCompany": "重新运行引导，创建另一家公司并初始化其第一个代理。",
+        "createFirstCompany": "从创建公司和你的第一个代理开始。"
+      },
+      "actions": {
+        "addAgent": "添加代理",
+        "start": "开始引导"
+      }
+    },
+    "wizard": {
+      "close": "关闭",
+      "steps": {
+        "company": "公司",
+        "agent": "代理",
+        "task": "任务",
+        "launch": "启动"
+      },
+      "navigation": {
+        "back": "返回",
+        "next": "下一步",
+        "creating": "创建中...",
+        "createAndOpenIssue": "创建并打开议题"
+      },
+      "company": {
+        "title": "给公司命名",
+        "description": "这是你的代理将为其工作的组织。",
+        "nameLabel": "公司名称",
+        "namePlaceholder": "Acme Corp",
+        "goalLabel": "使命 / 目标（可选）",
+        "goalPlaceholder": "这家公司想实现什么？"
+      },
+      "agent": {
+        "title": "创建你的第一个代理",
+        "description": "选择这个代理将如何运行任务。",
+        "nameLabel": "代理名称",
+        "namePlaceholder": "CEO",
+        "adapterTypeLabel": "适配器类型",
+        "moreAdapterTypes": "更多代理适配器类型",
+        "modelLabel": "模型",
+        "selectModelRequired": "选择模型（必填）",
+        "defaultModel": "默认",
+        "searchModelsPlaceholder": "搜索模型...",
+        "noModelsDiscovered": "未发现模型。",
+        "environmentCheckTitle": "适配器环境检查",
+        "environmentCheckDescription": "运行一次实时探测，请求适配器 CLI 返回 hello。",
+        "environmentPassed": "通过",
+        "recommended": "推荐",
+        "comingSoon": "即将支持",
+        "testNow": "立即测试",
+        "testing": "测试中...",
+        "unsetAnthropicApiKey": "取消设置 ANTHROPIC_API_KEY",
+        "retrying": "重试中...",
+        "suggestUnsetAnthropicApiKey": "Claude 在设置了 ANTHROPIC_API_KEY 时失败了。你可以在这个 CEO 适配器配置中清除它，然后重新探测。",
+        "manualDebugTitle": "手动调试",
+        "manualPromptLabel": "提示词：",
+        "manualPromptValue": "Respond with hello.",
+        "loginRequired": "如果需要登录，请运行 claude login 后重试。",
+        "gatewayUrlLabel": "网关 URL",
+        "webhookUrlLabel": "Webhook URL",
+        "gatewayPlaceholder": "ws://127.0.0.1:18789",
+        "webhookPlaceholder": "https://...",
+        "adapters": {
+          "claudeCode": "Claude Code",
+          "codex": "Codex",
+          "geminiCli": "Gemini CLI",
+          "opencode": "OpenCode",
+          "pi": "Pi",
+          "cursor": "Cursor",
+          "hermes": "Hermes Agent",
+          "openclawGateway": "OpenClaw Gateway"
+        },
+        "adapterDescriptions": {
+          "localClaude": "本地 Claude 代理",
+          "localCodex": "本地 Codex 代理",
+          "localGemini": "本地 Gemini 代理",
+          "localMultiProvider": "本地多提供商代理",
+          "localPi": "本地 Pi 代理",
+          "localCursor": "本地 Cursor 代理",
+          "appConfiguredOpenClaw": "请在应用内配置 OpenClaw",
+          "gatewayProtocol": "通过网关协议调用 OpenClaw"
+        }
+      },
+      "task": {
+        "title": "给它一点事情做",
+        "description": "先给你的代理一个小任务，比如修 bug、做调研、写脚本。",
+        "titleLabel": "任务标题",
+        "titlePlaceholder": "例如：调研竞品定价",
+        "descriptionLabel": "描述（可选）",
+        "descriptionPlaceholder": "补充更多任务细节...",
+        "defaultTitle": "招聘你的第一位工程师并制定招聘计划",
+        "defaultDescription": "你是 CEO。你负责为公司设定方向。\n\n- 招聘一位创始工程师\n- 编写招聘计划\n- 将路线图拆分成具体任务并开始委派工作"
+      },
+      "launch": {
+        "title": "准备启动",
+        "description": "一切都已就绪。现在启动会创建起始任务、唤醒代理，并打开议题。",
+        "summaryCompany": "公司",
+        "summaryTask": "任务"
+      },
+      "statuses": {
+        "passed": "通过",
+        "warnings": "警告",
+        "failed": "失败"
+      },
+      "errors": {
+        "selectCompanyBeforeTesting": "请先创建或选择公司，再测试适配器环境。",
+        "adapterEnvironmentTestFailed": "适配器环境测试失败",
+        "retryUnsetStillFailing": "已在适配器配置中清除 ANTHROPIC_API_KEY 后重试，但环境测试仍然失败。",
+        "failedToUnsetAndRetry": "清除 ANTHROPIC_API_KEY 并重试失败。"
+      }
+    }
+  },
+  "layout": {
+    "closeSidebar": "关闭侧边栏",
+    "documentation": "文档"
+  },
+  "sidebar": {
+    "sections": {
+      "work": "工作",
+      "company": "公司"
+    },
+    "beta": "测试版"
+  },
+  "errors": {
+    "failedToLoadAppState": "加载应用状态失败"
+  },
+  "instanceSettings": {
+    "title": "实例设置",
+    "general": "常规",
+    "heartbeats": "心跳",
+    "experimental": "实验功能",
+    "plugins": "插件"
+  },
+  "status": {
+    "active": "进行中",
+    "paused": "已暂停",
+    "running": "运行中",
+    "error": "错误",
+    "pending_approval": "待审批",
+    "terminated": "已终止",
+    "backlog": "待规划",
+    "todo": "待办",
+    "in_progress": "进行中",
+    "in_review": "评审中",
+    "done": "已完成",
+    "blocked": "已阻塞",
+    "cancelled": "已取消",
+    "planned": "已计划",
+    "completed": "已完成",
+    "pending": "待处理",
+    "approved": "已批准",
+    "rejected": "已拒绝",
+    "succeeded": "成功",
+    "failed": "失败",
+    "idle": "空闲",
+    "achieved": "已达成",
+    "revision_requested": "要求修改",
+    "queued": "排队中",
+    "timed_out": "已超时",
+    "archived": "已归档"
+  },
+  "commandPalette": {
+    "searchPlaceholder": "搜索议题、代理、项目...",
+    "empty": "未找到结果。",
+    "groups": {
+      "actions": "操作",
+      "pages": "页面",
+      "issues": "议题",
+      "agents": "代理",
+      "projects": "项目"
+    },
+    "actions": {
+      "createIssue": "创建新议题",
+      "createAgent": "创建新代理",
+      "createProject": "创建新项目"
+    },
+    "pages": {
+      "dashboard": "仪表盘",
+      "inbox": "收件箱",
+      "issues": "议题",
+      "projects": "项目",
+      "goals": "目标",
+      "agents": "代理",
+      "costs": "成本",
+      "activity": "活动"
+    },
+    "shortcuts": {
+      "createIssue": "C"
+    }
+  }
+}

@@ -5,6 +5,8 @@ type IssueDetailBreadcrumb = {
   href: string;
 };
 
+type IssueDetailSourceLabels = Partial<Record<IssueDetailSource, string>>;
+
 type IssueDetailLocationState = {
   issueDetailBreadcrumb?: IssueDetailBreadcrumb;
   issueDetailSource?: IssueDetailSource;
@@ -35,9 +37,12 @@ function readIssueDetailSourceFromSearch(search?: string): IssueDetailSource | n
   return isIssueDetailSource(source) ? source : null;
 }
 
-function breadcrumbForSource(source: IssueDetailSource): IssueDetailBreadcrumb {
-  if (source === "inbox") return { label: "Inbox", href: "/inbox" };
-  return { label: "Issues", href: "/issues" };
+function breadcrumbForSource(
+  source: IssueDetailSource,
+  labels?: IssueDetailSourceLabels,
+): IssueDetailBreadcrumb {
+  if (source === "inbox") return { label: labels?.inbox ?? "Inbox", href: "/inbox" };
+  return { label: labels?.issues ?? "Issues", href: "/issues" };
 }
 
 export function createIssueDetailLocationState(
@@ -59,12 +64,31 @@ export function createIssueDetailPath(issuePathId: string, state?: unknown, sear
   return `/issues/${issuePathId}?${params.toString()}`;
 }
 
-export function readIssueDetailBreadcrumb(state: unknown, search?: string): IssueDetailBreadcrumb | null {
+export function readIssueDetailBreadcrumb(
+  state: unknown,
+  search?: string,
+  labels?: IssueDetailSourceLabels,
+): IssueDetailBreadcrumb | null {
+  const source = readIssueDetailSource(state) ?? readIssueDetailSourceFromSearch(search);
+  if (source) {
+    const candidate =
+      typeof state === "object" && state !== null
+        ? (state as IssueDetailLocationState).issueDetailBreadcrumb
+        : null;
+    const fallback = breadcrumbForSource(source, labels);
+    if (isIssueDetailBreadcrumb(candidate)) {
+      return {
+        label: fallback.label,
+        href: candidate.href,
+      };
+    }
+    return fallback;
+  }
+
   if (typeof state === "object" && state !== null) {
     const candidate = (state as IssueDetailLocationState).issueDetailBreadcrumb;
     if (isIssueDetailBreadcrumb(candidate)) return candidate;
   }
 
-  const source = readIssueDetailSourceFromSearch(search);
-  return source ? breadcrumbForSource(source) : null;
+  return null;
 }

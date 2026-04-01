@@ -1,0 +1,89 @@
+{
+  "tabs": {
+    "mine": "我的",
+    "recent": "最近",
+    "unread": "未读",
+    "all": "全部"
+  },
+  "actions": {
+    "markAllAsRead": "全部标为已读",
+    "marking": "正在标记…",
+    "retry": "重试",
+    "retrying": "重试中…",
+    "approve": "批准",
+    "reject": "拒绝",
+    "dismiss": "关闭",
+    "markAsRead": "标为已读",
+    "dismissFromInbox": "从收件箱移除",
+    "dismissAlert": "关闭"
+  },
+  "filters": {
+    "categoryPlaceholder": "分类",
+    "approvalStatusPlaceholder": "审批状态",
+    "categories": {
+      "everything": "全部分类",
+      "issues_i_touched": "我最近处理的问题",
+      "join_requests": "加入请求",
+      "approvals": "审批",
+      "failed_runs": "失败运行",
+      "alerts": "提醒"
+    },
+    "approvalStatuses": {
+      "all": "全部审批状态",
+      "actionable": "需要处理",
+      "resolved": "已解决"
+    }
+  },
+  "empty": {
+    "selectCompany": "选择一家公司以查看收件箱。",
+    "mine": "收件箱已空。",
+    "unread": "没有新的收件箱项目。",
+    "recent": "没有最近的收件箱项目。",
+    "all": "没有符合这些筛选条件的收件箱项目。"
+  },
+  "dividers": {
+    "earlier": "更早"
+  },
+  "breadcrumb": "收件箱",
+  "meta": {
+    "live": "实时",
+    "failedRun": "失败运行",
+    "runError": "运行因错误退出。"
+  },
+  "errors": {
+    "approve": "审批失败。",
+    "reject": "拒绝失败。",
+    "approveJoinRequest": "加入请求审批失败。",
+    "rejectJoinRequest": "加入请求拒绝失败。",
+    "retrySkipped": "重试已跳过。",
+    "archiveIssue": "归档失败。"
+  },
+  "rows": {
+    "commented": "于 {{time}} 留言",
+    "requestedBy": "由 {{name}} 请求",
+    "updated": "更新于 {{time}}",
+    "requested": "于 {{time}} 从 IP {{ip}} 发起请求",
+    "adapter": "适配器：{{adapter}}",
+    "humanJoinRequest": "人工加入请求",
+    "agentJoinRequest": "代理加入请求",
+    "agentJoinRequestNamed": "代理加入请求：{{name}}",
+    "joinRequestPending": "你的请求正在等待管理员审批。审批通过之前你无法访问。",
+    "requestId": "请求 ID：",
+    "oneTimeClaimSecret": "一次性认领密钥（请立即保存）",
+    "skillBootstrap": "Paperclip skill 初始化",
+    "onboardingText": "供代理读取的引导文本",
+    "connectivityDiagnostics": "连接诊断",
+    "issueFallback": "失败运行{{agentSuffix}}"
+  },
+  "alerts": {
+    "section": "提醒",
+    "agentErrors": "{{count}} 个代理有错误",
+    "agentErrors_plural": "{{count}} 个代理有错误",
+    "budget": "本月预算使用率已达 {{percent}}%"
+  },
+  "labels": {
+    "fallbackIssue": "失败运行",
+    "markAsRead": "标为已读",
+    "dismiss": "关闭"
+  }
+}

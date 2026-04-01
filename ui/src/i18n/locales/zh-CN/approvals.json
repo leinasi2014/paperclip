@@ -1,0 +1,16 @@
+{
+  "breadcrumb": "审批",
+  "tabs": {
+    "pending": "待处理",
+    "all": "全部"
+  },
+  "errors": {
+    "approve": "批准失败",
+    "reject": "拒绝失败"
+  },
+  "empty": {
+    "selectCompany": "请先选择一家公司。",
+    "pending": "当前没有待处理审批。",
+    "all": "还没有审批记录。"
+  }
+}

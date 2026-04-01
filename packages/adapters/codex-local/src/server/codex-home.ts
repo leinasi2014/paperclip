@@ -64,9 +64,23 @@ async function ensureSymlink(target: string, source: string): Promise<void> {
   await fs.symlink(source, target);
 }
 
-async function ensureCopiedFile(target: string, source: string): Promise<void> {
+function isSymlinkPermissionError(error: unknown): boolean {
+  const code = typeof error === "object" && error !== null && "code" in error
+    ? String((error as { code?: unknown }).code ?? "")
+    : "";
+  return code === "EPERM" || code === "EACCES";
+}
+
+async function ensureCopiedFile(
+  target: string,
+  source: string,
+  options: { overwrite?: boolean } = {},
+): Promise<void> {
   const existing = await fs.lstat(target).catch(() => null);
-  if (existing) return;
+  if (existing && !options.overwrite) return;
+  if (existing?.isSymbolicLink()) {
+    await fs.unlink(target);
+  }
   await ensureParentDir(target);
   await fs.copyFile(source, target);
 }
@@ -86,7 +100,19 @@ export async function prepareManagedCodexHome(
   for (const name of SYMLINKED_SHARED_FILES) {
     const source = path.join(sourceHome, name);
     if (!(await pathExists(source))) continue;
-    await ensureSymlink(path.join(targetHome, name), source);
+    const target = path.join(targetHome, name);
+    try {
+      await ensureSymlink(target, source);
+    } catch (error) {
+      if (!isSymlinkPermissionError(error)) {
+        throw error;
+      }
+      await ensureCopiedFile(target, source, { overwrite: true });
+      await onLog(
+        "stdout",
+        `[paperclip] Fell back to copying shared Codex file "${name}" because symlink creation is not permitted on this system.\n`,
+      );
+    }
   }
 
   for (const name of COPIED_SHARED_FILES) {

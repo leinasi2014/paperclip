@@ -2,21 +2,19 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { deriveAgentUrlKey, deriveProjectUrlKey } from "@paperclipai/shared";
 import type { BillingType, FinanceDirection, FinanceEventKind } from "@paperclipai/shared";
+import i18n from "../i18n";
+import { formatDate as formatLocalizedDate, formatRelativeTime, formatUsdCents, normalizeLanguage } from "../i18n/formatters";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 export function formatCents(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
+  return formatUsdCents(cents, normalizeLanguage(i18n.resolvedLanguage ?? i18n.language));
 }
 
 export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatLocalizedDate(date, normalizeLanguage(i18n.resolvedLanguage ?? i18n.language));
 }
 
 export function formatDateTime(date: Date | string): string {
@@ -30,17 +28,7 @@ export function formatDateTime(date: Date | string): string {
 }
 
 export function relativeTime(date: Date | string): string {
-  const now = Date.now();
-  const then = new Date(date).getTime();
-  const diffSec = Math.round((now - then) / 1000);
-  if (diffSec < 60) return "just now";
-  const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.round(diffHr / 24);
-  if (diffDay < 30) return `${diffDay}d ago`;
-  return formatDate(date);
+  return formatRelativeTime(date, normalizeLanguage(i18n.resolvedLanguage ?? i18n.language));
 }
 
 export function formatTokens(n: number): string {

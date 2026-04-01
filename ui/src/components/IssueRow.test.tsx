@@ -6,11 +6,29 @@ import type { Issue } from "@paperclipai/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { IssueRow } from "./IssueRow";
 
+const translations = {
+  "issues:row.actions.markAsRead": "标记为已读",
+  "issues:row.actions.dismissFromInbox": "从收件箱中隐藏",
+  "row.actions.markAsRead": "标记为已读",
+  "row.actions.dismissFromInbox": "从收件箱中隐藏",
+};
+
 vi.mock("@/lib/router", () => ({
   Link: ({ children, className, ...props }: React.ComponentProps<"a">) => (
     <a className={className} {...props}>{children}</a>
   ),
 }));
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string, options?: { defaultValue?: string }) =>
+        translations[key as keyof typeof translations] ?? options?.defaultValue ?? key,
+    }),
+  };
+});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
@@ -95,7 +113,7 @@ describe("IssueRow", () => {
       root.render(<IssueRow issue={createIssue()} selected unreadState="visible" />);
     });
 
-    const markReadButton = container.querySelector('button[aria-label="Mark as read"]');
+    const markReadButton = container.querySelector('button[aria-label="标记为已读"]');
     const unreadDot = markReadButton?.querySelector("span");
     const statusIcon = container.querySelector('span[class*="border-muted-foreground"]');
 
@@ -108,6 +126,32 @@ describe("IssueRow", () => {
     expect(statusIcon).not.toBeNull();
     expect(statusIcon?.className).toContain("!border-muted-foreground");
     expect(statusIcon?.className).toContain("!text-muted-foreground");
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
+  it("uses translated inbox action labels", () => {
+    const root = createRoot(container);
+
+    act(() => {
+      root.render(
+        <>
+          <IssueRow issue={createIssue()} unreadState="visible" />
+          <IssueRow
+            issue={createIssue({ id: "issue-2", identifier: "PAP-2" })}
+            unreadState="hidden"
+            onArchive={() => {}}
+          />
+        </>,
+      );
+    });
+
+    expect(container.querySelector('button[aria-label="标记为已读"]')).not.toBeNull();
+    expect(container.querySelector('button[aria-label="从收件箱中隐藏"]')).not.toBeNull();
+    expect(container.querySelector('button[aria-label="Mark as read"]')).toBeNull();
+    expect(container.querySelector('button[aria-label="Dismiss from inbox"]')).toBeNull();
 
     act(() => {
       root.unmount();

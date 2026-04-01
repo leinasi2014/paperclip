@@ -1,0 +1,260 @@
+{
+  "settings": {
+    "breadcrumbs": {
+      "company": "公司",
+      "settings": "设置"
+    },
+    "emptyState": "未选择公司。请先从上方切换器选择一家公司。",
+    "title": "公司设置",
+    "sections": {
+      "general": "常规",
+      "appearance": "外观",
+      "hiring": "招聘",
+      "invites": "邀请",
+      "packages": "公司包",
+      "dangerZone": "危险区域"
+    },
+    "fields": {
+      "companyName": "公司名称",
+      "companyNameHint": "你的公司显示名称。",
+      "description": "描述",
+      "descriptionHint": "显示在公司资料中的可选描述。",
+      "descriptionPlaceholder": "可选的公司描述",
+      "logo": "Logo",
+      "logoHint": "上传 PNG、JPEG、WEBP、GIF 或 SVG 格式的 Logo。",
+      "brandColor": "品牌色",
+      "brandColorHint": "设置公司图标的色相。留空时会自动生成颜色。",
+      "brandColorPlaceholder": "自动",
+      "requireBoardApproval": "新招聘需要董事会批准",
+      "requireBoardApprovalHint": "新的代理招聘会保持待批准状态，直到董事会通过。"
+    },
+    "invites": {
+      "description": "生成 OpenClaw 代理邀请片段。",
+      "hint": "创建一个短时有效的 OpenClaw 代理邀请，并渲染可直接复制的提示词。",
+      "generate": "生成 OpenClaw 邀请提示词",
+      "generating": "生成中...",
+      "title": "OpenClaw 邀请提示词",
+      "copied": "已复制",
+      "copySnippet": "复制片段",
+      "copiedSnippet": "已复制片段"
+    },
+    "packages": {
+      "description": "导入和导出已经移动到专门页面，可从组织图页头访问。",
+      "orgChart": "组织图",
+      "export": "导出",
+      "import": "导入"
+    },
+    "dangerZone": {
+      "description": "归档这家公司后，它会从侧边栏隐藏，但数据仍会保留在数据库中。",
+      "archive": "归档公司",
+      "archiving": "归档中...",
+      "alreadyArchived": "已归档",
+      "confirm": "要归档公司“{{name}}”吗？它会从侧边栏隐藏。"
+    },
+    "actions": {
+      "removeLogo": "移除 Logo",
+      "removingLogo": "移除中...",
+      "clear": "清空",
+      "saveChanges": "保存更改",
+      "saving": "保存中..."
+    },
+    "states": {
+      "saved": "已保存",
+      "uploadingLogo": "正在上传 Logo..."
+    },
+    "errors": {
+      "createInvite": "创建邀请失败",
+      "logoUploadFailed": "Logo 上传失败",
+      "failedToSave": "保存失败",
+      "failedToArchive": "归档公司失败"
+    }
+  },
+  "import": {
+    "breadcrumbs": {
+      "orgChart": "组织图",
+      "import": "导入"
+    },
+    "emptyState": "请选择要导入到哪家公司。",
+    "title": "导入来源",
+    "description": "选择一个 GitHub 仓库，或上传本地 Paperclip zip 包。",
+    "sourceModes": {
+      "github": "GitHub 仓库",
+      "local": "本地 zip"
+    },
+    "local": {
+      "chooseZip": "选择 zip",
+      "summary_one": "{{name}}，包含 {{count}} 个文件",
+      "summary_other": "{{name}}，包含 {{count}} 个文件",
+      "help": "请上传直接从 Paperclip 导出的 .zip。用 Finder、资源管理器或其他压缩工具重新打包的归档文件可能无法正确导入。"
+    },
+    "fields": {
+      "githubUrl": "GitHub URL",
+      "githubUrlHint": "仓库树路径或指向 COMPANY.md 的 blob URL（例如 github.com/owner/repo/tree/main/company）。",
+      "githubUrlPlaceholder": "https://github.com/owner/repo/tree/main/company",
+      "target": "目标",
+      "targetHint": "导入到当前公司，或创建一家新公司。",
+      "createNewCompany": "创建新公司",
+      "existingCompany": "现有公司：{{name}}",
+      "newCompanyName": "新公司名称",
+      "newCompanyNameHint": "可选覆盖。留空则使用包名称。",
+      "newCompanyNamePlaceholder": "导入的公司",
+      "collisionStrategy": "冲突策略",
+      "collisionStrategyHint": "导入时，冲突的公司内容可以重命名、跳过或替换。",
+      "collisionRename": "冲突时重命名",
+      "collisionSkip": "冲突时跳过",
+      "collisionReplace": "替换现有内容"
+    },
+    "actions": {
+      "preview": "预览导入",
+      "previewing": "预览中...",
+      "importFiles_one": "导入 {{count}} 个文件",
+      "importFiles_other": "导入 {{count}} 个文件",
+      "importing": "导入中..."
+    },
+    "preview": {
+      "title": "导入预览",
+      "selected_one": "已选择 {{count}} / {{total}} 个文件",
+      "selected_other": "已选择 {{count}} / {{total}} 个文件",
+      "conflicts_one": "{{count}} 个冲突",
+      "conflicts_other": "{{count}} 个冲突",
+      "errors_one": "{{count}} 个错误",
+      "errors_other": "{{count}} 个错误",
+      "packageFiles": "包文件"
+    },
+    "toasts": {
+      "previewFailed": "预览失败",
+      "previewFailedBody": "预览导入失败。",
+      "importComplete": "导入完成",
+      "importCompleteBody_one": "{{name}}：处理了 {{count}} 个代理。",
+      "importCompleteBody_other": "{{name}}：处理了 {{count}} 个代理。",
+      "importFailed": "导入失败",
+      "importFailedBody": "应用导入失败。",
+      "packageReadFailed": "读取包失败",
+      "packageReadFailedBody": "读取文件夹失败。"
+    },
+    "errors": {
+      "noSourceConfigured": "尚未配置来源。"
+    }
+  },
+  "export": {
+    "breadcrumbs": {
+      "orgChart": "组织图",
+      "export": "导出"
+    },
+    "emptyState": {
+      "selectCompany": "请选择要导出的公司。",
+      "loading": "正在加载导出数据..."
+    },
+    "header": {
+      "title": "{{name}} 导出",
+      "selected_one": "已选择 {{count}} / {{total}} 个文件",
+      "selected_other": "已选择 {{count}} / {{total}} 个文件",
+      "warnings_one": "{{count}} 条警告",
+      "warnings_other": "{{count}} 条警告"
+    },
+    "actions": {
+      "exportFiles_one": "导出 {{count}} 个文件",
+      "exportFiles_other": "导出 {{count}} 个文件",
+      "building": "正在构建导出..."
+    },
+    "packageFiles": "包文件",
+    "searchPlaceholder": "搜索文件...",
+    "showMoreIssues": "显示更多议题（{{visible}} / {{total}}）",
+    "toasts": {
+      "exportFailed": "导出失败",
+      "exportFailedBody": "加载导出数据失败。",
+      "exportDownloaded": "导出已下载",
+      "exportDownloadedBody_one": "{{count}} 个文件已导出为 {{name}}.zip",
+      "exportDownloadedBody_other": "{{count}} 个文件已导出为 {{name}}.zip",
+      "buildFailedBody": "构建导出包失败。"
+    }
+  },
+  "skills": {
+    "breadcrumbs": {
+      "skills": "技能",
+      "detail": "详情"
+    },
+    "emptyState": {
+      "selectCompany": "请选择要管理技能的公司。",
+      "selectSkill": "请选择一个技能以查看其文件。",
+      "selectFile": "请选择一个文件以查看。"
+    },
+    "title": "技能",
+    "available_one": "{{count}} 个可用",
+    "available_other": "{{count}} 个可用",
+    "actions": {
+      "add": "添加",
+      "edit": "编辑",
+      "stopEditing": "停止编辑",
+      "save": "保存",
+      "saving": "保存中...",
+      "preview": "预览",
+      "code": "代码",
+      "checkUpdates": "检查更新",
+      "installUpdate": "安装更新",
+      "upToDate": "已是最新"
+    },
+    "placeholders": {
+      "filter": "筛选技能",
+      "addSource": "粘贴路径、GitHub URL 或 skills.sh 命令",
+      "skillName": "技能名称",
+      "shortname": "可选短名",
+      "description": "简短描述"
+    },
+    "addSourceDialog": {
+      "title": "添加技能来源",
+      "description": "先在输入框中粘贴本地路径、GitHub URL 或 `skills.sh` 命令。",
+      "browseSkills": "浏览 skills.sh",
+      "browseSkillsDescription": "找到安装命令后粘贴到这里。",
+      "searchGithub": "搜索 GitHub",
+      "searchGithubDescription": "查找包含 `SKILL.md` 的仓库，然后把仓库 URL 粘贴到这里。"
+    },
+    "scan": {
+      "title": "扫描项目工作区中的技能",
+      "scanning": "正在扫描项目工作区中的技能...",
+      "refreshing": "正在刷新技能列表...",
+      "complete": "项目技能扫描完成",
+      "conflicts": "发现技能冲突",
+      "warnings": "扫描警告",
+      "failed": "项目技能扫描失败"
+    },
+    "create": {
+      "createSkill": "创建技能",
+      "creating": "创建中...",
+      "created": "技能已创建",
+      "createdBody": "{{name}} 现在可以在 Paperclip 工作区中编辑。",
+      "failed": "技能创建失败"
+    },
+    "import": {
+      "imported": "技能已导入",
+      "importedBody_one": "已添加 {{count}} 个技能。",
+      "importedBody_other": "已添加 {{count}} 个技能。",
+      "warnings": "导入警告",
+      "failed": "技能导入失败",
+      "failedBody": "导入技能来源失败。"
+    },
+    "save": {
+      "saved": "技能已保存",
+      "failed": "保存失败",
+      "failedBody": "保存技能文件失败。"
+    },
+    "update": {
+      "updated": "技能已更新",
+      "failed": "更新失败",
+      "failedBody": "安装技能更新失败。"
+    },
+    "labels": {
+      "source": "来源",
+      "pin": "固定版本",
+      "key": "键",
+      "mode": "模式",
+      "usedBy": "使用者",
+      "noAgentsAttached": "没有关联的代理",
+      "editable": "可编辑",
+      "readOnly": "只读",
+      "packageFiles": "包文件",
+      "copiedPathToWorkspace": "已复制工作区路径",
+      "untracked": "未跟踪"
+    }
+  }
+}

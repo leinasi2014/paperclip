@@ -5,7 +5,7 @@ import { Link } from "@/lib/router";
 interface MetricCardProps {
   icon: LucideIcon;
   value: string | number;
-  label: string;
+  label: ReactNode;
   description?: ReactNode;
   to?: string;
   onClick?: () => void;

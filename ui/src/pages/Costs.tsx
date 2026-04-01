@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import type {
   BudgetPolicySummary,
   CostByAgentModel,
@@ -26,7 +27,7 @@ import { ProviderQuotaCard } from "../components/ProviderQuotaCard";
 import { StatusBadge } from "../components/StatusBadge";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { useCompany } from "../context/CompanyContext";
-import { useDateRange, PRESET_KEYS, PRESET_LABELS } from "../hooks/useDateRange";
+import { useDateRange, PRESET_KEYS, type DatePreset } from "../hooks/useDateRange";
 import { queryKeys } from "../lib/queryKeys";
 import { billingTypeDisplayName, cn, formatCents, formatTokens, providerDisplayName } from "../lib/utils";
 import { Button } from "@/components/ui/button";
@@ -108,37 +109,52 @@ function FinanceSummaryCard({
   estimatedDebitCents: number;
   eventCount: number;
 }) {
+  const { t } = useTranslation("costs");
+
   return (
     <Card>
       <CardHeader className="px-5 pt-5 pb-2">
-        <CardTitle className="text-base">Finance ledger</CardTitle>
+        <CardTitle className="text-base">
+          {t("finance.summary.title", { defaultValue: "Finance ledger" })}
+        </CardTitle>
         <CardDescription>
-          Account-level charges that do not map to a single inference request.
+          {t("finance.summary.description", {
+            defaultValue: "Account-level charges that do not map to a single inference request.",
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3 px-5 pb-5 pt-2 sm:grid-cols-2 xl:grid-cols-4">
         <MetricTile
-          label="Debits"
+          label={t("finance.summary.metrics.debits.label", { defaultValue: "Debits" })}
           value={formatCents(debitCents)}
-          subtitle={`${eventCount} total event${eventCount === 1 ? "" : "s"} in range`}
+          subtitle={t("finance.summary.metrics.debits.subtitle", {
+            count: eventCount,
+            defaultValue: eventCount === 1 ? "{{count}} total event in range" : "{{count}} total events in range",
+          })}
           icon={ArrowUpRight}
         />
         <MetricTile
-          label="Credits"
+          label={t("finance.summary.metrics.credits.label", { defaultValue: "Credits" })}
           value={formatCents(creditCents)}
-          subtitle="Refunds, offsets, and credit returns"
+          subtitle={t("finance.summary.metrics.credits.subtitle", {
+            defaultValue: "Refunds, offsets, and credit returns",
+          })}
           icon={ArrowDownLeft}
         />
         <MetricTile
-          label="Net"
+          label={t("finance.summary.metrics.net.label", { defaultValue: "Net" })}
           value={formatCents(netCents)}
-          subtitle="Debit minus credit for the selected period"
+          subtitle={t("finance.summary.metrics.net.subtitle", {
+            defaultValue: "Debit minus credit for the selected period",
+          })}
           icon={ReceiptText}
         />
         <MetricTile
-          label="Estimated"
+          label={t("finance.summary.metrics.estimated.label", { defaultValue: "Estimated" })}
           value={formatCents(estimatedDebitCents)}
-          subtitle="Estimated debits that are not yet invoice-authoritative"
+          subtitle={t("finance.summary.metrics.estimated.subtitle", {
+            defaultValue: "Estimated debits that are not yet invoice-authoritative",
+          })}
           icon={Coins}
         />
       </CardContent>
@@ -147,6 +163,7 @@ function FinanceSummaryCard({
 }
 
 export function Costs() {
+  const { t } = useTranslation("costs");
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
@@ -167,9 +184,18 @@ export function Costs() {
     customReady,
   } = useDateRange();
 
+  const presetLabels: Record<DatePreset, string> = {
+    mtd: t("presets.mtd", { defaultValue: "Month to Date" }),
+    "7d": t("presets.7d", { defaultValue: "Last 7 Days" }),
+    "30d": t("presets.30d", { defaultValue: "Last 30 Days" }),
+    ytd: t("presets.ytd", { defaultValue: "Year to Date" }),
+    all: t("presets.all", { defaultValue: "All Time" }),
+    custom: t("presets.custom", { defaultValue: "Custom" }),
+  };
+
   useEffect(() => {
-    setBreadcrumbs([{ label: "Costs" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("breadcrumb", { defaultValue: "Costs" }) }]);
+  }, [setBreadcrumbs, t]);
 
   const [today, setToday] = useState(() => new Date().toDateString());
   const todayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -464,7 +490,7 @@ export function Costs() {
         value: "all",
         label: (
           <span className="flex items-center gap-1.5">
-            <span>All providers</span>
+            <span>{t("providers.all", { defaultValue: "All providers" })}</span>
             {providerKeys.length > 0 ? (
               <>
                 <span className="font-mono text-xs text-muted-foreground">{formatTokens(allTokens)}</span>
@@ -473,13 +499,15 @@ export function Costs() {
             ) : null}
           </span>
         ),
+        mobileLabel: t("providers.all", { defaultValue: "All providers" }),
       },
       ...providerKeys.map((provider) => ({
         value: provider,
         label: <ProviderTabLabel provider={provider} rows={byProvider.get(provider) ?? []} />,
+        mobileLabel: providerDisplayName(provider),
       })),
     ];
-  }, [byProvider]);
+  }, [byProvider, t]);
 
   const billerTabItems = useMemo(() => {
     const billerKeys = Array.from(byBiller.keys());
@@ -496,7 +524,7 @@ export function Costs() {
         value: "all",
         label: (
           <span className="flex items-center gap-1.5">
-            <span>All billers</span>
+            <span>{t("billers.all", { defaultValue: "All billers" })}</span>
             {billerKeys.length > 0 ? (
               <>
                 <span className="font-mono text-xs text-muted-foreground">{formatTokens(allTokens)}</span>
@@ -505,13 +533,15 @@ export function Costs() {
             ) : null}
           </span>
         ),
+        mobileLabel: t("billers.all", { defaultValue: "All billers" }),
       },
       ...billerKeys.map((biller) => ({
         value: biller,
         label: <BillerTabLabel biller={biller} rows={byBiller.get(biller) ?? []} />,
+        mobileLabel: providerDisplayName(biller),
       })),
     ];
-  }, [byBiller]);
+  }, [byBiller, t]);
 
   const inferenceTokenTotal =
     (spendData?.byAgent ?? []).reduce(
@@ -528,8 +558,32 @@ export function Costs() {
     project: budgetPolicies.filter((policy) => policy.scopeType === "project"),
   }), [budgetPolicies]);
 
+  const budgetSectionCopy = {
+    company: {
+      title: t("budgets.sections.company.title", { defaultValue: "Company budgets" }),
+      description: t("budgets.sections.company.description", { defaultValue: "Company-wide monthly policy." }),
+    },
+    agent: {
+      title: t("budgets.sections.agent.title", { defaultValue: "Agent budgets" }),
+      description: t("budgets.sections.agent.description", {
+        defaultValue: "Recurring monthly spend policies for individual agents.",
+      }),
+    },
+    project: {
+      title: t("budgets.sections.project.title", { defaultValue: "Project budgets" }),
+      description: t("budgets.sections.project.description", {
+        defaultValue: "Lifetime spend policies for execution-bound projects.",
+      }),
+    },
+  } as const;
+
   if (!selectedCompanyId) {
-    return <EmptyState icon={DollarSign} message="Select a company to view costs." />;
+    return (
+      <EmptyState
+        icon={DollarSign}
+        message={t("empty.selectCompany", { defaultValue: "Select a company to view costs." })}
+      />
+    );
   }
 
   const showCustomPrompt = preset === "custom" && !customReady;
@@ -541,9 +595,13 @@ export function Costs() {
       <div className="space-y-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Costs</h1>
+                <h1 className="text-3xl font-semibold tracking-tight">
+                  {t("title", { defaultValue: "Costs" })}
+                </h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Inference spend, platform fees, credits, and live quota windows.
+                  {t("description", {
+                    defaultValue: "Inference spend, platform fees, credits, and live quota windows.",
+                  })}
                 </p>
             </div>
 
@@ -555,7 +613,7 @@ export function Costs() {
                   size="sm"
                   onClick={() => setPreset(key)}
                 >
-                  {PRESET_LABELS[key]}
+                  {presetLabels[key]}
                 </Button>
               ))}
             </div>
@@ -569,7 +627,9 @@ export function Costs() {
                 onChange={(event) => setCustomFrom(event.target.value)}
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
               />
-              <span className="text-sm text-muted-foreground">to</span>
+              <span className="text-sm text-muted-foreground">
+                {t("customRange.to", { defaultValue: "to" })}
+              </span>
               <input
                 type="date"
                 value={customTo}
@@ -581,37 +641,55 @@ export function Costs() {
 
           <div className="grid gap-3 lg:grid-cols-4">
             <MetricTile
-              label="Inference spend"
+              label={t("summary.inferenceSpend.label", { defaultValue: "Inference spend" })}
               value={formatCents(spendData?.summary.spendCents ?? 0)}
-              subtitle={`${formatTokens(inferenceTokenTotal)} tokens across request-scoped events`}
+              subtitle={t("summary.inferenceSpend.subtitle", {
+                tokens: formatTokens(inferenceTokenTotal),
+                defaultValue: "{{tokens}} tokens across request-scoped events",
+              })}
               icon={DollarSign}
             />
             <MetricTile
-              label="Budget"
+              label={t("summary.budget.label", { defaultValue: "Budget" })}
               value={activeBudgetIncidents.length > 0 ? String(activeBudgetIncidents.length) : (
                 spendData?.summary.budgetCents && spendData.summary.budgetCents > 0
                   ? `${spendData.summary.utilizationPercent}%`
-                  : "Open"
+                  : t("summary.budget.open", { defaultValue: "Open" })
               )}
               subtitle={
                 activeBudgetIncidents.length > 0
-                  ? `${budgetData?.pausedAgentCount ?? 0} agents paused · ${budgetData?.pausedProjectCount ?? 0} projects paused`
+                  ? t("summary.budget.pausedSummary", {
+                      agents: budgetData?.pausedAgentCount ?? 0,
+                      projects: budgetData?.pausedProjectCount ?? 0,
+                      defaultValue: "{{agents}} agents paused · {{projects}} projects paused",
+                    })
                   : spendData?.summary.budgetCents && spendData.summary.budgetCents > 0
-                    ? `${formatCents(spendData.summary.spendCents)} of ${formatCents(spendData.summary.budgetCents)}`
-                    : "No monthly cap configured"
+                    ? t("summary.budget.spendOfBudget", {
+                        spend: formatCents(spendData.summary.spendCents),
+                        budget: formatCents(spendData.summary.budgetCents),
+                        defaultValue: "{{spend}} of {{budget}}",
+                      })
+                    : t("summary.budget.noCap", { defaultValue: "No monthly cap configured" })
               }
               icon={Coins}
             />
             <MetricTile
-              label="Finance net"
+              label={t("summary.financeNet.label", { defaultValue: "Finance net" })}
               value={formatCents(financeData?.summary.netCents ?? 0)}
-              subtitle={`${formatCents(financeData?.summary.debitCents ?? 0)} debits · ${formatCents(financeData?.summary.creditCents ?? 0)} credits`}
+              subtitle={t("summary.financeNet.subtitle", {
+                debits: formatCents(financeData?.summary.debitCents ?? 0),
+                credits: formatCents(financeData?.summary.creditCents ?? 0),
+                defaultValue: "{{debits}} debits · {{credits}} credits",
+              })}
               icon={ReceiptText}
             />
             <MetricTile
-              label="Finance events"
+              label={t("summary.financeEvents.label", { defaultValue: "Finance events" })}
               value={String(financeData?.summary.eventCount ?? 0)}
-              subtitle={`${formatCents(financeData?.summary.estimatedDebitCents ?? 0)} estimated in range`}
+              subtitle={t("summary.financeEvents.subtitle", {
+                estimated: formatCents(financeData?.summary.estimatedDebitCents ?? 0),
+                defaultValue: "{{estimated}} estimated in range",
+              })}
               icon={ArrowUpRight}
             />
           </div>
@@ -619,16 +697,18 @@ export function Costs() {
 
       <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as typeof mainTab)}>
         <TabsList variant="line" className="justify-start">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="budgets">Budgets</TabsTrigger>
-          <TabsTrigger value="providers">Providers</TabsTrigger>
-          <TabsTrigger value="billers">Billers</TabsTrigger>
-          <TabsTrigger value="finance">Finance</TabsTrigger>
+          <TabsTrigger value="overview">{t("tabs.overview", { defaultValue: "Overview" })}</TabsTrigger>
+          <TabsTrigger value="budgets">{t("tabs.budgets", { defaultValue: "Budgets" })}</TabsTrigger>
+          <TabsTrigger value="providers">{t("tabs.providers", { defaultValue: "Providers" })}</TabsTrigger>
+          <TabsTrigger value="billers">{t("tabs.billers", { defaultValue: "Billers" })}</TabsTrigger>
+          <TabsTrigger value="finance">{t("tabs.finance", { defaultValue: "Finance" })}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
           {showCustomPrompt ? (
-            <p className="text-sm text-muted-foreground">Select a start and end date to load data.</p>
+            <p className="text-sm text-muted-foreground">
+              {t("customRange.selectPrompt", { defaultValue: "Select a start and end date to load data." })}
+            </p>
           ) : showOverviewLoading ? (
             <PageSkeleton variant="costs" />
           ) : overviewError ? (
@@ -657,9 +737,13 @@ export function Costs() {
               <div className="grid gap-4 xl:grid-cols-[1.3fr,1fr]">
                 <Card>
                   <CardHeader className="px-5 pt-5 pb-2">
-                    <CardTitle className="text-base">Inference ledger</CardTitle>
+                    <CardTitle className="text-base">
+                      {t("overview.inferenceLedger.title", { defaultValue: "Inference ledger" })}
+                    </CardTitle>
                     <CardDescription>
-                      Request-scoped inference spend for the selected period.
+                      {t("overview.inferenceLedger.description", {
+                        defaultValue: "Request-scoped inference spend for the selected period.",
+                      })}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4 px-5 pb-5 pt-2">
@@ -670,12 +754,17 @@ export function Costs() {
                         </div>
                         <div className="mt-1 text-sm text-muted-foreground">
                           {spendData?.summary.budgetCents && spendData.summary.budgetCents > 0
-                            ? `Budget ${formatCents(spendData.summary.budgetCents)}`
-                            : "Unlimited budget"}
+                            ? t("overview.inferenceLedger.budget", {
+                                budget: formatCents(spendData.summary.budgetCents),
+                                defaultValue: "Budget {{budget}}",
+                              })
+                            : t("overview.inferenceLedger.unlimited", { defaultValue: "Unlimited budget" })}
                         </div>
                       </div>
                       <div className="border border-border px-4 py-3 text-right">
-                        <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">usage</div>
+                        <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                          {t("overview.inferenceLedger.usage", { defaultValue: "usage" })}
+                        </div>
                         <div className="mt-1 text-lg font-medium tabular-nums">
                           {formatTokens(inferenceTokenTotal)}
                         </div>
@@ -697,7 +786,10 @@ export function Costs() {
                           />
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {spendData.summary.utilizationPercent}% of monthly budget consumed in this range.
+                          {t("overview.inferenceLedger.utilization", {
+                            percent: spendData.summary.utilizationPercent,
+                            defaultValue: "{{percent}}% of monthly budget consumed in this range.",
+                          })}
                         </div>
                       </div>
                     ) : null}
@@ -716,12 +808,20 @@ export function Costs() {
               <div className="grid gap-4 xl:grid-cols-[1.25fr,0.95fr]">
                 <Card>
                   <CardHeader className="px-5 pt-5 pb-2">
-                    <CardTitle className="text-base">By agent</CardTitle>
-                    <CardDescription>What each agent consumed in the selected period.</CardDescription>
+                    <CardTitle className="text-base">
+                      {t("overview.byAgent.title", { defaultValue: "By agent" })}
+                    </CardTitle>
+                    <CardDescription>
+                      {t("overview.byAgent.description", {
+                        defaultValue: "What each agent consumed in the selected period.",
+                      })}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2 px-5 pb-5 pt-2">
                     {(spendData?.byAgent.length ?? 0) === 0 ? (
-                      <p className="text-sm text-muted-foreground">No cost events yet.</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t("overview.byAgent.empty", { defaultValue: "No cost events yet." })}
+                      </p>
                     ) : (
                       spendData?.byAgent.map((row) => {
                         const modelRows = agentModelRows.get(row.agentId) ?? [];
@@ -747,15 +847,19 @@ export function Costs() {
                               <div className="text-right text-sm tabular-nums">
                                 <div className="font-medium">{formatCents(row.costCents)}</div>
                                 <div className="text-xs text-muted-foreground">
-                                  in {formatTokens(row.inputTokens + row.cachedInputTokens)} · out {formatTokens(row.outputTokens)}
+                                  {t("overview.byAgent.tokenBreakdown", {
+                                    input: formatTokens(row.inputTokens + row.cachedInputTokens),
+                                    output: formatTokens(row.outputTokens),
+                                    defaultValue: "in {{input}} · out {{output}}",
+                                  })}
                                 </div>
                                 {(row.apiRunCount > 0 || row.subscriptionRunCount > 0) ? (
                                   <div className="text-xs text-muted-foreground">
-                                    {row.apiRunCount > 0 ? `${row.apiRunCount} api` : "0 api"}
-                                    {" · "}
-                                    {row.subscriptionRunCount > 0
-                                      ? `${row.subscriptionRunCount} subscription`
-                                      : "0 subscription"}
+                                    {t("overview.byAgent.runBreakdown", {
+                                      api: row.apiRunCount,
+                                      subscription: row.subscriptionRunCount,
+                                      defaultValue: "{{api}} api · {{subscription}} subscription",
+                                    })}
                                   </div>
                                 ) : null}
                               </div>
@@ -786,7 +890,12 @@ export function Costs() {
                                           <span className="ml-1 font-normal text-muted-foreground">({sharePct}%)</span>
                                         </div>
                                         <div className="text-muted-foreground">
-                                          {formatTokens(modelRow.inputTokens + modelRow.cachedInputTokens + modelRow.outputTokens)} tok
+                                          {t("overview.byAgent.modelTokens", {
+                                            tokens: formatTokens(
+                                              modelRow.inputTokens + modelRow.cachedInputTokens + modelRow.outputTokens,
+                                            ),
+                                            defaultValue: "{{tokens}} tok",
+                                          })}
                                         </div>
                                       </div>
                                     </div>
@@ -804,19 +913,31 @@ export function Costs() {
                 <div className="space-y-4">
                   <Card>
                     <CardHeader className="px-5 pt-5 pb-2">
-                      <CardTitle className="text-base">By project</CardTitle>
-                      <CardDescription>Run costs attributed through project-linked issues.</CardDescription>
+                      <CardTitle className="text-base">
+                        {t("overview.byProject.title", { defaultValue: "By project" })}
+                      </CardTitle>
+                      <CardDescription>
+                        {t("overview.byProject.description", {
+                          defaultValue: "Run costs attributed through project-linked issues.",
+                        })}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2 px-5 pb-5 pt-2">
                       {(spendData?.byProject.length ?? 0) === 0 ? (
-                        <p className="text-sm text-muted-foreground">No project-attributed run costs yet.</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("overview.byProject.empty", { defaultValue: "No project-attributed run costs yet." })}
+                        </p>
                       ) : (
                         spendData?.byProject.map((row, index) => (
                           <div
                             key={row.projectId ?? `unattributed-${index}`}
                             className="flex items-center justify-between gap-3 border border-border px-3 py-2 text-sm"
                           >
-                            <span className="truncate">{row.projectName ?? row.projectId ?? "Unattributed"}</span>
+                            <span className="truncate">
+                              {row.projectName
+                                ?? row.projectId
+                                ?? t("overview.byProject.unattributed", { defaultValue: "Unattributed" })}
+                            </span>
                             <span className="font-medium tabular-nums">{formatCents(row.costCents)}</span>
                           </div>
                         ))
@@ -824,7 +945,13 @@ export function Costs() {
                     </CardContent>
                   </Card>
 
-                  <FinanceTimelineCard rows={topFinanceEvents.slice(0, 6)} emptyMessage="No finance events yet. Add account-level charges once biller invoices or credits land." />
+                  <FinanceTimelineCard
+                    rows={topFinanceEvents.slice(0, 6)}
+                    emptyMessage={t("overview.financeTimeline.empty", {
+                      defaultValue:
+                        "No finance events yet. Add account-level charges once biller invoices or credits land.",
+                    })}
+                  />
                 </div>
               </div>
             </>
@@ -840,34 +967,55 @@ export function Costs() {
             <>
               <Card className="border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]">
                 <CardHeader className="px-5 pt-5 pb-3">
-                  <CardTitle className="text-base">Budget control plane</CardTitle>
+                  <CardTitle className="text-base">
+                    {t("budgets.controlPlane.title", { defaultValue: "Budget control plane" })}
+                  </CardTitle>
                   <CardDescription>
-                    Hard-stop spend limits for agents and projects. Provider subscription quota stays separate and appears under Providers.
+                    {t("budgets.controlPlane.description", {
+                      defaultValue:
+                        "Hard-stop spend limits for agents and projects. Provider subscription quota stays separate and appears under Providers.",
+                    })}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-3 px-5 pb-5 pt-0 md:grid-cols-4">
                   <MetricTile
-                    label="Active incidents"
+                    label={t("budgets.controlPlane.metrics.activeIncidents.label", {
+                      defaultValue: "Active incidents",
+                    })}
                     value={String(activeBudgetIncidents.length)}
-                    subtitle="Open soft or hard threshold crossings"
+                    subtitle={t("budgets.controlPlane.metrics.activeIncidents.subtitle", {
+                      defaultValue: "Open soft or hard threshold crossings",
+                    })}
                     icon={ReceiptText}
                   />
                   <MetricTile
-                    label="Pending approvals"
+                    label={t("budgets.controlPlane.metrics.pendingApprovals.label", {
+                      defaultValue: "Pending approvals",
+                    })}
                     value={String(budgetData?.pendingApprovalCount ?? 0)}
-                    subtitle="Budget override approvals awaiting board action"
+                    subtitle={t("budgets.controlPlane.metrics.pendingApprovals.subtitle", {
+                      defaultValue: "Budget override approvals awaiting board action",
+                    })}
                     icon={ArrowUpRight}
                   />
                   <MetricTile
-                    label="Paused agents"
+                    label={t("budgets.controlPlane.metrics.pausedAgents.label", {
+                      defaultValue: "Paused agents",
+                    })}
                     value={String(budgetData?.pausedAgentCount ?? 0)}
-                    subtitle="Agent heartbeats blocked by budget"
+                    subtitle={t("budgets.controlPlane.metrics.pausedAgents.subtitle", {
+                      defaultValue: "Agent heartbeats blocked by budget",
+                    })}
                     icon={Coins}
                   />
                   <MetricTile
-                    label="Paused projects"
+                    label={t("budgets.controlPlane.metrics.pausedProjects.label", {
+                      defaultValue: "Paused projects",
+                    })}
                     value={String(budgetData?.pausedProjectCount ?? 0)}
-                    subtitle="Project execution blocked by budget"
+                    subtitle={t("budgets.controlPlane.metrics.pausedProjects.subtitle", {
+                      defaultValue: "Project execution blocked by budget",
+                    })}
                     icon={DollarSign}
                   />
                 </CardContent>
@@ -876,9 +1024,14 @@ export function Costs() {
               {activeBudgetIncidents.length > 0 ? (
                 <div className="space-y-3">
                   <div>
-                    <h2 className="text-lg font-semibold">Active incidents</h2>
+                    <h2 className="text-lg font-semibold">
+                      {t("budgets.activeIncidents.title", { defaultValue: "Active incidents" })}
+                    </h2>
                     <p className="text-sm text-muted-foreground">
-                      Resolve hard stops here by raising the budget or explicitly keeping the scope paused.
+                      {t("budgets.activeIncidents.description", {
+                        defaultValue:
+                          "Resolve hard stops here by raising the budget or explicitly keeping the scope paused.",
+                      })}
                     </p>
                   </div>
                   <div className="grid gap-4 xl:grid-cols-2">
@@ -907,14 +1060,8 @@ export function Costs() {
                   return (
                     <section key={scopeType} className="space-y-3">
                       <div>
-                        <h2 className="text-lg font-semibold capitalize">{scopeType} budgets</h2>
-                        <p className="text-sm text-muted-foreground">
-                          {scopeType === "company"
-                            ? "Company-wide monthly policy."
-                            : scopeType === "agent"
-                              ? "Recurring monthly spend policies for individual agents."
-                              : "Lifetime spend policies for execution-bound projects."}
-                        </p>
+                        <h2 className="text-lg font-semibold">{budgetSectionCopy[scopeType].title}</h2>
+                        <p className="text-sm text-muted-foreground">{budgetSectionCopy[scopeType].description}</p>
                       </div>
                       <div className="grid gap-4 xl:grid-cols-2">
                         {rows.map((summary) => (
@@ -939,7 +1086,10 @@ export function Costs() {
                 {budgetPolicies.length === 0 ? (
                   <Card>
                     <CardContent className="px-5 py-8 text-sm text-muted-foreground">
-                      No budget policies yet. Set agent and project budgets from their detail pages, or use the existing company monthly budget control.
+                      {t("budgets.empty", {
+                        defaultValue:
+                          "No budget policies yet. Set agent and project budgets from their detail pages, or use the existing company monthly budget control.",
+                      })}
                     </CardContent>
                   </Card>
                 ) : null}
@@ -950,15 +1100,23 @@ export function Costs() {
 
         <TabsContent value="providers" className="mt-4 space-y-4">
           {showCustomPrompt ? (
-            <p className="text-sm text-muted-foreground">Select a start and end date to load data.</p>
+            <p className="text-sm text-muted-foreground">
+              {t("customRange.selectPrompt", { defaultValue: "Select a start and end date to load data." })}
+            </p>
           ) : (
             <>
               <Tabs value={effectiveProvider} onValueChange={setActiveProvider}>
-                <PageTabBar items={providerTabItems} value={effectiveProvider} />
+                <PageTabBar
+                  items={providerTabItems}
+                  value={effectiveProvider}
+                  onValueChange={setActiveProvider}
+                />
 
                 <TabsContent value="all" className="mt-4">
                   {providers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No cost events in this period.</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("providers.empty", { defaultValue: "No cost events in this period." })}
+                    </p>
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2">
                       {providers.map((provider) => (
@@ -1005,15 +1163,23 @@ export function Costs() {
 
         <TabsContent value="billers" className="mt-4 space-y-4">
           {showCustomPrompt ? (
-            <p className="text-sm text-muted-foreground">Select a start and end date to load data.</p>
+            <p className="text-sm text-muted-foreground">
+              {t("customRange.selectPrompt", { defaultValue: "Select a start and end date to load data." })}
+            </p>
           ) : (
             <>
               <Tabs value={effectiveBiller} onValueChange={setActiveBiller}>
-                <PageTabBar items={billerTabItems} value={effectiveBiller} />
+                <PageTabBar
+                  items={billerTabItems}
+                  value={effectiveBiller}
+                  onValueChange={setActiveBiller}
+                />
 
                 <TabsContent value="all" className="mt-4">
                   {billers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No billable events in this period.</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("billers.empty", { defaultValue: "No billable events in this period." })}
+                    </p>
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2">
                       {billers.map((biller) => {
@@ -1058,7 +1224,9 @@ export function Costs() {
 
         <TabsContent value="finance" className="mt-4 space-y-4">
           {showCustomPrompt ? (
-            <p className="text-sm text-muted-foreground">Select a start and end date to load data.</p>
+            <p className="text-sm text-muted-foreground">
+              {t("customRange.selectPrompt", { defaultValue: "Select a start and end date to load data." })}
+            </p>
           ) : financeLoading ? (
             <PageSkeleton variant="costs" />
           ) : financeError ? (
@@ -1077,12 +1245,20 @@ export function Costs() {
                 <div className="space-y-4">
                   <Card>
                     <CardHeader className="px-5 pt-5 pb-2">
-                      <CardTitle className="text-base">By biller</CardTitle>
-                      <CardDescription>Account-level financial events grouped by who charged or credited them.</CardDescription>
+                      <CardTitle className="text-base">
+                        {t("finance.byBiller.title", { defaultValue: "By biller" })}
+                      </CardTitle>
+                      <CardDescription>
+                        {t("finance.byBiller.description", {
+                          defaultValue: "Account-level financial events grouped by who charged or credited them.",
+                        })}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-4 px-5 pb-5 pt-2 md:grid-cols-2">
                       {(financeData?.byBiller.length ?? 0) === 0 ? (
-                        <p className="text-sm text-muted-foreground">No finance events yet.</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("finance.byBiller.empty", { defaultValue: "No finance events yet." })}
+                        </p>
                       ) : (
                         financeData?.byBiller.map((row) => <FinanceBillerCard key={row.biller} row={row} />)
                       )}

@@ -1,0 +1,42 @@
+{
+  "breadcrumbs": {
+    "settings": "Instance Settings",
+    "heartbeats": "Heartbeats"
+  },
+  "loading": "Loading scheduler heartbeats...",
+  "errors": {
+    "load": "Failed to load scheduler heartbeats.",
+    "update": "Failed to update heartbeat.",
+    "disableAll": "Failed to disable all heartbeats.",
+    "unknown": "Unknown error",
+    "disableAllOne": "Failed to disable 1 timer heartbeat: {{detail}}",
+    "disableAllMany": "Failed to disable {{count}} of {{enabled}} timer heartbeats. First error: {{detail}}"
+  },
+  "title": "Scheduler Heartbeats",
+  "description": "Agents with a timer heartbeat enabled across all of your companies.",
+  "summary": {
+    "active": "{{count}} active",
+    "disabled": "{{count}} disabled",
+    "company": "{{count}} company",
+    "companies": "{{count}} companies"
+  },
+  "actions": {
+    "disableAll": "Disable All",
+    "disabling": "Disabling...",
+    "disableHeartbeat": "Disable Timer Heartbeat",
+    "enableHeartbeat": "Enable Timer Heartbeat"
+  },
+  "states": {
+    "on": "On",
+    "off": "Off",
+    "never": "never"
+  },
+  "empty": "No scheduler heartbeats match the current criteria.",
+  "labels": {
+    "fullAgentConfig": "Full agent config"
+  },
+  "confirm": {
+    "disableAllOne": "Disable timer heartbeats for all {{count}} enabled agent?",
+    "disableAllMany": "Disable timer heartbeats for all {{count}} enabled agents?"
+  }
+}

@@ -18,21 +18,15 @@ import { PageTabBar } from "../components/PageTabBar";
 import { Tabs } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Bot, Plus, List, GitBranch, SlidersHorizontal } from "lucide-react";
-import { AGENT_ROLE_LABELS, type Agent } from "@paperclipai/shared";
-
-const adapterLabels: Record<string, string> = {
-  claude_local: "Claude",
-  codex_local: "Codex",
-  gemini_local: "Gemini",
-  opencode_local: "OpenCode",
-  cursor: "Cursor",
-  hermes_local: "Hermes",
-  openclaw_gateway: "OpenClaw Gateway",
-  process: "Process",
-  http: "HTTP",
-};
-
-const roleLabels = AGENT_ROLE_LABELS as Record<string, string>;
+import type { Agent } from "@paperclipai/shared";
+import { getAgentRoleLabel } from "../i18n/label-helpers";
+import { useAppLocale } from "../i18n/useAppLocale";
+import {
+  formatAgentCountLabel,
+  formatLiveRunLabel,
+  getAgentOverviewAdapterLabel,
+  getAgentsMessages,
+} from "../components/agent-config-primitives";
 
 type FilterTab = "all" | "active" | "paused" | "error";
 
@@ -70,6 +64,8 @@ export function Agents() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isMobile } = useSidebar();
+  const { language } = useAppLocale();
+  const messages = getAgentsMessages(language).pages.agents;
   const pathSegment = location.pathname.split("/").pop() ?? "all";
   const tab: FilterTab = (pathSegment === "all" || pathSegment === "active" || pathSegment === "paused" || pathSegment === "error") ? pathSegment : "all";
   const [view, setView] = useState<"list" | "org">("org");
@@ -119,11 +115,11 @@ export function Agents() {
   }, [agents]);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Agents" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: messages.breadcrumb }]);
+  }, [messages.breadcrumb, setBreadcrumbs]);
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Bot} message="Select a company to view agents." />;
+    return <EmptyState icon={Bot} message={messages.selectionRequired} />;
   }
 
   if (isLoading) {
@@ -139,10 +135,10 @@ export function Agents() {
         <Tabs value={tab} onValueChange={(v) => navigate(`/agents/${v}`)}>
           <PageTabBar
             items={[
-              { value: "all", label: "All" },
-              { value: "active", label: "Active" },
-              { value: "paused", label: "Paused" },
-              { value: "error", label: "Error" },
+              { value: "all", label: messages.filters.all },
+              { value: "active", label: messages.filters.active },
+              { value: "paused", label: messages.filters.paused },
+              { value: "error", label: messages.filters.error },
             ]}
             value={tab}
             onValueChange={(v) => navigate(`/agents/${v}`)}
@@ -159,7 +155,7 @@ export function Agents() {
               onClick={() => setFiltersOpen(!filtersOpen)}
             >
               <SlidersHorizontal className="h-3 w-3" />
-              Filters
+              {messages.actions.filters}
               {showTerminated && <span className="ml-0.5 px-1 bg-foreground/10 rounded text-[10px]">1</span>}
             </button>
             {filtersOpen && (
@@ -174,7 +170,7 @@ export function Agents() {
                   )}>
                     {showTerminated && <span className="text-background text-[10px] leading-none">&#10003;</span>}
                   </span>
-                  Show terminated
+                  {messages.actions.showTerminated}
                 </button>
               </div>
             )}
@@ -188,6 +184,8 @@ export function Agents() {
                   effectiveView === "list" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"
                 )}
                 onClick={() => setView("list")}
+                aria-label={messages.actions.listView}
+                title={messages.actions.listView}
               >
                 <List className="h-3.5 w-3.5" />
               </button>
@@ -197,6 +195,8 @@ export function Agents() {
                   effectiveView === "org" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"
                 )}
                 onClick={() => setView("org")}
+                aria-label={messages.actions.orgView}
+                title={messages.actions.orgView}
               >
                 <GitBranch className="h-3.5 w-3.5" />
               </button>
@@ -204,13 +204,13 @@ export function Agents() {
           )}
           <Button size="sm" variant="outline" onClick={openNewAgent}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />
-            New Agent
+            {messages.actions.newAgent}
           </Button>
         </div>
       </div>
 
       {filtered.length > 0 && (
-        <p className="text-xs text-muted-foreground">{filtered.length} agent{filtered.length !== 1 ? "s" : ""}</p>
+        <p className="text-xs text-muted-foreground">{formatAgentCountLabel(filtered.length, language)}</p>
       )}
 
       {error && <p className="text-sm text-destructive">{error.message}</p>}
@@ -218,8 +218,8 @@ export function Agents() {
       {agents && agents.length === 0 && (
         <EmptyState
           icon={Bot}
-          message="Create your first agent to get started."
-          action="New Agent"
+          message={messages.empty.createFirst}
+          action={messages.actions.newAgent}
           onAction={openNewAgent}
         />
       )}
@@ -232,7 +232,7 @@ export function Agents() {
               <EntityRow
                 key={agent.id}
                 title={agent.name}
-                subtitle={`${roleLabels[agent.role] ?? agent.role}${agent.title ? ` - ${agent.title}` : ""}`}
+                subtitle={`${getAgentRoleLabel(agent.role, language)}${agent.title ? ` - ${agent.title}` : ""}`}
                 to={agentUrl(agent)}
                 leading={
                   <span className="relative flex h-2.5 w-2.5">
@@ -249,6 +249,7 @@ export function Agents() {
                           agentRef={agentRouteRef(agent)}
                           runId={liveRunByAgent.get(agent.id)!.runId}
                           liveCount={liveRunByAgent.get(agent.id)!.liveCount}
+                          language={language}
                         />
                       ) : (
                         <StatusBadge status={agent.status} />
@@ -260,10 +261,11 @@ export function Agents() {
                           agentRef={agentRouteRef(agent)}
                           runId={liveRunByAgent.get(agent.id)!.runId}
                           liveCount={liveRunByAgent.get(agent.id)!.liveCount}
+                          language={language}
                         />
                       )}
                       <span className="text-xs text-muted-foreground font-mono w-14 text-right">
-                        {adapterLabels[agent.adapterType] ?? agent.adapterType}
+                        {getAgentOverviewAdapterLabel(agent.adapterType, language) ?? agent.adapterType}
                       </span>
                       <span className="text-xs text-muted-foreground w-16 text-right">
                         {agent.lastHeartbeatAt ? relativeTime(agent.lastHeartbeatAt) : "—"}
@@ -282,7 +284,7 @@ export function Agents() {
 
       {effectiveView === "list" && agents && agents.length > 0 && filtered.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-8">
-          No agents match the selected filter.
+          {messages.empty.filtered}
         </p>
       )}
 
@@ -290,20 +292,27 @@ export function Agents() {
       {effectiveView === "org" && filteredOrg.length > 0 && (
         <div className="border border-border py-1">
           {filteredOrg.map((node) => (
-            <OrgTreeNode key={node.id} node={node} depth={0} agentMap={agentMap} liveRunByAgent={liveRunByAgent} />
+            <OrgTreeNode
+              key={node.id}
+              node={node}
+              depth={0}
+              agentMap={agentMap}
+              liveRunByAgent={liveRunByAgent}
+              language={language}
+            />
           ))}
         </div>
       )}
 
       {effectiveView === "org" && orgTree && orgTree.length > 0 && filteredOrg.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-8">
-          No agents match the selected filter.
+          {messages.empty.filtered}
         </p>
       )}
 
       {effectiveView === "org" && orgTree && orgTree.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-8">
-          No organizational hierarchy defined.
+          {messages.empty.org}
         </p>
       )}
     </div>
@@ -315,11 +324,13 @@ function OrgTreeNode({
   depth,
   agentMap,
   liveRunByAgent,
+  language,
 }: {
   node: OrgNode;
   depth: number;
   agentMap: Map<string, Agent>;
   liveRunByAgent: Map<string, { runId: string; liveCount: number }>;
+  language: string;
 }) {
   const agent = agentMap.get(node.id);
 
@@ -337,7 +348,7 @@ function OrgTreeNode({
         <div className="flex-1 min-w-0">
           <span className="text-sm font-medium">{node.name}</span>
           <span className="text-xs text-muted-foreground ml-2">
-            {roleLabels[node.role] ?? node.role}
+            {getAgentRoleLabel(node.role, language)}
             {agent?.title ? ` - ${agent.title}` : ""}
           </span>
         </div>
@@ -348,6 +359,7 @@ function OrgTreeNode({
                 agentRef={agent ? agentRouteRef(agent) : node.id}
                 runId={liveRunByAgent.get(node.id)!.runId}
                 liveCount={liveRunByAgent.get(node.id)!.liveCount}
+                language={language}
               />
             ) : (
               <StatusBadge status={node.status} />
@@ -359,12 +371,13 @@ function OrgTreeNode({
                 agentRef={agent ? agentRouteRef(agent) : node.id}
                 runId={liveRunByAgent.get(node.id)!.runId}
                 liveCount={liveRunByAgent.get(node.id)!.liveCount}
+                language={language}
               />
             )}
             {agent && (
               <>
                 <span className="text-xs text-muted-foreground font-mono w-14 text-right">
-                  {adapterLabels[agent.adapterType] ?? agent.adapterType}
+                  {getAgentOverviewAdapterLabel(agent.adapterType, language) ?? agent.adapterType}
                 </span>
                 <span className="text-xs text-muted-foreground w-16 text-right">
                   {agent.lastHeartbeatAt ? relativeTime(agent.lastHeartbeatAt) : "—"}
@@ -380,7 +393,14 @@ function OrgTreeNode({
       {node.reports && node.reports.length > 0 && (
         <div className="border-l border-border/50 ml-4">
           {node.reports.map((child) => (
-            <OrgTreeNode key={child.id} node={child} depth={depth + 1} agentMap={agentMap} liveRunByAgent={liveRunByAgent} />
+            <OrgTreeNode
+              key={child.id}
+              node={child}
+              depth={depth + 1}
+              agentMap={agentMap}
+              liveRunByAgent={liveRunByAgent}
+              language={language}
+            />
           ))}
         </div>
       )}
@@ -392,10 +412,12 @@ function LiveRunIndicator({
   agentRef,
   runId,
   liveCount,
+  language,
 }: {
   agentRef: string;
   runId: string;
   liveCount: number;
+  language: string;
 }) {
   return (
     <Link
@@ -408,7 +430,7 @@ function LiveRunIndicator({
         <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
       </span>
       <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
-        Live{liveCount > 1 ? ` (${liveCount})` : ""}
+        {formatLiveRunLabel(liveCount, language)}
       </span>
     </Link>
   );

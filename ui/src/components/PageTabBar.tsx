@@ -2,17 +2,35 @@ import type { ReactNode } from "react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSidebar } from "../context/SidebarContext";
 
-export interface PageTabItem {
-  value: string;
-  label: ReactNode;
-}
+type NonStringLabel = Exclude<ReactNode, string>;
 
-interface PageTabBarProps {
+export type PageTabItem =
+  | {
+      value: string;
+      label: string;
+      mobileLabel?: string;
+    }
+  | {
+      value: string;
+      label: NonStringLabel;
+      mobileLabel: string;
+    };
+
+type PageTabBarControlledProps = {
   items: PageTabItem[];
-  value?: string;
-  onValueChange?: (value: string) => void;
   align?: "center" | "start";
-}
+  value: string;
+  onValueChange: (value: string) => void;
+};
+
+type PageTabBarUncontrolledProps = {
+  items: PageTabItem[];
+  align?: "center" | "start";
+  value?: undefined;
+  onValueChange?: undefined;
+};
+
+type PageTabBarProps = PageTabBarControlledProps | PageTabBarUncontrolledProps;
 
 export function PageTabBar({ items, value, onValueChange, align = "center" }: PageTabBarProps) {
   const { isMobile } = useSidebar();
@@ -26,7 +44,7 @@ export function PageTabBar({ items, value, onValueChange, align = "center" }: Pa
       >
         {items.map((item) => (
           <option key={item.value} value={item.value}>
-            {typeof item.label === "string" ? item.label : item.value}
+            {item.mobileLabel ?? (typeof item.label === "string" ? item.label : item.mobileLabel)}
           </option>
         ))}
       </select>

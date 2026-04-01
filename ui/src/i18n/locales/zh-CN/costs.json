@@ -1,0 +1,156 @@
+{
+  "breadcrumb": "成本",
+  "title": "成本",
+  "description": "推理支出、平台费用、抵扣项，以及实时额度窗口。",
+  "presets": {
+    "mtd": "本月至今",
+    "7d": "最近 7 天",
+    "30d": "最近 30 天",
+    "ytd": "今年至今",
+    "all": "全部时间",
+    "custom": "自定义"
+  },
+  "empty": {
+    "selectCompany": "选择一家公司以查看成本。"
+  },
+  "customRange": {
+    "to": "至",
+    "selectPrompt": "选择开始和结束日期以加载数据。"
+  },
+  "summary": {
+    "inferenceSpend": {
+      "label": "推理支出",
+      "subtitle": "{{tokens}} 个令牌，来自请求范围内事件"
+    },
+    "budget": {
+      "label": "预算",
+      "open": "开放",
+      "pausedSummary": "{{agents}} 个代理已暂停 · {{projects}} 个项目已暂停",
+      "spendOfBudget": "{{budget}} 中已花费 {{spend}}",
+      "noCap": "未配置月度上限"
+    },
+    "financeNet": {
+      "label": "财务净额",
+      "subtitle": "{{debits}} 借记 · {{credits}} 贷记"
+    },
+    "financeEvents": {
+      "label": "财务事件",
+      "subtitle": "区间内预估 {{estimated}}"
+    }
+  },
+  "tabs": {
+    "overview": "概览",
+    "budgets": "预算",
+    "providers": "提供方",
+    "billers": "计费方",
+    "finance": "财务"
+  },
+  "overview": {
+    "inferenceLedger": {
+      "title": "推理账本",
+      "description": "所选时间范围内、按请求归属的推理支出。",
+      "budget": "预算 {{budget}}",
+      "unlimited": "预算不限",
+      "usage": "用量",
+      "utilization": "该区间已消耗月度预算的 {{percent}}%。"
+    },
+    "byAgent": {
+      "title": "按代理",
+      "description": "各代理在所选时间范围内的消耗。",
+      "empty": "还没有成本事件。",
+      "tokenBreakdown": "输入 {{input}} · 输出 {{output}}",
+      "runBreakdown": "{{api}} 次 API · {{subscription}} 次订阅",
+      "modelTokens": "{{tokens}} tok"
+    },
+    "byProject": {
+      "title": "按项目",
+      "description": "通过关联项目 issue 归属的运行成本。",
+      "empty": "还没有归属到项目的运行成本。",
+      "unattributed": "未归属"
+    },
+    "financeTimeline": {
+      "empty": "还没有财务事件。到账单或抵扣落地后，可在这里补充账户级费用。"
+    }
+  },
+  "budgets": {
+    "controlPlane": {
+      "title": "预算控制面板",
+      "description": "面向代理和项目的硬停止支出上限。提供方订阅额度单独计算，并显示在“提供方”页签下。",
+      "metrics": {
+        "activeIncidents": {
+          "label": "活跃事件",
+          "subtitle": "仍未处理的软/硬阈值越线"
+        },
+        "pendingApprovals": {
+          "label": "待审批",
+          "subtitle": "等待董事会处理的预算覆盖审批"
+        },
+        "pausedAgents": {
+          "label": "已暂停代理",
+          "subtitle": "预算导致代理心跳被阻止"
+        },
+        "pausedProjects": {
+          "label": "已暂停项目",
+          "subtitle": "预算导致项目执行被阻止"
+        }
+      }
+    },
+    "activeIncidents": {
+      "title": "活跃事件",
+      "description": "在这里通过提高预算或明确保持暂停来处理硬停止。"
+    },
+    "sections": {
+      "company": {
+        "title": "公司预算",
+        "description": "公司范围的月度策略。"
+      },
+      "agent": {
+        "title": "代理预算",
+        "description": "针对单个代理的周期性月度支出策略。"
+      },
+      "project": {
+        "title": "项目预算",
+        "description": "针对执行型项目的生命周期支出策略。"
+      }
+    },
+    "empty": "还没有预算策略。可以在代理或项目详情页设置预算，或继续使用现有的公司月度预算控制。"
+  },
+  "providers": {
+    "all": "全部提供方",
+    "empty": "该时间范围内没有成本事件。"
+  },
+  "billers": {
+    "all": "全部计费方",
+    "empty": "该时间范围内没有可计费事件。"
+  },
+  "finance": {
+    "summary": {
+      "title": "财务账本",
+      "description": "无法映射到单次推理请求的账户级费用。",
+      "metrics": {
+        "debits": {
+          "label": "借记",
+          "subtitle_one": "区间内共 {{count}} 个事件",
+          "subtitle_other": "区间内共 {{count}} 个事件"
+        },
+        "credits": {
+          "label": "贷记",
+          "subtitle": "退款、抵扣和返还额度"
+        },
+        "net": {
+          "label": "净额",
+          "subtitle": "所选时间范围内借记减去贷记"
+        },
+        "estimated": {
+          "label": "预估",
+          "subtitle": "尚未成为最终账单依据的预估借记"
+        }
+      }
+    },
+    "byBiller": {
+      "title": "按计费方",
+      "description": "按发起收费或返还的主体分组的账户级财务事件。",
+      "empty": "还没有财务事件。"
+    }
+  }
+}
