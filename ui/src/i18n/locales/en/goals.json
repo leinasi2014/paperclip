@@ -2,23 +2,41 @@
   "breadcrumbs": {
     "goals": "Goals"
   },
+  "shared": {
+    "goal": "Goal"
+  },
   "empty": {
     "selectCompany": "Select a company to view goals.",
-    "noGoals": "No goals yet."
+    "noGoals": "No goals yet.",
+    "noSubGoals": "No sub-goals.",
+    "noLinkedProjects": "No linked projects."
   },
   "actions": {
     "addGoal": "Add Goal",
     "newGoal": "New Goal",
+    "subGoal": "Sub Goal",
     "deleteGoal": "Delete Goal",
     "confirmDeleteGoal": "Delete Goal",
     "deletingGoal": "Deleting...",
     "cancel": "Cancel"
+  },
+  "tabs": {
+    "children": "Sub-Goals ({{count}})",
+    "projects": "Projects ({{count}})"
+  },
+  "fields": {
+    "description": {
+      "placeholder": "Add a description..."
+    }
   },
   "dialogs": {
     "deleteGoal": {
       "title": "Delete goal?",
       "description": "Delete \"{{title}}\"? This cannot be undone."
     }
+  },
+  "errors": {
+    "noCompanySelected": "No company selected"
   },
   "toasts": {
     "deleteSuccess": "Goal deleted",

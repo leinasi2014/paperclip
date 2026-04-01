@@ -2,11 +2,44 @@
   "breadcrumbs": {
     "projects": "项目"
   },
+  "shared": {
+    "project": "项目"
+  },
   "empty": {
     "selectCompany": "选择一家公司以查看项目。",
     "noProjects": "暂无项目。"
   },
   "actions": {
     "addProject": "添加项目"
+  },
+  "errors": {
+    "noCompanySelected": "未选择公司"
+  },
+  "detail": {
+    "overview": {
+      "descriptionPlaceholder": "补充项目背景与目标...",
+      "status": "状态",
+      "targetDate": "目标日期"
+    },
+    "colorPicker": {
+      "changeProjectColor": "更改项目颜色",
+      "selectColor": "选择颜色 {{color}}"
+    },
+    "tabs": {
+      "issues": "议题",
+      "overview": "概览",
+      "workspaces": "工作区",
+      "configuration": "配置",
+      "budget": "预算"
+    },
+    "badges": {
+      "pausedByBudgetHardStop": "因预算硬阈值已暂停"
+    },
+    "toasts": {
+      "archived": "已归档 {{name}}",
+      "unarchived": "已恢复 {{name}}",
+      "archiveFailed": "归档项目失败",
+      "unarchiveFailed": "恢复项目失败"
+    }
   }
 }

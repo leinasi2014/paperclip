@@ -115,6 +115,63 @@
     },
     "empty": "还没有预算策略。可以在代理或项目详情页设置预算，或继续使用现有的公司月度预算控制。"
   },
+  "budgetPolicyCard": {
+    "windowLabel": {
+      "lifetime": "生命周期预算",
+      "monthlyUtc": "UTC 月度预算"
+    },
+    "labels": {
+      "observed": "已观察到",
+      "budget": "预算",
+      "remaining": "剩余",
+      "budgetUsd": "预算（美元）",
+      "percentOfLimit": "占上限 {{percent}}%",
+      "softAlertAt": "{{percent}}% 时触发软告警 {{pauseSuffix}}"
+    },
+    "states": {
+      "noCapConfigured": "未配置上限",
+      "disabled": "已禁用",
+      "unlimited": "无限制"
+    },
+    "status": {
+      "paused": "已暂停",
+      "warning": "警告",
+      "hardStop": "硬停止",
+      "healthy": "健康"
+    },
+    "paused": {
+      "project": "该项目的执行已暂停，直到提高预算或手动解除该事件。",
+      "scope": "该范围的心跳已暂停，直到提高预算或手动解除该事件。"
+    },
+    "pauseSuffix": "· {{reason}} 暂停",
+    "actions": {
+      "saving": "保存中...",
+      "updateBudget": "更新预算",
+      "setBudget": "设置预算"
+    },
+    "errors": {
+      "invalidAmount": "请输入有效的非负美元金额。"
+    }
+  },
+  "budgetIncident": {
+    "scopeHardStop": "{{scopeType}} 硬停止",
+    "description": "支出已达到 {{observed}}，预算上限为 {{limit}}。",
+    "paused": {
+      "project": "项目执行已暂停。在你处理完这次预算事件之前，该项目中的新工作不会启动。",
+      "scope": "该范围已暂停。在你处理完这次预算事件之前，新的心跳不会启动。"
+    },
+    "fields": {
+      "newBudgetUsd": "新预算（美元）"
+    },
+    "actions": {
+      "applying": "应用中...",
+      "raiseAndResume": "提高预算并恢复",
+      "keepPaused": "保持暂停"
+    },
+    "errors": {
+      "mustExceedObserved": "新预算必须高于当前已观察到的支出。"
+    }
+  },
   "providers": {
     "all": "全部提供方",
     "empty": "该时间范围内没有成本事件。"

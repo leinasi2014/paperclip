@@ -5,6 +5,13 @@
   "empty": {
     "selectCompany": "选择一家公司以查看议题。"
   },
+  "myIssues": {
+    "breadcrumb": "我的议题",
+    "empty": {
+      "selectCompany": "选择一家公司以查看你的议题。",
+      "noneAssigned": "当前没有分配给你的议题。"
+    }
+  },
   "row": {
     "actions": {
       "markAsRead": "标记为已读",
@@ -70,6 +77,87 @@
   "fields": {
     "description": {
       "placeholder": "添加描述..."
+    }
+  },
+  "newIssueDialog": {
+    "title": "新建议题",
+    "labels": {
+      "for": "为",
+      "in": "于",
+      "labels": "标签"
+    },
+    "fields": {
+      "titlePlaceholder": "议题标题",
+      "assigneePlaceholder": "负责人",
+      "noAssignee": "无负责人",
+      "searchAssignees": "搜索负责人...",
+      "noAssigneesFound": "未找到负责人。",
+      "projectPlaceholder": "项目",
+      "searchProjects": "搜索项目...",
+      "noProjectsFound": "未找到项目。"
+    },
+    "status": {
+      "backlog": "待办池",
+      "todo": "待做",
+      "in_progress": "进行中",
+      "in_review": "审核中",
+      "done": "已完成"
+    },
+    "priority": {
+      "critical": "紧急",
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "executionWorkspace": {
+      "title": "执行工作区",
+      "description": "控制这个议题是在共享工作区、新的隔离工作区，还是已有工作区中运行。",
+      "chooseExisting": "选择已有工作区",
+      "existingWorkspace": "已有执行工作区",
+      "reusing": "正在复用 {{source}} 中的 {{name}}。",
+      "modes": {
+        "shared_workspace": "项目默认",
+        "isolated_workspace": "新的隔离工作区",
+        "reuse_existing": "复用已有工作区"
+      }
+    },
+    "assigneeOptions": {
+      "claudeOptions": "Claude 选项",
+      "codexOptions": "Codex 选项",
+      "openCodeOptions": "OpenCode 选项",
+      "agentOptions": "代理选项",
+      "model": "模型",
+      "defaultModel": "默认模型",
+      "searchModels": "搜索模型...",
+      "noModelsFound": "未找到模型。",
+      "thinkingEffort": "思考强度",
+      "enableChrome": "启用 Chrome（--chrome）"
+    },
+    "thinkingEffort": {
+      "default": "默认",
+      "minimal": "最小",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "max": "最大"
+    },
+    "attachments": {
+      "documents": "文档",
+      "removeDocument": "移除文档",
+      "removeAttachment": "移除附件"
+    },
+    "dates": {
+      "startDate": "开始日期",
+      "dueDate": "截止日期"
+    },
+    "actions": {
+      "discardDraft": "丢弃草稿",
+      "creatingIssue": "正在创建议题...",
+      "creating": "创建中...",
+      "createIssue": "创建议题"
+    },
+    "errors": {
+      "createFailed": "创建议题失败，请重试。"
     }
   },
   "attachments": {

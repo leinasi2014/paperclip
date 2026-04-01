@@ -1,4 +1,34 @@
 {
+  "companies": {
+    "breadcrumb": "公司",
+    "actions": {
+      "newCompany": "新建公司",
+      "rename": "重命名",
+      "deleteCompany": "删除公司",
+      "cancel": "取消",
+      "delete": "删除",
+      "deleting": "删除中..."
+    },
+    "states": {
+      "loading": "正在加载公司..."
+    },
+    "status": {
+      "active": "活跃",
+      "paused": "暂停",
+      "archived": "已归档"
+    },
+    "stats": {
+      "agents_one": "{{count}} 个代理",
+      "agents_other": "{{count}} 个代理",
+      "issues_one": "{{count}} 个议题",
+      "issues_other": "{{count}} 个议题",
+      "unlimitedBudget": "预算不限",
+      "created": "创建于 {{time}}"
+    },
+    "confirmDelete": {
+      "message": "删除此公司及其全部数据？此操作无法撤销。"
+    }
+  },
   "settings": {
     "breadcrumbs": {
       "company": "公司",
@@ -104,12 +134,34 @@
       "collisionSkip": "冲突时跳过",
       "collisionReplace": "替换现有内容"
     },
+    "frontmatterFields": {
+      "name": "名称",
+      "title": "标题",
+      "kind": "类型",
+      "reportsTo": "汇报对象",
+      "skills": "技能",
+      "status": "状态",
+      "description": "描述",
+      "priority": "优先级",
+      "assignee": "负责人",
+      "project": "项目",
+      "recurring": "重复",
+      "targetDate": "目标日期"
+    },
     "actions": {
       "preview": "预览导入",
       "previewing": "预览中...",
       "importFiles_one": "导入 {{count}} 个文件",
       "importFiles_other": "导入 {{count}} 个文件",
-      "importing": "导入中..."
+      "importing": "导入中...",
+      "badges": {
+        "create": "新建",
+        "update": "更新",
+        "overwrite": "覆盖",
+        "replace": "替换",
+        "skip": "跳过",
+        "none": "无"
+      }
     },
     "preview": {
       "title": "导入预览",
@@ -119,7 +171,33 @@
       "conflicts_other": "{{count}} 个冲突",
       "errors_one": "{{count}} 个错误",
       "errors_other": "{{count}} 个错误",
-      "packageFiles": "包文件"
+      "packageFiles": "包文件",
+      "emptyState": "请选择一个文件以预览内容。",
+      "binaryUnavailable": "此文件类型暂不支持二进制预览。"
+    },
+    "conflicts": {
+      "title": "重命名",
+      "items_one": "{{count}} 项",
+      "items_other": "{{count}} 项",
+      "actions": {
+        "skip": "跳过",
+        "skipped": "已跳过",
+        "confirmRename": "确认重命名",
+        "confirmed": "已确认"
+      },
+      "kind": {
+        "agent": "代理",
+        "project": "项目",
+        "issue": "议题",
+        "skill": "技能"
+      }
+    },
+    "adapters": {
+      "title": "适配器",
+      "agents_one": "{{count}} 个代理",
+      "agents_other": "{{count}} 个代理",
+      "agentBadge": "代理",
+      "configure": "配置适配器"
     },
     "toasts": {
       "previewFailed": "预览失败",
@@ -133,7 +211,9 @@
       "packageReadFailedBody": "读取文件夹失败。"
     },
     "errors": {
-      "noSourceConfigured": "尚未配置来源。"
+      "noSourceConfigured": "尚未配置来源。",
+      "selectZipPackage": "请选择 .zip 格式的公司包。",
+      "emptyArchive": "所选 zip 包中未找到文件。"
     }
   },
   "export": {
@@ -158,6 +238,10 @@
       "building": "正在构建导出..."
     },
     "packageFiles": "包文件",
+    "preview": {
+      "emptyState": "请选择一个文件以预览内容。",
+      "binaryUnavailable": "此文件类型暂不支持二进制预览。"
+    },
     "searchPlaceholder": "搜索文件...",
     "showMoreIssues": "显示更多议题（{{visible}} / {{total}}）",
     "toasts": {
@@ -186,13 +270,33 @@
       "add": "添加",
       "edit": "编辑",
       "stopEditing": "停止编辑",
+      "cancel": "取消",
       "save": "保存",
       "saving": "保存中...",
       "preview": "预览",
       "code": "代码",
       "checkUpdates": "检查更新",
       "installUpdate": "安装更新",
-      "upToDate": "已是最新"
+      "upToDate": "已是最新",
+      "collapseSkill": "收起 {{name}}",
+      "expandSkill": "展开 {{name}}"
+    },
+    "list": {
+      "noMatches": "没有匹配此筛选条件的技能。"
+    },
+    "sources": {
+      "skillsSh": "skills.sh",
+      "skillsShManaged": "skills.sh 管理",
+      "github": "GitHub",
+      "githubManaged": "GitHub 管理",
+      "url": "URL",
+      "urlManaged": "URL 管理",
+      "folder": "文件夹",
+      "folderManaged": "文件夹管理",
+      "paperclip": "Paperclip",
+      "paperclipManaged": "Paperclip 管理",
+      "catalog": "目录",
+      "catalogManaged": "目录管理"
     },
     "placeholders": {
       "filter": "筛选技能",
@@ -213,17 +317,20 @@
       "title": "扫描项目工作区中的技能",
       "scanning": "正在扫描项目工作区中的技能...",
       "refreshing": "正在刷新技能列表...",
+      "summary": "在 {{workspaces}} 个工作区中：发现 {{discovered}} 个，导入 {{imported}} 个，更新 {{updated}} 个，冲突 {{conflicts}} 个，跳过 {{skipped}} 个。",
       "complete": "项目技能扫描完成",
       "conflicts": "发现技能冲突",
       "warnings": "扫描警告",
-      "failed": "项目技能扫描失败"
+      "failed": "项目技能扫描失败",
+      "failedBody": "扫描项目工作区失败。"
     },
     "create": {
       "createSkill": "创建技能",
       "creating": "创建中...",
       "created": "技能已创建",
       "createdBody": "{{name}} 现在可以在 Paperclip 工作区中编辑。",
-      "failed": "技能创建失败"
+      "failed": "技能创建失败",
+      "failedBody": "创建技能失败。"
     },
     "import": {
       "imported": "技能已导入",
@@ -240,12 +347,14 @@
     },
     "update": {
       "updated": "技能已更新",
+      "updatedBodyPinned": "已固定到 {{ref}}",
       "failed": "更新失败",
       "failedBody": "安装技能更新失败。"
     },
     "labels": {
       "source": "来源",
       "pin": "固定版本",
+      "tracking": "跟踪 {{ref}}",
       "key": "键",
       "mode": "模式",
       "usedBy": "使用者",

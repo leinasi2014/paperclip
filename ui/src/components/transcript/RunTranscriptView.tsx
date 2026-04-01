@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { TranscriptEntry } from "../../adapters";
 import { MarkdownBody } from "../MarkdownBody";
 import { cn, formatTokens } from "../../lib/utils";
+import i18n from "../../i18n";
 import {
   Check,
   ChevronDown,
@@ -25,6 +27,13 @@ interface RunTranscriptViewProps {
   emptyMessage?: string;
   className?: string;
   thinkingClassName?: string;
+}
+
+function tr(key: string, defaultValue: string, options?: Record<string, unknown>): string {
+  return i18n.t(key, {
+    defaultValue,
+    ...(options ?? {}),
+  }) as string;
 }
 
 type TranscriptBlock =
@@ -192,7 +201,9 @@ function summarizeToolInput(name: string, input: unknown, density: TranscriptDen
   const record = asRecord(input);
   if (!record) {
     const serialized = compactWhitespace(formatUnknown(input));
-    return serialized ? truncate(serialized, compactMax) : `Inspect ${name} input`;
+    return serialized
+      ? truncate(serialized, compactMax)
+      : tr("agents:pages.agentDetail.logs.transcript.view.inspectToolInput", "Inspect {{name}} input", { name });
   }
 
   const command = typeof record.command === "string"
@@ -213,14 +224,31 @@ function summarizeToolInput(name: string, input: unknown, density: TranscriptDen
   if (Array.isArray(record.paths) && record.paths.length > 0) {
     const first = record.paths.find((value): value is string => typeof value === "string" && value.trim().length > 0);
     if (first) {
-      return truncate(`${record.paths.length} paths, starting with ${first}`, compactMax);
+      return truncate(
+        tr("agents:pages.agentDetail.logs.transcript.view.pathsStartingWith", "{{count}} paths, starting with {{path}}", {
+          count: record.paths.length,
+          path: first,
+        }),
+        compactMax,
+      );
     }
   }
 
   const keys = Object.keys(record);
-  if (keys.length === 0) return `No ${name} input`;
-  if (keys.length === 1) return truncate(`${keys[0]} payload`, compactMax);
-  return truncate(`${keys.length} fields: ${keys.slice(0, 3).join(", ")}`, compactMax);
+  if (keys.length === 0) return tr("agents:pages.agentDetail.logs.transcript.view.noToolInput", "No {{name}} input", { name });
+  if (keys.length === 1) {
+    return truncate(
+      tr("agents:pages.agentDetail.logs.transcript.view.payloadField", "{{field}} payload", { field: keys[0] }),
+      compactMax,
+    );
+  }
+  return truncate(
+    tr("agents:pages.agentDetail.logs.transcript.view.fieldsSummary", "{{count}} fields: {{fields}}", {
+      count: keys.length,
+      fields: keys.slice(0, 3).join(", "),
+    }),
+    compactMax,
+  );
 }
 
 function parseStructuredToolResult(result: string | undefined) {
@@ -262,20 +290,26 @@ function isCommandTool(name: string, input: unknown): boolean {
 }
 
 function displayToolName(name: string, input: unknown): string {
-  if (isCommandTool(name, input)) return "Executing command";
+  if (isCommandTool(name, input)) return tr("agents:pages.agentDetail.logs.transcript.view.executingCommand", "Executing command");
   return humanizeLabel(name);
 }
 
 function summarizeToolResult(result: string | undefined, isError: boolean | undefined, density: TranscriptDensity): string {
-  if (!result) return isError ? "Tool failed" : "Waiting for result";
+  if (!result) {
+    return isError
+      ? tr("agents:pages.agentDetail.logs.transcript.view.toolFailed", "Tool failed")
+      : tr("agents:pages.agentDetail.logs.transcript.view.waitingForResult", "Waiting for result");
+  }
   const structured = parseStructuredToolResult(result);
   if (structured) {
     if (structured.body) {
       return truncate(structured.body.split("\n")[0] ?? structured.body, density === "compact" ? 84 : 140);
     }
-    if (structured.status === "completed") return "Completed";
+    if (structured.status === "completed") return tr("agents:pages.agentDetail.logs.transcript.view.completed", "Completed");
     if (structured.status === "failed" || structured.status === "error") {
-      return structured.exitCode ? `Failed with exit code ${structured.exitCode}` : "Failed";
+      return structured.exitCode
+        ? tr("agents:pages.agentDetail.logs.transcript.view.failedWithExitCode", "Failed with exit code {{code}}", { code: structured.exitCode })
+        : tr("agents:pages.agentDetail.logs.transcript.view.failed", "Failed");
     }
   }
   const lines = result
@@ -291,7 +325,7 @@ function parseSystemActivity(text: string): { activityId?: string; name: string;
   if (!match) return null;
   return {
     status: match[1].toLowerCase() === "started" ? "running" : "completed",
-    name: humanizeLabel(match[2] ?? "Activity"),
+    name: humanizeLabel(match[2] ?? tr("agents:pages.agentDetail.logs.transcript.view.activity", "Activity")),
     activityId: match[3] || undefined,
   };
 }
@@ -462,7 +496,7 @@ export function normalizeTranscript(entries: TranscriptEntry[], streaming: boole
           type: "tool",
           ts: entry.ts,
           endTs: entry.ts,
-          name: entry.toolName ?? "tool",
+          name: entry.toolName ?? tr("agents:pages.agentDetail.logs.transcript.view.tool", "tool"),
           toolUseId: entry.toolUseId,
           input: null,
           result: entry.content,
@@ -490,7 +524,11 @@ export function normalizeTranscript(entries: TranscriptEntry[], streaming: boole
         ts: entry.ts,
         label: "result",
         tone: entry.isError ? "error" : "info",
-        text: entry.text.trim() || entry.errors[0] || (entry.isError ? "Run failed" : "Completed"),
+        text: entry.text.trim()
+          || entry.errors[0]
+          || (entry.isError
+            ? tr("agents:pages.agentDetail.logs.transcript.view.runFailed", "Run failed")
+            : tr("agents:pages.agentDetail.logs.transcript.view.completed", "Completed")),
       });
       continue;
     }
@@ -594,7 +632,7 @@ function TranscriptMessageBlock({
       {!isAssistant && (
         <div className="mb-1.5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           <User className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-          <span>User</span>
+          <span>{tr("agents:pages.agentDetail.logs.transcript.view.user", "User")}</span>
         </div>
       )}
       <MarkdownBody
@@ -611,7 +649,7 @@ function TranscriptMessageBlock({
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-70" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-current" />
           </span>
-          Streaming
+          {tr("agents:pages.agentDetail.logs.transcript.view.streaming", "Streaming")}
         </div>
       )}
     </div>
@@ -652,10 +690,10 @@ function TranscriptToolCard({
   const parsedResult = parseStructuredToolResult(block.result);
   const statusLabel =
     block.status === "running"
-      ? "Running"
+      ? tr("common:status.running", "Running")
       : block.status === "error"
-        ? "Errored"
-        : "Completed";
+        ? tr("agents:pages.agentDetail.logs.transcript.view.errored", "Errored")
+        : tr("common:status.completed", "Completed");
   const statusTone =
     block.status === "running"
       ? "text-cyan-700 dark:text-cyan-300"
@@ -707,7 +745,9 @@ function TranscriptToolCard({
           type="button"
           className="mt-0.5 inline-flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
           onClick={() => setOpen((value) => !value)}
-          aria-label={open ? "Collapse tool details" : "Expand tool details"}
+          aria-label={open
+            ? tr("agents:pages.agentDetail.logs.transcript.view.collapseToolDetails", "Collapse tool details")
+            : tr("agents:pages.agentDetail.logs.transcript.view.expandToolDetails", "Expand tool details")}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -718,21 +758,23 @@ function TranscriptToolCard({
             <div className={cn("grid gap-3", compact ? "grid-cols-1" : "lg:grid-cols-2")}>
               <div>
                 <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Input
+                  {tr("agents:pages.agentDetail.logs.transcript.view.input", "Input")}
                 </div>
                 <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px] text-foreground/80">
-                  {formatToolPayload(block.input) || "<empty>"}
+                  {formatToolPayload(block.input) || tr("agents:pages.agentDetail.logs.transcript.view.empty", "<empty>")}
                 </pre>
               </div>
               <div>
                 <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Result
+                  {tr("agents:pages.agentDetail.logs.transcript.view.result", "Result")}
                 </div>
                 <pre className={cn(
                   "overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px]",
                   block.status === "error" ? "text-red-700 dark:text-red-300" : "text-foreground/80",
                 )}>
-                  {block.result ? formatToolPayload(block.result) : "Waiting for result..."}
+                  {block.result
+                    ? formatToolPayload(block.result)
+                    : tr("agents:pages.agentDetail.logs.transcript.view.waitingForResultEllipsis", "Waiting for result...")}
                 </pre>
               </div>
             </div>
@@ -763,10 +805,10 @@ function TranscriptCommandGroup({
   const isRunning = Boolean(runningItem);
   const showExpandedErrorState = open && hasError;
   const title = isRunning
-    ? "Executing command"
+    ? tr("agents:pages.agentDetail.logs.transcript.view.executingCommand", "Executing command")
     : block.items.length === 1
-      ? "Executed command"
-      : `Executed ${block.items.length} commands`;
+      ? tr("agents:pages.agentDetail.logs.transcript.view.executedCommand", "Executed command")
+      : tr("agents:pages.agentDetail.logs.transcript.view.executedCommands", "Executed {{count}} commands", { count: block.items.length });
   const subtitle = runningItem
     ? summarizeToolInput("command_execution", runningItem.input, density)
     : null;
@@ -819,7 +861,7 @@ function TranscriptCommandGroup({
           )}
           {!subtitle && latestItem?.status === "error" && open && (
             <div className={cn("mt-1", compact ? "text-xs" : "text-sm", statusTone)}>
-              Command failed
+              {tr("agents:pages.agentDetail.logs.transcript.view.commandFailed", "Command failed")}
             </div>
           )}
         </div>
@@ -833,7 +875,9 @@ function TranscriptCommandGroup({
             event.stopPropagation();
             setOpen((value) => !value);
           }}
-          aria-label={open ? "Collapse command details" : "Expand command details"}
+          aria-label={open
+            ? tr("agents:pages.agentDetail.logs.transcript.view.collapseCommandDetails", "Collapse command details")
+            : tr("agents:pages.agentDetail.logs.transcript.view.expandCommandDetails", "Expand command details")}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -889,12 +933,15 @@ function TranscriptToolGroup({
   const toolLabel =
     uniqueNames.length === 1
       ? humanizeLabel(uniqueNames[0])
-      : `${uniqueNames.length} tools`;
+      : tr("agents:pages.agentDetail.logs.transcript.view.toolsCount", "{{count}} tools", { count: uniqueNames.length });
   const title = isRunning
-    ? `Using ${toolLabel}`
+    ? tr("agents:pages.agentDetail.logs.transcript.view.usingTool", "Using {{toolLabel}}", { toolLabel })
     : block.items.length === 1
-      ? `Used ${toolLabel}`
-      : `Used ${toolLabel} (${block.items.length} calls)`;
+      ? tr("agents:pages.agentDetail.logs.transcript.view.usedTool", "Used {{toolLabel}}", { toolLabel })
+      : tr("agents:pages.agentDetail.logs.transcript.view.usedToolCalls", "Used {{toolLabel}} ({{count}} calls)", {
+        toolLabel,
+        count: block.items.length,
+      });
   const subtitle = runningItem
     ? summarizeToolInput(runningItem.name, runningItem.input, density)
     : null;
@@ -948,7 +995,9 @@ function TranscriptToolGroup({
           type="button"
           className={cn("inline-flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", subtitle && "mt-0.5")}
           onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-          aria-label={open ? "Collapse tool details" : "Expand tool details"}
+          aria-label={open
+            ? tr("agents:pages.agentDetail.logs.transcript.view.collapseToolDetails", "Collapse tool details")
+            : tr("agents:pages.agentDetail.logs.transcript.view.expandToolDetails", "Expand tool details")}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -976,19 +1025,23 @@ function TranscriptToolGroup({
                   : item.status === "error" ? "text-red-700 dark:text-red-300"
                   : "text-emerald-700 dark:text-emerald-300"
                 )}>
-                  {item.status === "running" ? "Running" : item.status === "error" ? "Errored" : "Completed"}
+                  {item.status === "running"
+                    ? tr("common:status.running", "Running")
+                    : item.status === "error"
+                      ? tr("agents:pages.agentDetail.logs.transcript.view.errored", "Errored")
+                      : tr("common:status.completed", "Completed")}
                 </span>
               </div>
               <div className={cn("grid gap-2 pl-7", compact ? "grid-cols-1" : "lg:grid-cols-2")}>
                 <div>
-                  <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Input</div>
+                  <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{tr("agents:pages.agentDetail.logs.transcript.view.input", "Input")}</div>
                   <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px] text-foreground/80">
-                    {formatToolPayload(item.input) || "<empty>"}
+                    {formatToolPayload(item.input) || tr("agents:pages.agentDetail.logs.transcript.view.empty", "<empty>")}
                   </pre>
                 </div>
                 {item.result && (
                   <div>
-                    <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Result</div>
+                    <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{tr("agents:pages.agentDetail.logs.transcript.view.result", "Result")}</div>
                     <pre className={cn(
                       "overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px]",
                       item.status === "error" ? "text-red-700 dark:text-red-300" : "text-foreground/80",
@@ -1103,7 +1156,11 @@ function TranscriptStderrGroup({
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen((v) => !v); } }}
       >
         <span className={cn("text-[10px] font-semibold uppercase tracking-[0.14em]")}>
-          {block.lines.length} log {block.lines.length === 1 ? "line" : "lines"}
+          {tr(
+            "agents:pages.agentDetail.logs.transcript.view.logLines",
+            "{{count}} log {{unit}}",
+            { count: block.lines.length, unit: block.lines.length === 1 ? tr("agents:pages.agentDetail.logs.transcript.view.line", "line") : tr("agents:pages.agentDetail.logs.transcript.view.lines", "lines") },
+          )}
         </span>
         {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
       </div>
@@ -1136,13 +1193,15 @@ function TranscriptStdoutRow({
     <div>
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          stdout
+          {tr("agents:pages.agentDetail.logs.runDetail.stdout", "stdout")}
         </span>
         <button
           type="button"
           className="inline-flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
           onClick={() => setOpen((value) => !value)}
-          aria-label={open ? "Collapse stdout" : "Expand stdout"}
+          aria-label={open
+            ? tr("agents:pages.agentDetail.logs.transcript.view.collapseStdout", "Collapse stdout")
+            : tr("agents:pages.agentDetail.logs.transcript.view.expandStdout", "Expand stdout")}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -1204,11 +1263,15 @@ export function RunTranscriptView({
   limit,
   streaming = false,
   collapseStdout = false,
-  emptyMessage = "No transcript yet.",
+  emptyMessage = tr("agents:pages.agentDetail.logs.transcript.view.empty", "No transcript yet."),
   className,
   thinkingClassName,
 }: RunTranscriptViewProps) {
-  const blocks = useMemo(() => normalizeTranscript(entries, streaming), [entries, streaming]);
+  const { i18n: i18nInstance } = useTranslation(["agents", "common"]);
+  const blocks = useMemo(
+    () => normalizeTranscript(entries, streaming),
+    [entries, streaming, i18nInstance.resolvedLanguage],
+  );
   const visibleBlocks = limit ? blocks.slice(-limit) : blocks;
   const visibleEntries = limit ? entries.slice(-limit) : entries;
 

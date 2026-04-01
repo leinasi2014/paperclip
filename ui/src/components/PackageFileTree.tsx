@@ -164,6 +164,15 @@ export const FRONTMATTER_FIELD_LABELS: Record<string, string> = {
   targetDate: "Target date",
 };
 
+export function getFrontmatterFieldLabel(
+  key: string,
+  translate: (translationKey: string, options?: Record<string, unknown>) => string,
+): string {
+  return translate(`import.frontmatterFields.${key}`, {
+    defaultValue: FRONTMATTER_FIELD_LABELS[key] ?? key,
+  });
+}
+
 // ── File tree component ───────────────────────────────────────────────
 
 export function PackageFileTree({

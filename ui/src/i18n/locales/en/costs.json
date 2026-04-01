@@ -115,6 +115,63 @@
     },
     "empty": "No budget policies yet. Set agent and project budgets from their detail pages, or use the existing company monthly budget control."
   },
+  "budgetPolicyCard": {
+    "windowLabel": {
+      "lifetime": "Lifetime budget",
+      "monthlyUtc": "Monthly UTC budget"
+    },
+    "labels": {
+      "observed": "Observed",
+      "budget": "Budget",
+      "remaining": "Remaining",
+      "budgetUsd": "Budget (USD)",
+      "percentOfLimit": "{{percent}}% of limit",
+      "softAlertAt": "Soft alert at {{percent}}% {{pauseSuffix}}"
+    },
+    "states": {
+      "noCapConfigured": "No cap configured",
+      "disabled": "Disabled",
+      "unlimited": "Unlimited"
+    },
+    "status": {
+      "paused": "Paused",
+      "warning": "Warning",
+      "hardStop": "Hard stop",
+      "healthy": "Healthy"
+    },
+    "paused": {
+      "project": "Execution is paused for this project until the budget is raised or the incident is dismissed.",
+      "scope": "Heartbeats are paused for this scope until the budget is raised or the incident is dismissed."
+    },
+    "pauseSuffix": "· {{reason}} pause",
+    "actions": {
+      "saving": "Saving...",
+      "updateBudget": "Update budget",
+      "setBudget": "Set budget"
+    },
+    "errors": {
+      "invalidAmount": "Enter a valid non-negative dollar amount."
+    }
+  },
+  "budgetIncident": {
+    "scopeHardStop": "{{scopeType}} hard stop",
+    "description": "Spending reached {{observed}} against a limit of {{limit}}.",
+    "paused": {
+      "project": "Project execution is paused. New work in this project will not start until you resolve the budget incident.",
+      "scope": "This scope is paused. New heartbeats will not start until you resolve the budget incident."
+    },
+    "fields": {
+      "newBudgetUsd": "New budget (USD)"
+    },
+    "actions": {
+      "applying": "Applying...",
+      "raiseAndResume": "Raise budget & resume",
+      "keepPaused": "Keep paused"
+    },
+    "errors": {
+      "mustExceedObserved": "The new budget must exceed current observed spend."
+    }
+  },
   "providers": {
     "all": "All providers",
     "empty": "No cost events in this period."

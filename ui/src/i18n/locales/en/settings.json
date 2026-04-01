@@ -38,5 +38,40 @@
   "confirm": {
     "disableAllOne": "Disable timer heartbeats for all {{count}} enabled agent?",
     "disableAllMany": "Disable timer heartbeats for all {{count}} enabled agents?"
+  },
+  "general": {
+    "breadcrumb": "General",
+    "loading": "Loading general settings...",
+    "title": "General",
+    "description": "Configure instance-wide defaults that affect how operator-visible logs are displayed.",
+    "errors": {
+      "load": "Failed to load general settings.",
+      "update": "Failed to update general settings."
+    },
+    "censorUsername": {
+      "title": "Censor username in logs",
+      "description": "Hide the username segment in home-directory paths and similar operator-visible log output. Standalone username mentions outside of paths are not yet masked in the live transcript view. This is off by default.",
+      "toggleLabel": "Toggle username log censoring"
+    }
+  },
+  "experimental": {
+    "breadcrumb": "Experimental",
+    "loading": "Loading experimental settings...",
+    "title": "Experimental",
+    "description": "Opt into features that are still being evaluated before they become default behavior.",
+    "errors": {
+      "load": "Failed to load experimental settings.",
+      "update": "Failed to update experimental settings."
+    },
+    "isolatedWorkspaces": {
+      "title": "Enable Isolated Workspaces",
+      "description": "Show execution workspace controls in project configuration and allow isolated workspace behavior for new and existing issue runs.",
+      "toggleLabel": "Toggle isolated workspaces experimental setting"
+    },
+    "autoRestart": {
+      "title": "Auto-Restart Dev Server When Idle",
+      "description": "In `pnpm dev:once`, wait for all queued and running local agent runs to finish, then restart the server automatically when backend changes or migrations make the current boot stale.",
+      "toggleLabel": "Toggle guarded dev-server auto-restart"
+    }
   }
 }

@@ -2,11 +2,44 @@
   "breadcrumbs": {
     "projects": "Projects"
   },
+  "shared": {
+    "project": "Project"
+  },
   "empty": {
     "selectCompany": "Select a company to view projects.",
     "noProjects": "No projects yet."
   },
   "actions": {
     "addProject": "Add Project"
+  },
+  "errors": {
+    "noCompanySelected": "No company selected"
+  },
+  "detail": {
+    "overview": {
+      "descriptionPlaceholder": "Add project context and goals...",
+      "status": "Status",
+      "targetDate": "Target date"
+    },
+    "colorPicker": {
+      "changeProjectColor": "Change project color",
+      "selectColor": "Select color {{color}}"
+    },
+    "tabs": {
+      "issues": "Issues",
+      "overview": "Overview",
+      "workspaces": "Workspaces",
+      "configuration": "Configuration",
+      "budget": "Budget"
+    },
+    "badges": {
+      "pausedByBudgetHardStop": "Paused by budget hard-stop"
+    },
+    "toasts": {
+      "archived": "{{name}} archived",
+      "unarchived": "{{name}} restored",
+      "archiveFailed": "Failed to archive project",
+      "unarchiveFailed": "Failed to restore project"
+    }
   }
 }
