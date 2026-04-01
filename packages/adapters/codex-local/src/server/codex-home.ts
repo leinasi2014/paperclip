@@ -42,26 +42,27 @@ async function ensureParentDir(target: string): Promise<void> {
   await fs.mkdir(path.dirname(target), { recursive: true });
 }
 
-async function ensureSymlink(target: string, source: string): Promise<void> {
+async function ensureSymlink(target: string, source: string): Promise<"linked" | "existing-file"> {
   const existing = await fs.lstat(target).catch(() => null);
   if (!existing) {
     await ensureParentDir(target);
     await fs.symlink(source, target);
-    return;
+    return "linked";
   }
 
   if (!existing.isSymbolicLink()) {
-    return;
+    return "existing-file";
   }
 
   const linkedPath = await fs.readlink(target).catch(() => null);
-  if (!linkedPath) return;
+  if (!linkedPath) return "linked";
 
   const resolvedLinkedPath = path.resolve(path.dirname(target), linkedPath);
-  if (resolvedLinkedPath === source) return;
+  if (resolvedLinkedPath === source) return "linked";
 
   await fs.unlink(target);
   await fs.symlink(source, target);
+  return "linked";
 }
 
 function isSymlinkPermissionError(error: unknown): boolean {
@@ -102,7 +103,10 @@ export async function prepareManagedCodexHome(
     if (!(await pathExists(source))) continue;
     const target = path.join(targetHome, name);
     try {
-      await ensureSymlink(target, source);
+      const symlinkResult = await ensureSymlink(target, source);
+      if (symlinkResult === "existing-file") {
+        await ensureCopiedFile(target, source, { overwrite: true });
+      }
     } catch (error) {
       if (!isSymlinkPermissionError(error)) {
         throw error;

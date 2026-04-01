@@ -39,7 +39,7 @@ const execFileAsync = promisify(execFile);
 const leasedRunIds = new Set<string>();
 const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
 const describeEmbeddedPostgres = embeddedPostgresSupport.supported ? describe : describe.skip;
-const WORKSPACE_RUNTIME_TEST_TIMEOUT = process.platform === "win32" ? 20_000 : 5_000;
+const WORKSPACE_RUNTIME_TEST_TIMEOUT = process.platform === "win32" ? 45_000 : 5_000;
 
 if (!embeddedPostgresSupport.supported) {
   console.warn(

@@ -90,8 +90,27 @@ async function probeEmbeddedPostgresSupport(): Promise<EmbeddedPostgresTestSuppo
     };
   } finally {
     await instance.stop().catch(() => {});
-    fs.rmSync(dataDir, { recursive: true, force: true });
+    await removeEmbeddedPostgresDataDir(dataDir);
   }
+}
+
+async function removeEmbeddedPostgresDataDir(dataDir: string): Promise<void> {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      fs.rmSync(dataDir, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      const code =
+        typeof error === "object" && error !== null && "code" in error
+          ? String((error as { code?: unknown }).code ?? "")
+          : "";
+      if (code !== "EPERM" && code !== "EBUSY") {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+    }
+  }
+  fs.rmSync(dataDir, { recursive: true, force: true });
 }
 
 export async function getEmbeddedPostgresTestSupport(): Promise<EmbeddedPostgresTestSupport> {
@@ -131,12 +150,12 @@ export async function startEmbeddedPostgresTestDatabase(
       connectionString,
       cleanup: async () => {
         await instance.stop().catch(() => {});
-        fs.rmSync(dataDir, { recursive: true, force: true });
+        await removeEmbeddedPostgresDataDir(dataDir);
       },
     };
   } catch (error) {
     await instance.stop().catch(() => {});
-    fs.rmSync(dataDir, { recursive: true, force: true });
+    await removeEmbeddedPostgresDataDir(dataDir);
     throw new Error(
       `Failed to start embedded PostgreSQL test database: ${formatEmbeddedPostgresError(error)}`,
     );

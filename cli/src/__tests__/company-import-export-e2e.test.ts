@@ -14,7 +14,16 @@ import { createStoredZipArchive } from "./helpers/zip.js";
 
 const execFileAsync = promisify(execFile);
 type ServerProcess = ReturnType<typeof spawn>;
-const PNPM_COMMAND = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const CLI_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const TSX_CLI_PATH = path.resolve(CLI_ROOT, "node_modules", "tsx", "dist", "cli.mjs");
+const CLI_ENTRY_PATH = path.resolve(CLI_ROOT, "src", "index.ts");
+
+function buildCliProcessSpec(args: string[]): { command: string; args: string[] } {
+  return {
+    command: process.execPath,
+    args: [TSX_CLI_PATH, CLI_ENTRY_PATH, ...args],
+  };
+}
 
 async function getAvailablePort(): Promise<number> {
   return await new Promise((resolve, reject) => {
@@ -164,6 +173,14 @@ function collectTextFiles(root: string, current: string, files: Record<string, s
 
 async function stopServerProcess(child: ServerProcess | null) {
   if (!child || child.exitCode !== null) return;
+  if (process.platform === "win32" && child.pid) {
+    try {
+      await execFileAsync("taskkill", ["/PID", String(child.pid), "/T", "/F"]);
+      return;
+    } catch {
+      // Fall back to direct signal handling below.
+    }
+  }
   child.kill("SIGTERM");
   await new Promise<void>((resolve) => {
     child.once("exit", () => resolve());
@@ -186,9 +203,17 @@ async function api<T>(baseUrl: string, pathname: string, init?: RequestInit): Pr
 
 async function runCliJson<T>(args: string[], opts: { apiBase: string; configPath: string }) {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+  const cliCommand = buildCliProcessSpec([
+    ...args,
+    "--api-base",
+    opts.apiBase,
+    "--config",
+    opts.configPath,
+    "--json",
+  ]);
   const result = await execFileAsync(
-    PNPM_COMMAND,
-    ["--silent", "paperclipai", ...args, "--api-base", opts.apiBase, "--config", opts.configPath, "--json"],
+    cliCommand.command,
+    cliCommand.args,
     {
       cwd: repoRoot,
       env: createCliEnv(),
@@ -252,9 +277,10 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
 
     const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
     const output = { stdout: [] as string[], stderr: [] as string[] };
+    const cliCommand = buildCliProcessSpec(["run", "--config", configPath]);
     const child = spawn(
-      PNPM_COMMAND,
-      ["paperclipai", "run", "--config", configPath],
+      cliCommand.command,
+      cliCommand.args,
       {
         cwd: repoRoot,
         env: createServerEnv(configPath, port, tempDb.connectionString),

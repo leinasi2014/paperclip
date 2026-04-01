@@ -59,4 +59,63 @@ describe("prepareManagedCodexHome", () => {
       await fs.rm(root, { recursive: true, force: true });
     }
   });
+
+  it("refreshes copied auth.json on later runs after a symlink fallback", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-codex-home-refresh-"));
+    const sharedCodexHome = path.join(root, "shared-codex-home");
+    const paperclipHome = path.join(root, "paperclip-home");
+    const managedCodexHome = path.join(
+      paperclipHome,
+      "instances",
+      "default",
+      "companies",
+      "company-1",
+      "codex-home",
+    );
+    await fs.mkdir(sharedCodexHome, { recursive: true });
+    const sharedAuthPath = path.join(sharedCodexHome, "auth.json");
+    await fs.writeFile(sharedAuthPath, '{"token":"shared-v1"}\n', "utf8");
+
+    const originalSymlink = fs.symlink.bind(fs);
+    const symlinkSpy = vi
+      .spyOn(fs, "symlink")
+      .mockImplementation(async (target, pathLike, type) => {
+        const targetPath = String(pathLike);
+        if (targetPath.endsWith(`${path.sep}auth.json`)) {
+          const error = Object.assign(new Error("operation not permitted"), { code: "EPERM" });
+          throw error;
+        }
+        return await originalSymlink(target, pathLike, type);
+      });
+
+    try {
+      await prepareManagedCodexHome(
+        {
+          CODEX_HOME: sharedCodexHome,
+          PAPERCLIP_HOME: paperclipHome,
+        },
+        async () => {},
+        "company-1",
+      );
+
+      const managedAuthPath = path.join(managedCodexHome, "auth.json");
+      expect(await fs.readFile(managedAuthPath, "utf8")).toBe('{"token":"shared-v1"}\n');
+
+      await fs.writeFile(sharedAuthPath, '{"token":"shared-v2"}\n', "utf8");
+
+      await prepareManagedCodexHome(
+        {
+          CODEX_HOME: sharedCodexHome,
+          PAPERCLIP_HOME: paperclipHome,
+        },
+        async () => {},
+        "company-1",
+      );
+
+      expect(await fs.readFile(managedAuthPath, "utf8")).toBe('{"token":"shared-v2"}\n');
+      expect(symlinkSpy).toHaveBeenCalled();
+    } finally {
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
 });

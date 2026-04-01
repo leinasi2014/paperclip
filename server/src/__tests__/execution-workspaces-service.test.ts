@@ -96,6 +96,7 @@ describe("execution workspace config helpers", () => {
 
 const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
 const describeEmbeddedPostgres = embeddedPostgresSupport.supported ? describe : describe.skip;
+const EMBEDDED_POSTGRES_HOOK_TIMEOUT = process.platform === "win32" ? 60_000 : 20_000;
 
 if (!embeddedPostgresSupport.supported) {
   console.warn(
@@ -129,7 +130,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
     tempDb = await startEmbeddedPostgresTestDatabase("paperclip-execution-workspaces-service-");
     db = createDb(tempDb.connectionString);
     svc = executionWorkspaceService(db);
-  }, 20_000);
+  }, EMBEDDED_POSTGRES_HOOK_TIMEOUT);
 
   afterEach(async () => {
     await db.delete(issues);

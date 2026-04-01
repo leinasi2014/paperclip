@@ -50,6 +50,7 @@ import { expandHomePrefix } from "../config/home.js";
 import type { PaperclipConfig } from "../config/schema.js";
 import { readConfig, resolveConfigPath, writeConfig } from "../config/store.js";
 import { printPaperclipCliBanner } from "../utils/banner.js";
+import { buildPnpmProcessSpec } from "../utils/pnpm-process.js";
 import { resolveRuntimeLikePath } from "../utils/path-resolver.js";
 import {
   buildWorktreeConfig,
@@ -77,8 +78,6 @@ import {
   type PlannedIssueDocumentMerge,
   type PlannedIssueInsert,
 } from "./worktree-merge-history-lib.js";
-
-const PNPM_COMMAND = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 
 type WorktreeInitOptions = {
   name?: string;
@@ -1108,14 +1107,17 @@ export async function worktreeMakeCommand(nameArg: string, opts: WorktreeMakeOpt
   const installSpinner = p.spinner();
   installSpinner.start("Installing dependencies...");
   try {
-    execFileSync(PNPM_COMMAND, ["install"], {
+    const pnpmInstall = buildPnpmProcessSpec(["install"]);
+    execFileSync(pnpmInstall.command, pnpmInstall.args, {
       cwd: targetPath,
       stdio: ["ignore", "pipe", "pipe"],
     });
     installSpinner.stop("Installed dependencies.");
   } catch (error) {
-    installSpinner.stop(pc.yellow("Failed to install dependencies (continuing anyway)."));
-    p.log.warning(extractExecSyncErrorMessage(error) ?? String(error));
+    installSpinner.stop(pc.red("Failed to install dependencies."));
+    throw new Error(
+      `Failed to install dependencies in ${targetPath}: ${extractExecSyncErrorMessage(error) ?? String(error)}`,
+    );
   }
 
   const originalCwd = process.cwd();

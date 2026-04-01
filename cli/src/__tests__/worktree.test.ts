@@ -1,7 +1,9 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   copyGitHooksToWorktreeGitDir,
@@ -12,7 +14,6 @@ import {
   resolveGitWorktreeAddArgs,
   resolveWorktreeMakeTargetPath,
   worktreeInitCommand,
-  worktreeMakeCommand,
 } from "../commands/worktree.js";
 import {
   buildWorktreeConfig,
@@ -28,6 +29,32 @@ import type { PaperclipConfig } from "../config/schema.js";
 
 const ORIGINAL_CWD = process.cwd();
 const ORIGINAL_ENV = { ...process.env };
+const execFileAsync = promisify(execFile);
+const CLI_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const TSX_CLI_PATH = path.resolve(CLI_ROOT, "node_modules", "tsx", "dist", "cli.mjs");
+const CLI_ENTRY_PATH = path.resolve(CLI_ROOT, "src", "index.ts");
+
+function buildCliEnv(homeDir: string): NodeJS.ProcessEnv {
+  const env = { ...process.env };
+  env.HOME = homeDir;
+  env.USERPROFILE = homeDir;
+  const parsed = path.parse(homeDir);
+  env.HOMEDRIVE = parsed.root.replace(/[\\/]+$/, "");
+  env.HOMEPATH = homeDir.startsWith(parsed.root)
+    ? homeDir.slice(Math.max(parsed.root.length - 1, 0))
+    : homeDir;
+  return env;
+}
+
+async function runCliWorktreeCommand(repoRoot: string, args: string[], homeDir: string): Promise<string> {
+  const result = await execFileAsync(process.execPath, [TSX_CLI_PATH, CLI_ENTRY_PATH, ...args], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: buildCliEnv(homeDir),
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  return result.stdout;
+}
 
 afterEach(() => {
   process.chdir(ORIGINAL_CWD);
@@ -517,7 +544,8 @@ describe("worktree helpers", () => {
       execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: repoRoot, stdio: "ignore" });
       execFileSync("git", ["config", "user.name", "Test User"], { cwd: repoRoot, stdio: "ignore" });
       fs.writeFileSync(path.join(repoRoot, "README.md"), "# temp\n", "utf8");
-      execFileSync("git", ["add", "README.md"], { cwd: repoRoot, stdio: "ignore" });
+      fs.writeFileSync(path.join(repoRoot, "package.json"), '{"name":"paperclip-worktree-test","version":"1.0.0"}\n', "utf8");
+      execFileSync("git", ["add", "README.md", "package.json"], { cwd: repoRoot, stdio: "ignore" });
       execFileSync("git", ["commit", "-m", "Initial commit"], { cwd: repoRoot, stdio: "ignore" });
 
       const sourceHooksDir = path.join(repoRoot, ".git", "hooks");
@@ -543,7 +571,7 @@ describe("worktree helpers", () => {
       expect(copied).toMatchObject({
         sourceHooksPath: resolvedSourceHooksDir,
         targetHooksPath: resolvedTargetHooksDir,
-      copied: true,
+        copied: true,
       });
       expect(fs.readFileSync(targetHookPath, "utf8")).toBe("#!/usr/bin/env bash\nexit 0\n");
       if (process.platform !== "win32") {
@@ -554,7 +582,7 @@ describe("worktree helpers", () => {
       execFileSync("git", ["worktree", "remove", "--force", worktreePath], { cwd: repoRoot, stdio: "ignore" });
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
-  });
+  }, 45_000);
 
   it("creates and initializes a worktree from the top-level worktree:make command", async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-make-"));
@@ -562,7 +590,40 @@ describe("worktree helpers", () => {
     const fakeHome = path.join(tempRoot, "home");
     const worktreePath = path.join(fakeHome, "paperclip-make-test");
     const originalCwd = process.cwd();
-    const homedirSpy = vi.spyOn(os, "homedir").mockReturnValue(fakeHome);
+
+    try {
+      fs.mkdirSync(repoRoot, { recursive: true });
+      fs.mkdirSync(fakeHome, { recursive: true });
+      execFileSync("git", ["init"], { cwd: repoRoot, stdio: "ignore" });
+      execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: repoRoot, stdio: "ignore" });
+      execFileSync("git", ["config", "user.name", "Test User"], { cwd: repoRoot, stdio: "ignore" });
+      fs.writeFileSync(path.join(repoRoot, "README.md"), "# temp\n", "utf8");
+      fs.writeFileSync(path.join(repoRoot, "package.json"), '{"name":"paperclip-worktree-test","version":"1.0.0"}\n', "utf8");
+      execFileSync("git", ["add", "README.md", "package.json"], { cwd: repoRoot, stdio: "ignore" });
+      execFileSync("git", ["commit", "-m", "Initial commit"], { cwd: repoRoot, stdio: "ignore" });
+
+      process.chdir(repoRoot);
+
+      await runCliWorktreeCommand(
+        repoRoot,
+        ["worktree:make", "paperclip-make-test", "--no-seed", "--home", path.join(tempRoot, ".paperclip-worktrees")],
+        fakeHome,
+      );
+
+      expect(fs.existsSync(path.join(worktreePath, ".git"))).toBe(true);
+      expect(fs.existsSync(path.join(worktreePath, ".paperclip", "config.json"))).toBe(true);
+      expect(fs.existsSync(path.join(worktreePath, ".paperclip", ".env"))).toBe(true);
+    } finally {
+      process.chdir(originalCwd);
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
+  }, 20_000);
+
+  it("fails worktree:make when dependency installation fails", async () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-make-fail-"));
+    const repoRoot = path.join(tempRoot, "repo");
+    const fakeHome = path.join(tempRoot, "home");
+    const originalCwd = process.cwd();
 
     try {
       fs.mkdirSync(repoRoot, { recursive: true });
@@ -576,17 +637,15 @@ describe("worktree helpers", () => {
 
       process.chdir(repoRoot);
 
-      await worktreeMakeCommand("paperclip-make-test", {
-        seed: false,
-        home: path.join(tempRoot, ".paperclip-worktrees"),
-      });
-
-      expect(fs.existsSync(path.join(worktreePath, ".git"))).toBe(true);
-      expect(fs.existsSync(path.join(worktreePath, ".paperclip", "config.json"))).toBe(true);
-      expect(fs.existsSync(path.join(worktreePath, ".paperclip", ".env"))).toBe(true);
+      await expect(
+        runCliWorktreeCommand(
+          repoRoot,
+          ["worktree:make", "paperclip-make-fail", "--no-seed", "--home", path.join(tempRoot, ".paperclip-worktrees")],
+          fakeHome,
+        ),
+      ).rejects.toThrow(/Failed to install dependencies/);
     } finally {
       process.chdir(originalCwd);
-      homedirSpy.mockRestore();
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 20_000);

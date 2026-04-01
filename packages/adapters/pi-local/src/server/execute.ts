@@ -365,7 +365,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     args.push("--session", sessionFile);
 
     // Add Paperclip skills directory so Pi can load the paperclip skill
-    args.push("--skill", PI_AGENT_SKILLS_DIR);
+    args.push("--skill", piAgentSkillsDir());
 
     if (extraArgs.length > 0) args.push(...extraArgs);
     
