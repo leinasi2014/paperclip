@@ -29,6 +29,16 @@ import { hasCursorTrustBypassArg } from "../shared/trust.js";
 
 const __moduleDir = path.dirname(fileURLToPath(import.meta.url));
 
+function runtimeHomeDir(): string {
+  const configuredHome =
+    process.env.HOME?.trim() ||
+    process.env.USERPROFILE?.trim() ||
+    ((process.env.HOMEDRIVE && process.env.HOMEPATH)
+      ? `${process.env.HOMEDRIVE}${process.env.HOMEPATH}`.trim()
+      : "");
+  return configuredHome ? path.resolve(configuredHome) : os.homedir();
+}
+
 function firstNonEmptyLine(text: string): string {
   return (
     text
@@ -91,7 +101,7 @@ function renderPaperclipEnvNote(env: Record<string, string>): string {
 }
 
 function cursorSkillsHome(): string {
-  return path.join(os.homedir(), ".cursor", "skills");
+  return path.join(runtimeHomeDir(), ".cursor", "skills");
 }
 
 type EnsureCursorSkillsInjectedOptions = {

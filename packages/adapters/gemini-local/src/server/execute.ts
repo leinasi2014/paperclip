@@ -36,6 +36,16 @@ import { firstNonEmptyLine } from "./utils.js";
 
 const __moduleDir = path.dirname(fileURLToPath(import.meta.url));
 
+function runtimeHomeDir(): string {
+  const configuredHome =
+    process.env.HOME?.trim() ||
+    process.env.USERPROFILE?.trim() ||
+    ((process.env.HOMEDRIVE && process.env.HOMEPATH)
+      ? `${process.env.HOMEDRIVE}${process.env.HOMEPATH}`.trim()
+      : "");
+  return configuredHome ? path.resolve(configuredHome) : os.homedir();
+}
+
 function hasNonEmptyEnvValue(env: Record<string, string>, key: string): boolean {
   const raw = env[key];
   return typeof raw === "string" && raw.trim().length > 0;
@@ -76,7 +86,7 @@ function renderApiAccessNote(env: Record<string, string>): string {
 }
 
 function geminiSkillsHome(): string {
-  return path.join(os.homedir(), ".gemini", "skills");
+  return path.join(runtimeHomeDir(), ".gemini", "skills");
 }
 
 /**

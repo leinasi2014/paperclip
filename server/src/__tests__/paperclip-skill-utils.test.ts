@@ -6,6 +6,7 @@ import {
   listPaperclipSkillEntries,
   removeMaintainerOnlySkillSymlinks,
 } from "@paperclipai/adapter-utils/server-utils";
+import { createManagedTestLink, expectLinkedDirectory } from "./helpers/fs-targets.ts";
 
 async function makeTempDir(prefix: string): Promise<string> {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -47,16 +48,18 @@ describe("paperclip skill utils", () => {
     await fs.mkdir(skillsHome, { recursive: true });
     await fs.mkdir(runtimeSkill, { recursive: true });
     await fs.mkdir(customSkill, { recursive: true });
+    await fs.mkdir(staleMaintainerSkill, { recursive: true });
 
-    await fs.symlink(runtimeSkill, path.join(skillsHome, "paperclip"));
-    await fs.symlink(customSkill, path.join(skillsHome, "release-notes"));
-    await fs.symlink(staleMaintainerSkill, path.join(skillsHome, "release"));
+    await createManagedTestLink(runtimeSkill, path.join(skillsHome, "paperclip"));
+    await createManagedTestLink(customSkill, path.join(skillsHome, "release-notes"));
+    await createManagedTestLink(staleMaintainerSkill, path.join(skillsHome, "release"));
+    await fs.rm(staleMaintainerSkill, { recursive: true, force: true });
 
     const removed = await removeMaintainerOnlySkillSymlinks(skillsHome, ["paperclip"]);
 
     expect(removed).toEqual(["release"]);
     await expect(fs.lstat(path.join(skillsHome, "release"))).rejects.toThrow();
-    expect((await fs.lstat(path.join(skillsHome, "paperclip"))).isSymbolicLink()).toBe(true);
-    expect((await fs.lstat(path.join(skillsHome, "release-notes"))).isSymbolicLink()).toBe(true);
+    await expectLinkedDirectory(path.join(skillsHome, "paperclip"), runtimeSkill);
+    await expectLinkedDirectory(path.join(skillsHome, "release-notes"), customSkill);
   });
 });

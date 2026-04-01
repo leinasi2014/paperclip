@@ -286,7 +286,7 @@ async function resolveCommandPath(command: string, cwd: string, env: NodeJS.Proc
       process.platform === "win32"
         ? hasExtension
           ? [path.join(dir, command)]
-          : exts.map((ext) => path.join(dir, `${command}${ext}`))
+          : [path.join(dir, command), ...exts.map((ext) => path.join(dir, `${command}${ext}`))]
         : [path.join(dir, command)];
     for (const candidate of candidates) {
       if (await pathExists(candidate)) return candidate;
@@ -304,6 +304,93 @@ function quoteForCmd(arg: string) {
   if (!arg.length) return '""';
   const escaped = arg.replace(/"/g, '""');
   return /[\s"&<>|^()]/.test(escaped) ? `"${escaped}"` : escaped;
+}
+
+function isSymlinkPermissionError(err: unknown): boolean {
+  const code = (err as NodeJS.ErrnoException | null)?.code;
+  return code === "EPERM" || code === "EACCES";
+}
+
+function tokenizeCommandLine(input: string): string[] {
+  const matches = input.match(/(?:[^\s"]+|"[^"]*")+/g);
+  return (matches ?? []).map((part) => part.replace(/^"|"$/g, ""));
+}
+
+async function readShebang(commandPath: string): Promise<string | null> {
+  try {
+    const handle = await fs.open(commandPath, "r");
+    try {
+      const buffer = Buffer.alloc(512);
+      const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
+      const firstLine = buffer.toString("utf8", 0, bytesRead).split(/\r?\n/u, 1)[0] ?? "";
+      return firstLine.startsWith("#!") ? firstLine.slice(2).trim() : null;
+    } finally {
+      await handle.close();
+    }
+  } catch {
+    return null;
+  }
+}
+
+async function resolveWindowsScriptSpawnTarget(
+  executable: string,
+  args: string[],
+  cwd: string,
+  env: NodeJS.ProcessEnv,
+): Promise<SpawnTarget | null> {
+  if (/\.(cjs|mjs|js)$/i.test(executable)) {
+    return {
+      command: process.execPath,
+      args: [executable, ...args],
+    };
+  }
+
+  if (path.extname(executable).length > 0) {
+    return null;
+  }
+
+  const shebang = await readShebang(executable);
+  if (!shebang) return null;
+
+  const tokens = tokenizeCommandLine(shebang);
+  if (tokens.length === 0) return null;
+
+  let [interpreter, ...interpreterArgs] = tokens;
+  if (path.basename(interpreter).toLowerCase() === "env" && interpreterArgs.length > 0) {
+    [interpreter, ...interpreterArgs] = interpreterArgs;
+  }
+
+  const resolvedInterpreter =
+    path.basename(interpreter).toLowerCase() === "node" ||
+    path.basename(interpreter).toLowerCase() === "node.exe"
+      ? process.execPath
+      : (await resolveCommandPath(interpreter, cwd, env)) ?? interpreter;
+
+  return {
+    command: resolvedInterpreter,
+    args: [...interpreterArgs, executable, ...args],
+  };
+}
+
+async function ensureSkillLink(
+  source: string,
+  target: string,
+  linkSkill: (source: string, target: string) => Promise<void>,
+): Promise<void> {
+  try {
+    await linkSkill(source, target);
+  } catch (err) {
+    if (process.platform !== "win32" || !isSymlinkPermissionError(err)) {
+      throw err;
+    }
+
+    const sourceStats = await fs.stat(source).catch(() => null);
+    if (!sourceStats?.isDirectory()) {
+      throw err;
+    }
+
+    await fs.symlink(source, target, "junction");
+  }
 }
 
 async function resolveSpawnTarget(
@@ -326,6 +413,11 @@ async function resolveSpawnTarget(
       command: shell,
       args: ["/d", "/s", "/c", commandLine],
     };
+  }
+
+  const scriptTarget = await resolveWindowsScriptSpawnTarget(executable, args, cwd, env);
+  if (scriptTarget) {
+    return scriptTarget;
   }
 
   return { command: executable, args };
@@ -672,7 +764,7 @@ export async function ensurePaperclipSkillSymlink(
 ): Promise<"created" | "repaired" | "skipped"> {
   const existing = await fs.lstat(target).catch(() => null);
   if (!existing) {
-    await linkSkill(source, target);
+    await ensureSkillLink(source, target, linkSkill);
     return "created";
   }
 
@@ -694,7 +786,7 @@ export async function ensurePaperclipSkillSymlink(
   }
 
   await fs.unlink(target);
-  await linkSkill(source, target);
+  await ensureSkillLink(source, target, linkSkill);
   return "repaired";
 }
 

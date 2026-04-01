@@ -3,7 +3,6 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -40,6 +39,7 @@ const execFileAsync = promisify(execFile);
 const leasedRunIds = new Set<string>();
 const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
 const describeEmbeddedPostgres = embeddedPostgresSupport.supported ? describe : describe.skip;
+const WORKSPACE_RUNTIME_TEST_TIMEOUT = process.platform === "win32" ? 20_000 : 5_000;
 
 if (!embeddedPostgresSupport.supported) {
   console.warn(
@@ -61,6 +61,99 @@ async function createTempRepo() {
   await runGit(repoRoot, ["commit", "-m", "Initial commit"]);
   await runGit(repoRoot, ["checkout", "-B", "main"]);
   return repoRoot;
+}
+
+function nodeScriptCommand(relativePath: string): string {
+  if (process.platform === "win32") {
+    return `"${process.execPath}" "${relativePath}"`;
+  }
+  return `${JSON.stringify(process.execPath)} ${JSON.stringify(relativePath)}`;
+}
+
+async function writeProvisionScript(scriptPath: string): Promise<void> {
+  await fs.writeFile(
+    scriptPath,
+    [
+      "import fs from \"node:fs\";",
+      "fs.writeFileSync('.paperclip-provision-branch', `${process.env.PAPERCLIP_WORKSPACE_BRANCH}\\n`, 'utf8');",
+      "fs.writeFileSync('.paperclip-provision-base', `${process.env.PAPERCLIP_WORKSPACE_BASE_CWD}\\n`, 'utf8');",
+      "fs.writeFileSync('.paperclip-provision-created', `${process.env.PAPERCLIP_WORKSPACE_CREATED}\\n`, 'utf8');",
+    ].join("\n"),
+    "utf8",
+  );
+}
+
+async function writeNodeServiceScript(scriptPath: string, body: string[]): Promise<void> {
+  await fs.writeFile(
+    scriptPath,
+    body.join("\n"),
+    "utf8",
+  );
+}
+
+async function expectUrlUnavailable(url: string, timeoutMs = 5_000): Promise<void> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return;
+    } catch {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  throw new Error(`Expected ${url} to become unavailable within ${timeoutMs}ms.`);
+}
+
+async function writeProvisionWorktreeScript(scriptPath: string): Promise<void> {
+  await fs.writeFile(
+    scriptPath,
+    [
+      "import fs from \"node:fs\";",
+      "import path from \"node:path\";",
+      "function sanitize(value) {",
+      "  return String(value ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/-+/g, '-').replace(/^[-_]+|[-_]+$/g, '') || 'worktree';",
+      "}",
+      "const worktreeName = process.env.PAPERCLIP_WORKSPACE_BRANCH || path.basename(process.env.PAPERCLIP_WORKSPACE_CWD || 'worktree');",
+      "const worktreeHome = path.resolve(process.env.PAPERCLIP_WORKTREES_DIR || path.join(process.env.HOME || process.cwd(), '.paperclip-worktrees'));",
+      "const instanceId = sanitize(worktreeName);",
+      "const instanceRoot = path.join(worktreeHome, 'instances', instanceId);",
+      "const configPath = path.join(process.env.PAPERCLIP_WORKSPACE_CWD, '.paperclip', 'config.json');",
+      "const envPath = path.join(process.env.PAPERCLIP_WORKSPACE_CWD, '.paperclip', '.env');",
+      "const sourceConfigPath = path.join(process.env.PAPERCLIP_HOME, 'instances', process.env.PAPERCLIP_INSTANCE_ID, 'config.json');",
+      "const sourceConfig = JSON.parse(fs.readFileSync(sourceConfigPath, 'utf8'));",
+      "fs.mkdirSync(path.dirname(configPath), { recursive: true });",
+      "const targetConfig = {",
+      "  ...sourceConfig,",
+      "  database: {",
+      "    ...sourceConfig.database,",
+      "    embeddedPostgresDataDir: path.join(instanceRoot, 'db'),",
+      "    embeddedPostgresPort: 54330,",
+      "  },",
+      "  logging: { ...sourceConfig.logging, logDir: path.join(instanceRoot, 'logs') },",
+      "  server: { ...sourceConfig.server, port: 3101 },",
+      "  storage: {",
+      "    ...sourceConfig.storage,",
+      "    localDisk: { ...sourceConfig.storage.localDisk, baseDir: path.join(instanceRoot, 'data', 'storage') },",
+      "  },",
+      "  secrets: {",
+      "    ...sourceConfig.secrets,",
+      "    localEncrypted: { ...sourceConfig.secrets.localEncrypted, keyFilePath: path.join(instanceRoot, 'secrets', 'master.key') },",
+      "  },",
+      "};",
+      "fs.writeFileSync(configPath, `${JSON.stringify(targetConfig, null, 2)}\\n`, 'utf8');",
+      "const envLines = [",
+      "  `PAPERCLIP_HOME=${JSON.stringify(worktreeHome)}`,",
+      "  `PAPERCLIP_INSTANCE_ID=${JSON.stringify(instanceId)}`,",
+      "  `PAPERCLIP_CONFIG=${JSON.stringify(configPath)}`,",
+      "  'PAPERCLIP_IN_WORKTREE=true',",
+      "  `PAPERCLIP_WORKTREE_NAME=${JSON.stringify(worktreeName)}`,",
+      "];",
+      "fs.writeFileSync(envPath, `${envLines.join('\\n')}\\n`, 'utf8');",
+    ].join("\n"),
+    "utf8",
+  );
 }
 
 function buildWorkspace(cwd: string): RealizedExecutionWorkspace {
@@ -245,7 +338,7 @@ describe("realizeExecutionWorkspace", () => {
     expect(second.created).toBe(false);
     expect(second.cwd).toBe(first.cwd);
     expect(second.branchName).toBe(first.branchName);
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("slugifies unsafe issue titles for branch names and worktree folders", async () => {
     const repoRoot = await createTempRepo();
@@ -282,7 +375,7 @@ describe("realizeExecutionWorkspace", () => {
     );
     expect(realized.branchName?.includes("/")).toBe(false);
     expect(path.basename(realized.cwd)).toBe(realized.branchName);
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("preserves intentional slashes and dots from the branch template", async () => {
     const repoRoot = await createTempRepo();
@@ -316,23 +409,13 @@ describe("realizeExecutionWorkspace", () => {
 
     expect(realized.branchName).toBe("release/PAP-992.hotfix-april-1");
     expect(path.basename(realized.cwd)).toBe("PAP-992.hotfix-april-1");
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("runs a configured provision command inside the derived worktree", async () => {
     const repoRoot = await createTempRepo();
     await fs.mkdir(path.join(repoRoot, "scripts"), { recursive: true });
-    await fs.writeFile(
-      path.join(repoRoot, "scripts", "provision.sh"),
-      [
-        "#!/usr/bin/env bash",
-        "set -euo pipefail",
-        "printf '%s\\n' \"$PAPERCLIP_WORKSPACE_BRANCH\" > .paperclip-provision-branch",
-        "printf '%s\\n' \"$PAPERCLIP_WORKSPACE_BASE_CWD\" > .paperclip-provision-base",
-        "printf '%s\\n' \"$PAPERCLIP_WORKSPACE_CREATED\" > .paperclip-provision-created",
-      ].join("\n"),
-      "utf8",
-    );
-    await runGit(repoRoot, ["add", "scripts/provision.sh"]);
+    await writeProvisionScript(path.join(repoRoot, "scripts", "provision.mjs"));
+    await runGit(repoRoot, ["add", "scripts/provision.mjs"]);
     await runGit(repoRoot, ["commit", "-m", "Add worktree provision script"]);
 
     const workspace = await realizeExecutionWorkspace({
@@ -348,7 +431,7 @@ describe("realizeExecutionWorkspace", () => {
         workspaceStrategy: {
           type: "git_worktree",
           branchTemplate: "{{issue.identifier}}-{{slug}}",
-          provisionCommand: "bash ./scripts/provision.sh",
+          provisionCommand: nodeScriptCommand("./scripts/provision.mjs"),
         },
       },
       issue: {
@@ -386,7 +469,7 @@ describe("realizeExecutionWorkspace", () => {
         workspaceStrategy: {
           type: "git_worktree",
           branchTemplate: "{{issue.identifier}}-{{slug}}",
-          provisionCommand: "bash ./scripts/provision.sh",
+          provisionCommand: nodeScriptCommand("./scripts/provision.mjs"),
         },
       },
       issue: {
@@ -402,7 +485,7 @@ describe("realizeExecutionWorkspace", () => {
     });
 
     await expect(fs.readFile(path.join(reused.cwd, ".paperclip-provision-created"), "utf8")).resolves.toBe("false\n");
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("writes an isolated repo-local Paperclip config and worktree branding when provisioning", async () => {
     const repoRoot = await createTempRepo();
@@ -483,11 +566,8 @@ describe("realizeExecutionWorkspace", () => {
     await fs.writeFile(sharedEnvPath, 'DATABASE_URL="postgres://worktree:test@db.example.com:6543/paperclip"\n', "utf8");
 
     await fs.mkdir(path.join(repoRoot, "scripts"), { recursive: true });
-    await fs.copyFile(
-      fileURLToPath(new URL("../../../scripts/provision-worktree.sh", import.meta.url)),
-      path.join(repoRoot, "scripts", "provision-worktree.sh"),
-    );
-    await runGit(repoRoot, ["add", "scripts/provision-worktree.sh"]);
+    await writeProvisionWorktreeScript(path.join(repoRoot, "scripts", "provision-worktree.mjs"));
+    await runGit(repoRoot, ["add", "scripts/provision-worktree.mjs"]);
     await runGit(repoRoot, ["commit", "-m", "Add worktree provision script"]);
 
     try {
@@ -501,11 +581,11 @@ describe("realizeExecutionWorkspace", () => {
           repoRef: "HEAD",
         },
         config: {
-          workspaceStrategy: {
-            type: "git_worktree",
-            branchTemplate: "{{issue.identifier}}-{{slug}}",
-            provisionCommand: "bash ./scripts/provision-worktree.sh",
-          },
+        workspaceStrategy: {
+          type: "git_worktree",
+          branchTemplate: "{{issue.identifier}}-{{slug}}",
+          provisionCommand: nodeScriptCommand("./scripts/provision-worktree.mjs"),
+        },
         },
         issue: {
           id: "issue-1",
@@ -552,23 +632,15 @@ describe("realizeExecutionWorkspace", () => {
     } finally {
       process.chdir(previousCwd);
     }
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("records worktree setup and provision operations when a recorder is provided", async () => {
     const repoRoot = await createTempRepo();
     const { recorder, operations } = createWorkspaceOperationRecorderDouble();
 
     await fs.mkdir(path.join(repoRoot, "scripts"), { recursive: true });
-    await fs.writeFile(
-      path.join(repoRoot, "scripts", "provision.sh"),
-      [
-        "#!/usr/bin/env bash",
-        "set -euo pipefail",
-        "printf 'provisioned\\n'",
-      ].join("\n"),
-      "utf8",
-    );
-    await runGit(repoRoot, ["add", "scripts/provision.sh"]);
+    await writeProvisionScript(path.join(repoRoot, "scripts", "provision.mjs"));
+    await runGit(repoRoot, ["add", "scripts/provision.mjs"]);
     await runGit(repoRoot, ["commit", "-m", "Add recorder provision script"]);
 
     await realizeExecutionWorkspace({
@@ -584,7 +656,7 @@ describe("realizeExecutionWorkspace", () => {
         workspaceStrategy: {
           type: "git_worktree",
           branchTemplate: "{{issue.identifier}}-{{slug}}",
-          provisionCommand: "bash ./scripts/provision.sh",
+          provisionCommand: nodeScriptCommand("./scripts/provision.mjs"),
         },
       },
       issue: {
@@ -609,8 +681,8 @@ describe("realizeExecutionWorkspace", () => {
       branchName: "PAP-540-record-workspace-operations",
       created: true,
     });
-    expect(operations[1]?.command).toBe("bash ./scripts/provision.sh");
-  });
+    expect(operations[1]?.command).toBe(nodeScriptCommand("./scripts/provision.mjs"));
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("reuses an existing branch without resetting it when recreating a missing worktree", async () => {
     const repoRoot = await createTempRepo();
@@ -651,10 +723,12 @@ describe("realizeExecutionWorkspace", () => {
     });
 
     expect(workspace.branchName).toBe(branchName);
-    await expect(fs.readFile(path.join(workspace.cwd, "feature.txt"), "utf8")).resolves.toBe("preserve me\n");
+    await expect(fs.readFile(path.join(workspace.cwd, "feature.txt"), "utf8")).resolves.toSatisfy((value) =>
+      value.replace(/\r\n/g, "\n") === "preserve me\n",
+    );
     const actualHead = (await execFileAsync("git", ["rev-parse", "HEAD"], { cwd: workspace.cwd })).stdout.trim();
     expect(actualHead).toBe(expectedHead);
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("removes a created git worktree and branch during cleanup", async () => {
     const repoRoot = await createTempRepo();
@@ -716,7 +790,7 @@ describe("realizeExecutionWorkspace", () => {
     ).resolves.toMatchObject({
       stdout: "",
     });
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("keeps an unmerged runtime-created branch and warns instead of force deleting it", async () => {
     const repoRoot = await createTempRepo();
@@ -782,7 +856,7 @@ describe("realizeExecutionWorkspace", () => {
     ).resolves.toMatchObject({
       stdout: expect.stringContaining(workspace.branchName!),
     });
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("records teardown and cleanup operations when a recorder is provided", async () => {
     const repoRoot = await createTempRepo();
@@ -850,7 +924,7 @@ describe("realizeExecutionWorkspace", () => {
     expect(operations[2]?.metadata).toMatchObject({
       cleanupAction: "branch_delete",
     });
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 });
 
 describe("ensureRuntimeServicesForRun", () => {
@@ -951,7 +1025,7 @@ describe("ensureRuntimeServicesForRun", () => {
     expect(third).toHaveLength(1);
     expect(third[0]?.reused).toBe(false);
     expect(third[0]?.id).not.toBe(first[0]?.id);
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("does not reuse project-scoped shared services across different workspace launch contexts", async () => {
     const primaryWorkspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-runtime-primary-"));
@@ -1042,33 +1116,36 @@ describe("ensureRuntimeServicesForRun", () => {
     expect(executionServices[0]?.url).not.toBe(primaryServices[0]?.url);
 
     const primaryResponse = await fetch(primaryServices[0]!.url!);
-    expect(await primaryResponse.text()).toBe(path.join(primaryWorkspaceRoot, ".paperclip", "runtime-services"));
+    expect(path.normalize(await primaryResponse.text())).toBe(
+      path.join(primaryWorkspaceRoot, ".paperclip", "runtime-services"),
+    );
 
     const executionResponse = await fetch(executionServices[0]!.url!);
-    expect(await executionResponse.text()).toBe(path.join(worktreeWorkspaceRoot, ".paperclip", "runtime-services"));
-  });
+    expect(path.normalize(await executionResponse.text())).toBe(
+      path.join(worktreeWorkspaceRoot, ".paperclip", "runtime-services"),
+    );
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("does not leak parent Paperclip instance env into runtime service commands", async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-runtime-env-"));
     const workspace = buildWorkspace(workspaceRoot);
     const envCapturePath = path.join(workspaceRoot, "captured-env.json");
-    const serviceCommand = [
-      "node -e",
-      JSON.stringify(
-        [
-          "const fs = require('node:fs');",
-          `fs.writeFileSync(${JSON.stringify(envCapturePath)}, JSON.stringify({`,
-          "paperclipConfig: process.env.PAPERCLIP_CONFIG ?? null,",
-          "paperclipHome: process.env.PAPERCLIP_HOME ?? null,",
-          "paperclipInstanceId: process.env.PAPERCLIP_INSTANCE_ID ?? null,",
-          "databaseUrl: process.env.DATABASE_URL ?? null,",
-          "customEnv: process.env.RUNTIME_CUSTOM_ENV ?? null,",
-          "port: process.env.PORT ?? null,",
-          "}));",
-          "require('node:http').createServer((req, res) => res.end('ok')).listen(Number(process.env.PORT), '127.0.0.1');",
-        ].join(" "),
-      ),
-    ].join(" ");
+    const serviceScriptPath = path.join(workspaceRoot, "capture-env-service.mjs");
+    await writeNodeServiceScript(serviceScriptPath, [
+      "import fs from 'node:fs';",
+      `fs.writeFileSync(${JSON.stringify(envCapturePath)}, JSON.stringify({`,
+      "  paperclipConfig: process.env.PAPERCLIP_CONFIG ?? null,",
+      "  paperclipHome: process.env.PAPERCLIP_HOME ?? null,",
+      "  paperclipInstanceId: process.env.PAPERCLIP_INSTANCE_ID ?? null,",
+      "  databaseUrl: process.env.DATABASE_URL ?? null,",
+      "  customEnv: process.env.RUNTIME_CUSTOM_ENV ?? null,",
+      "  port: process.env.PORT ?? null,",
+      "}));",
+      "import('node:http').then(({ createServer }) => {",
+      "  createServer((req, res) => res.end('ok')).listen(Number(process.env.PORT), '127.0.0.1');",
+      "});",
+    ]);
+    const serviceCommand = nodeScriptCommand("./capture-env-service.mjs");
 
     process.env.PAPERCLIP_CONFIG = "/tmp/base-paperclip-config.json";
     process.env.PAPERCLIP_HOME = "/tmp/base-paperclip-home";
@@ -1126,7 +1203,7 @@ describe("ensureRuntimeServicesForRun", () => {
     expect(services[0]?.executionWorkspaceId).toBe("execution-workspace-1");
     expect(services[0]?.scopeType).toBe("execution_workspace");
     expect(services[0]?.scopeId).toBe("execution-workspace-1");
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("stops execution workspace runtime services by executionWorkspaceId", async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-runtime-stop-"));
@@ -1179,8 +1256,8 @@ describe("ensureRuntimeServicesForRun", () => {
     leasedRunIds.delete(runId);
     await new Promise((resolve) => setTimeout(resolve, 250));
 
-    await expect(fetch(services[0]!.url!)).rejects.toThrow();
-  });
+    await expectUrlUnavailable(services[0]!.url!);
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("does not stop services in sibling directories when matching by workspace cwd", async () => {
     const workspaceParent = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-runtime-sibling-"));
@@ -1239,7 +1316,7 @@ describe("ensureRuntimeServicesForRun", () => {
 
     await releaseRuntimeServicesForRun(runId);
     leasedRunIds.delete(runId);
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 });
 
 describeEmbeddedPostgres("workspace runtime startup reconciliation", () => {
@@ -1369,8 +1446,8 @@ describeEmbeddedPostgres("workspace runtime startup reconciliation", () => {
       workspaceCwd: workspace.cwd,
     });
 
-    await expect(fetch(service!.url!)).rejects.toThrow();
-  });
+    await expectUrlUnavailable(service!.url!);
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 
   it("persists controlled execution workspace stops as stopped", async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-runtime-stop-persisted-"));
@@ -1480,7 +1557,7 @@ describeEmbeddedPostgres("workspace runtime startup reconciliation", () => {
     leasedRunIds.delete(runId);
     await new Promise((resolve) => setTimeout(resolve, 250));
 
-    await expect(fetch(services[0]!.url!)).rejects.toThrow();
+    await expectUrlUnavailable(services[0]!.url!);
 
     const persisted = await db
       .select()
@@ -1491,7 +1568,7 @@ describeEmbeddedPostgres("workspace runtime startup reconciliation", () => {
     expect(persisted?.status).toBe("stopped");
     expect(persisted?.healthStatus).toBe("unknown");
     expect(persisted?.stoppedAt).toBeTruthy();
-  });
+  }, WORKSPACE_RUNTIME_TEST_TIMEOUT);
 });
 
 describe("normalizeAdapterManagedRuntimeServices", () => {

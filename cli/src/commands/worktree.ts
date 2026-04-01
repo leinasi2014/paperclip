@@ -78,6 +78,8 @@ import {
   type PlannedIssueInsert,
 } from "./worktree-merge-history-lib.js";
 
+const PNPM_COMMAND = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+
 type WorktreeInitOptions = {
   name?: string;
   instance?: string;
@@ -635,17 +637,21 @@ export function rebindWorkspaceCwd(input: {
   targetRepoRoot: string;
   workspaceCwd: string;
 }): string | null {
-  const sourceRepoRoot = path.resolve(input.sourceRepoRoot);
-  const targetRepoRoot = path.resolve(input.targetRepoRoot);
-  const workspaceCwd = path.resolve(input.workspaceCwd);
-  const relative = path.relative(sourceRepoRoot, workspaceCwd);
+  const usePosixPathApi = [input.sourceRepoRoot, input.targetRepoRoot, input.workspaceCwd].every(
+    (value) => value.includes("/") && !value.includes("\\") && !/^[a-zA-Z]:\//.test(value),
+  );
+  const pathApi = usePosixPathApi ? path.posix : path;
+  const sourceRepoRoot = pathApi.resolve(input.sourceRepoRoot);
+  const targetRepoRoot = pathApi.resolve(input.targetRepoRoot);
+  const workspaceCwd = pathApi.resolve(input.workspaceCwd);
+  const relative = pathApi.relative(sourceRepoRoot, workspaceCwd);
   if (!relative || relative === "") {
     return targetRepoRoot;
   }
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+  if (relative.startsWith("..") || pathApi.isAbsolute(relative)) {
     return null;
   }
-  return path.resolve(targetRepoRoot, relative);
+  return pathApi.resolve(targetRepoRoot, relative);
 }
 
 async function rebindSeededProjectWorkspaces(input: {
@@ -1102,7 +1108,7 @@ export async function worktreeMakeCommand(nameArg: string, opts: WorktreeMakeOpt
   const installSpinner = p.spinner();
   installSpinner.start("Installing dependencies...");
   try {
-    execFileSync("pnpm", ["install"], {
+    execFileSync(PNPM_COMMAND, ["install"], {
       cwd: targetPath,
       stdio: ["ignore", "pipe", "pipe"],
     });

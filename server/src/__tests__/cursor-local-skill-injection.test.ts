@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { ensureCursorSkillsInjected } from "@paperclipai/adapter-cursor-local/server";
+import { createManagedTestLink, expectLinkedDirectory } from "./helpers/fs-targets.ts";
 
 async function makeTempDir(prefix: string): Promise<string> {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -40,12 +41,8 @@ describe("cursor local adapter skill injection", () => {
 
     const injectedA = path.join(skillsHome, "paperclip");
     const injectedB = path.join(skillsHome, "paperclip-create-agent");
-    expect((await fs.lstat(injectedA)).isSymbolicLink()).toBe(true);
-    expect((await fs.lstat(injectedB)).isSymbolicLink()).toBe(true);
-    expect(await fs.realpath(injectedA)).toBe(await fs.realpath(path.join(skillsDir, "paperclip")));
-    expect(await fs.realpath(injectedB)).toBe(
-      await fs.realpath(path.join(skillsDir, "paperclip-create-agent")),
-    );
+    await expectLinkedDirectory(injectedA, path.join(skillsDir, "paperclip"));
+    await expectLinkedDirectory(injectedB, path.join(skillsDir, "paperclip-create-agent"));
     expect(logs.some((line) => line.includes('Injected Cursor skill "paperclip"'))).toBe(true);
     expect(logs.some((line) => line.includes('Injected Cursor skill "paperclip-create-agent"'))).toBe(true);
   });
@@ -67,7 +64,10 @@ describe("cursor local adapter skill injection", () => {
 
     expect((await fs.lstat(existingTarget)).isDirectory()).toBe(true);
     expect(await fs.readFile(path.join(existingTarget, "keep.txt"), "utf8")).toBe("keep");
-    expect((await fs.lstat(path.join(skillsHome, "paperclip-create-agent"))).isSymbolicLink()).toBe(true);
+    await expectLinkedDirectory(
+      path.join(skillsHome, "paperclip-create-agent"),
+      path.join(skillsDir, "paperclip-create-agent"),
+    );
   });
 
   it("logs per-skill link failures and continues without throwing", async () => {
@@ -91,12 +91,12 @@ describe("cursor local adapter skill injection", () => {
           if (target.endsWith(`${path.sep}fail-skill`)) {
             throw new Error("simulated link failure");
           }
-          await fs.symlink(source, target);
+          await createManagedTestLink(source, target);
         },
       },
     );
 
-    expect((await fs.lstat(path.join(skillsHome, "ok-skill"))).isSymbolicLink()).toBe(true);
+    await expectLinkedDirectory(path.join(skillsHome, "ok-skill"), path.join(skillsDir, "ok-skill"));
     await expect(fs.lstat(path.join(skillsHome, "fail-skill"))).rejects.toThrow();
     expect(logs.some((line) => line.includes('Failed to inject Cursor skill "fail-skill"'))).toBe(true);
   });

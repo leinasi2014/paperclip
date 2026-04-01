@@ -28,6 +28,16 @@ import { prepareOpenCodeRuntimeConfig } from "./runtime-config.js";
 
 const __moduleDir = path.dirname(fileURLToPath(import.meta.url));
 
+function runtimeHomeDir(): string {
+  const configuredHome =
+    process.env.HOME?.trim() ||
+    process.env.USERPROFILE?.trim() ||
+    ((process.env.HOMEDRIVE && process.env.HOMEPATH)
+      ? `${process.env.HOMEDRIVE}${process.env.HOMEPATH}`.trim()
+      : "");
+  return configuredHome ? path.resolve(configuredHome) : os.homedir();
+}
+
 function firstNonEmptyLine(text: string): string {
   return (
     text
@@ -49,7 +59,7 @@ function resolveOpenCodeBiller(env: Record<string, string>, provider: string | n
 }
 
 function claudeSkillsHome(): string {
-  return path.join(os.homedir(), ".claude", "skills");
+  return path.join(runtimeHomeDir(), ".claude", "skills");
 }
 
 async function ensureOpenCodeSkillsInjected(

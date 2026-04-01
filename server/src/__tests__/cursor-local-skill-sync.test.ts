@@ -6,6 +6,7 @@ import {
   listCursorSkills,
   syncCursorSkills,
 } from "@paperclipai/adapter-cursor-local/server";
+import { expectLinkedDirectory } from "./helpers/fs-targets.ts";
 
 async function makeTempDir(prefix: string): Promise<string> {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -50,10 +51,12 @@ describe("cursor local skill sync", () => {
     expect(before.desiredSkills).toContain(paperclipKey);
     expect(before.entries.find((entry) => entry.key === paperclipKey)?.required).toBe(true);
     expect(before.entries.find((entry) => entry.key === paperclipKey)?.state).toBe("missing");
+    const bundledPaperclipSource = before.entries.find((entry) => entry.key === paperclipKey)?.sourcePath;
 
     const after = await syncCursorSkills(ctx, [paperclipKey]);
     expect(after.entries.find((entry) => entry.key === paperclipKey)?.state).toBe("installed");
-    expect((await fs.lstat(path.join(home, ".cursor", "skills", "paperclip"))).isSymbolicLink()).toBe(true);
+    expect(bundledPaperclipSource).toBeTruthy();
+    await expectLinkedDirectory(path.join(home, ".cursor", "skills", "paperclip"), bundledPaperclipSource!);
   });
 
   it("recognizes company-library runtime skills supplied outside the bundled Paperclip directory", async () => {
@@ -101,7 +104,7 @@ describe("cursor local skill sync", () => {
     const after = await syncCursorSkills(ctx, ["ascii-heart"]);
     expect(after.warnings).toEqual([]);
     expect(after.entries.find((entry) => entry.key === "ascii-heart")?.state).toBe("installed");
-    expect((await fs.lstat(path.join(home, ".cursor", "skills", "ascii-heart"))).isSymbolicLink()).toBe(true);
+    await expectLinkedDirectory(path.join(home, ".cursor", "skills", "ascii-heart"), asciiHeartDir);
   });
 
   it("keeps required bundled Paperclip skills installed even when the desired set is emptied", async () => {
@@ -139,6 +142,8 @@ describe("cursor local skill sync", () => {
     const after = await syncCursorSkills(clearedCtx, []);
     expect(after.desiredSkills).toContain(paperclipKey);
     expect(after.entries.find((entry) => entry.key === paperclipKey)?.state).toBe("installed");
-    expect((await fs.lstat(path.join(home, ".cursor", "skills", "paperclip"))).isSymbolicLink()).toBe(true);
+    const paperclipSource = after.entries.find((entry) => entry.key === paperclipKey)?.sourcePath;
+    expect(paperclipSource).toBeTruthy();
+    await expectLinkedDirectory(path.join(home, ".cursor", "skills", "paperclip"), paperclipSource!);
   });
 });

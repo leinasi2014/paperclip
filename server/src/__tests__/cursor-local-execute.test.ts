@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { execute } from "@paperclipai/adapter-cursor-local/server";
+import { expectLinkedDirectory } from "./helpers/fs-targets.ts";
 
 async function writeFakeCursorCommand(commandPath: string): Promise<void> {
   const script = `#!/usr/bin/env node
@@ -246,7 +247,7 @@ describe("cursor execute", () => {
 
       expect(result.exitCode).toBe(0);
       expect(result.errorMessage).toBeNull();
-      expect((await fs.lstat(path.join(root, ".cursor", "skills", "ascii-heart"))).isSymbolicLink()).toBe(true);
+      await expectLinkedDirectory(path.join(root, ".cursor", "skills", "ascii-heart"), asciiHeartDir);
       expect(await fs.realpath(path.join(root, ".cursor", "skills", "ascii-heart"))).toBe(
         await fs.realpath(asciiHeartDir),
       );
