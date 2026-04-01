@@ -36,6 +36,10 @@
       "title": "Interrupt failed",
       "body": "Unable to interrupt the active run"
     },
+    "deleteFailed": {
+      "title": "Delete failed",
+      "body": "Unable to delete issue"
+    },
     "copiedToClipboard": {
       "title": "Copied to clipboard"
     }
@@ -57,7 +61,11 @@
     "copyAsMarkdown": "Copy issue as markdown",
     "properties": "Properties",
     "showProperties": "Show properties",
-    "hideIssue": "Hide this Issue"
+    "hideIssue": "Hide this Issue",
+    "deleteIssue": "Delete issue"
+  },
+  "confirmations": {
+    "deleteIssue": "Delete this issue? This cannot be undone."
   },
   "fields": {
     "description": {

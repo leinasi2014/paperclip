@@ -8,6 +8,21 @@
   },
   "actions": {
     "addGoal": "Add Goal",
-    "newGoal": "New Goal"
+    "newGoal": "New Goal",
+    "deleteGoal": "Delete Goal",
+    "confirmDeleteGoal": "Delete Goal",
+    "deletingGoal": "Deleting...",
+    "cancel": "Cancel"
+  },
+  "dialogs": {
+    "deleteGoal": {
+      "title": "Delete goal?",
+      "description": "Delete \"{{title}}\"? This cannot be undone."
+    }
+  },
+  "toasts": {
+    "deleteSuccess": "Goal deleted",
+    "deleteError": "Failed to delete goal",
+    "unknownError": "Unknown error"
   }
 }

@@ -36,6 +36,10 @@
       "title": "中断失败",
       "body": "无法中断当前运行"
     },
+    "deleteFailed": {
+      "title": "删除失败",
+      "body": "无法删除议题"
+    },
     "copiedToClipboard": {
       "title": "已复制到剪贴板"
     }
@@ -57,7 +61,11 @@
     "copyAsMarkdown": "以 Markdown 复制议题",
     "properties": "属性",
     "showProperties": "显示属性",
-    "hideIssue": "隐藏此议题"
+    "hideIssue": "隐藏此议题",
+    "deleteIssue": "删除议题"
+  },
+  "confirmations": {
+    "deleteIssue": "删除此议题后不可恢复，确认删除吗？"
   },
   "fields": {
     "description": {

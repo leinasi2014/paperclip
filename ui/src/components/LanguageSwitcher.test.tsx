@@ -26,66 +26,81 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 
 describe("LanguageSwitcher", () => {
   let container: HTMLDivElement;
+  let root: ReturnType<typeof createRoot> | null;
 
   beforeEach(() => {
     container = document.createElement("div");
     document.body.appendChild(container);
+    root = createRoot(container);
     useAppLocaleMock.mockReset();
     useTranslationMock.mockReset();
     useTranslationMock.mockReturnValue({
       t: (key: string) => key,
     });
+
+    if (!window.PointerEvent) {
+      // Radix menus listen to pointer interactions; jsdom needs a minimal fallback.
+      window.PointerEvent = MouseEvent as typeof PointerEvent;
+    }
   });
 
   afterEach(() => {
+    act(() => {
+      root?.unmount();
+    });
     container.remove();
   });
 
-  it("renders language options", () => {
+  it("opens the language menu from a single trigger", () => {
     useAppLocaleMock.mockReturnValue({
       language: "en",
       setLanguage: vi.fn(),
     });
-    const root = createRoot(container);
 
     act(() => {
-      root.render(<LanguageSwitcher />);
+      root?.render(<LanguageSwitcher />);
     });
 
-    const enButton = container.querySelector('button[data-language="en"]');
-    const zhButton = container.querySelector('button[data-language="zh-CN"]');
-    expect(enButton?.textContent).toContain("language.en");
-    expect(zhButton?.textContent).toContain("language.zhCN");
+    const trigger = container.querySelector('button[aria-label="language.switcher"]');
+    expect(trigger).not.toBeNull();
+    expect(container.querySelectorAll("button[data-language]").length).toBe(0);
 
     act(() => {
-      root.unmount();
+      trigger?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, button: 0 }));
     });
+
+    const menu = document.body.querySelector('[data-slot="dropdown-menu-content"]');
+    expect(menu).not.toBeNull();
+    expect(menu?.textContent).toContain("language.en");
+    expect(menu?.textContent).toContain("language.zhCN");
   });
 
-  it("calls setLanguage when switching language", () => {
+  it("calls setLanguage when selecting a language from the menu", () => {
     const setLanguage = vi.fn();
     useAppLocaleMock.mockReturnValue({
       language: "en",
       setLanguage,
     });
-    const root = createRoot(container);
 
     act(() => {
-      root.render(<LanguageSwitcher />);
+      root?.render(<LanguageSwitcher />);
     });
 
-    const zhButton = container.querySelector('button[data-language="zh-CN"]');
-    expect(zhButton).not.toBeNull();
+    const trigger = container.querySelector('button[aria-label="language.switcher"]');
+    expect(trigger).not.toBeNull();
 
     act(() => {
-      zhButton?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+      trigger?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, button: 0 }));
+    });
+
+    const zhOption = document.body.querySelector('[data-language="zh-CN"]');
+    expect(zhOption).not.toBeNull();
+
+    act(() => {
+      zhOption?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
     });
 
     expect(setLanguage).toHaveBeenCalledTimes(1);
     expect(setLanguage).toHaveBeenCalledWith("zh-CN");
-
-    act(() => {
-      root.unmount();
-    });
   });
 });

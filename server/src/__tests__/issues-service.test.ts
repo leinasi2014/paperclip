@@ -1,14 +1,18 @@
 import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   activityLog,
   agents,
   companies,
+  costEvents,
   createDb,
   executionWorkspaces,
+  financeEvents,
   instanceSettings,
   issueComments,
   issueInboxArchives,
+  issueReadStates,
   issues,
   projectWorkspaces,
   projects,
@@ -42,6 +46,9 @@ describeEmbeddedPostgres("issueService.list participantAgentId", () => {
   }, EMBEDDED_POSTGRES_HOOK_TIMEOUT);
 
   afterEach(async () => {
+    await db.delete(financeEvents);
+    await db.delete(costEvents);
+    await db.delete(issueReadStates);
     await db.delete(issueComments);
     await db.delete(issueInboxArchives);
     await db.delete(activityLog);
@@ -403,6 +410,121 @@ describeEmbeddedPostgres("issueService.list participantAgentId", () => {
       resurfacedIssueId,
     ]));
   });
+
+  it("removes issue references that would otherwise block deletion", async () => {
+    const companyId = randomUUID();
+    const agentId = randomUUID();
+    const parentIssueId = randomUUID();
+    const childIssueId = randomUUID();
+    const userId = "user-1";
+
+    await db.insert(companies).values({
+      id: companyId,
+      name: "Paperclip",
+      issuePrefix: `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`,
+      requireBoardApprovalForNewAgents: false,
+    });
+
+    await db.insert(agents).values({
+      id: agentId,
+      companyId,
+      name: "CodexCoder",
+      role: "engineer",
+      status: "active",
+      adapterType: "codex_local",
+      adapterConfig: {},
+      runtimeConfig: {},
+      permissions: {},
+    });
+
+    await db.insert(issues).values([
+      {
+        id: parentIssueId,
+        companyId,
+        title: "Parent issue",
+        status: "todo",
+        priority: "medium",
+      },
+      {
+        id: childIssueId,
+        companyId,
+        title: "Child issue",
+        status: "todo",
+        priority: "medium",
+        parentId: parentIssueId,
+      },
+    ]);
+
+    await db.insert(issueComments).values({
+      companyId,
+      issueId: parentIssueId,
+      authorUserId: userId,
+      body: "Blocking comment",
+    });
+
+    await db.insert(issueReadStates).values({
+      companyId,
+      issueId: parentIssueId,
+      userId,
+    });
+
+    await db.insert(issueInboxArchives).values({
+      companyId,
+      issueId: parentIssueId,
+      userId,
+    });
+
+    await db.insert(costEvents).values({
+      companyId,
+      agentId,
+      issueId: parentIssueId,
+      provider: "openai",
+      biller: "openai",
+      billingType: "usage",
+      model: "gpt-5",
+      inputTokens: 10,
+      cachedInputTokens: 0,
+      outputTokens: 20,
+      costCents: 15,
+      occurredAt: new Date("2026-04-01T00:00:00.000Z"),
+    });
+
+    await db.insert(financeEvents).values({
+      companyId,
+      issueId: parentIssueId,
+      eventKind: "usage_charge",
+      direction: "debit",
+      biller: "openai",
+      amountCents: 15,
+      currency: "USD",
+      occurredAt: new Date("2026-04-01T00:00:00.000Z"),
+    });
+
+    const removed = await svc.remove(parentIssueId);
+
+    expect(removed?.id).toBe(parentIssueId);
+    await expect(
+      db.select().from(issues).where(eq(issues.id, parentIssueId)),
+    ).resolves.toHaveLength(0);
+    await expect(
+      db.select({ parentId: issues.parentId }).from(issues).where(eq(issues.id, childIssueId)),
+    ).resolves.toEqual([{ parentId: null }]);
+    await expect(
+      db.select().from(issueComments).where(eq(issueComments.issueId, parentIssueId)),
+    ).resolves.toHaveLength(0);
+    await expect(
+      db.select().from(issueReadStates).where(eq(issueReadStates.issueId, parentIssueId)),
+    ).resolves.toHaveLength(0);
+    await expect(
+      db.select().from(issueInboxArchives).where(eq(issueInboxArchives.issueId, parentIssueId)),
+    ).resolves.toHaveLength(0);
+    await expect(
+      db.select({ issueId: costEvents.issueId }).from(costEvents).where(eq(costEvents.companyId, companyId)),
+    ).resolves.toEqual([{ issueId: null }]);
+    await expect(
+      db.select({ issueId: financeEvents.issueId }).from(financeEvents).where(eq(financeEvents.companyId, companyId)),
+    ).resolves.toEqual([{ issueId: null }]);
+  });
 });
 
 describeEmbeddedPostgres("issueService.create workspace inheritance", () => {
@@ -417,6 +539,9 @@ describeEmbeddedPostgres("issueService.create workspace inheritance", () => {
   }, EMBEDDED_POSTGRES_HOOK_TIMEOUT);
 
   afterEach(async () => {
+    await db.delete(financeEvents);
+    await db.delete(costEvents);
+    await db.delete(issueReadStates);
     await db.delete(issueComments);
     await db.delete(issueInboxArchives);
     await db.delete(activityLog);

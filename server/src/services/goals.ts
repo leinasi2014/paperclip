@@ -1,6 +1,6 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { goals } from "@paperclipai/db";
+import { costEvents, financeEvents, goals, issues, projects } from "@paperclipai/db";
 
 type GoalReader = Pick<Db, "select">;
 
@@ -71,10 +71,18 @@ export function goalService(db: Db) {
         .then((rows) => rows[0] ?? null),
 
     remove: (id: string) =>
-      db
-        .delete(goals)
-        .where(eq(goals.id, id))
-        .returning()
-        .then((rows) => rows[0] ?? null),
+      db.transaction(async (tx) => {
+        await tx.update(goals).set({ parentId: null }).where(eq(goals.parentId, id));
+        await tx.update(issues).set({ goalId: null }).where(eq(issues.goalId, id));
+        await tx.update(projects).set({ goalId: null }).where(eq(projects.goalId, id));
+        await tx.update(costEvents).set({ goalId: null }).where(eq(costEvents.goalId, id));
+        await tx.update(financeEvents).set({ goalId: null }).where(eq(financeEvents.goalId, id));
+
+        const rows = await tx
+          .delete(goals)
+          .where(eq(goals.id, id))
+          .returning();
+        return rows[0] ?? null;
+      }),
   };
 }
