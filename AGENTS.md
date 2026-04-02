@@ -146,3 +146,78 @@ A change is done when all are true:
 2. Typecheck, tests, and build pass
 3. Contracts are synced across db/shared/server/ui
 4. Docs updated when behavior or commands change
+
+## 11. Upstream Sync Workflow
+
+Use this workflow when syncing changes from `upstream/master` into this fork. The goals are:
+
+- absorb upstream updates safely
+- preserve shipped local features and fixes
+- perform incremental i18n follow-up on newly imported UI changes
+
+### Remote roles
+
+- `origin` is the publishing remote for this fork
+- `upstream` is the source of truth for upstream updates
+- do not push directly to `upstream` from routine maintenance work
+
+### Default sync method
+
+1. `git fetch upstream`
+2. inspect divergence between local `master` and `upstream/master`
+3. create a dedicated sync branch such as `sync/upstream-YYYY-MM-DD`
+4. merge `upstream/master` into that sync branch
+5. resolve conflicts by preserving validated local behavior first, then re-applying compatible upstream changes
+6. run verification
+7. merge the sync branch back into local `master`
+8. push to `origin`
+
+Default to `merge`, not `rebase`.
+
+Do not use `cherry-pick` as the routine sync mechanism. Only use it for isolated upstream fixes when a full upstream merge is intentionally deferred, and record that decision clearly.
+
+### Conflict resolution policy
+
+- Do not discard or silently overwrite local features that have already been implemented and validated in this fork.
+- When upstream and local work touch the same area, preserve the local shipped behavior first, then manually integrate upstream structure, fixes, and compatibility improvements.
+- Treat these as high-protection local areas unless explicitly replaced by a deliberate new plan:
+  - i18n coverage and locale behavior
+  - project and company deletion flows
+  - agent instruction bundle defaults
+  - language-following rules in default agent prompts
+- Do not resolve high-risk conflicts with blanket file replacement, `accept theirs`, `accept ours`, `git reset --hard`, or any equivalent destructive shortcut.
+
+### Incremental i18n after sync
+
+After importing upstream UI changes, perform an incremental i18n review. Do not assume newly merged upstream UI is already aligned with this fork's language behavior.
+
+Review at least:
+
+- newly added pages
+- newly added dialogs, popovers, sheets, and dropdown content
+- new buttons, empty states, placeholders, toast copy, and error messages
+- onboarding, agent, company, project, goal, issue, and settings surfaces touched by the upstream merge
+
+Rules:
+
+- fix only the incremental gaps introduced by the upstream merge
+- prefer the existing namespace and translation structure
+- avoid turning sync follow-up into a broad unrelated refactor
+- if upstream changes touch default agent prompts or onboarding assets, re-check that language rules still inherit correctly
+
+### Verification and hand-off
+
+After a sync merge:
+
+- run targeted tests for the affected areas first
+- then run the standard verification set when feasible:
+  - `pnpm -r typecheck`
+  - `pnpm test:run`
+  - `pnpm build`
+- if full verification is not feasible, explicitly report what was run and what was not
+
+When reporting or committing a sync:
+
+- summarize which upstream changes were absorbed
+- summarize which local behaviors were intentionally preserved
+- summarize any incremental i18n fixes applied as part of the sync
