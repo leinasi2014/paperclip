@@ -100,6 +100,7 @@ const ISSUE_THINKING_EFFORT_OPTIONS = {
     { value: "low", label: "Low" },
     { value: "medium", label: "Medium" },
     { value: "high", label: "High" },
+    { value: "xhigh", label: "X-High" },
   ],
   opencode_local: [
     { value: "", label: "Default" },
@@ -107,6 +108,7 @@ const ISSUE_THINKING_EFFORT_OPTIONS = {
     { value: "low", label: "Low" },
     { value: "medium", label: "Medium" },
     { value: "high", label: "High" },
+    { value: "xhigh", label: "X-High" },
     { value: "max", label: "Max" },
   ],
 } as const;

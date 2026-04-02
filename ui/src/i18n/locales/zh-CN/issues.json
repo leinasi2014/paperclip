@@ -264,6 +264,82 @@
       "createFailed": "创建议题失败，请重试。"
     }
   },
+  "documents": {
+    "title": "文档",
+    "actions": {
+      "newDocument": "新建文档",
+      "new": "新建",
+      "createDocument": "创建文档",
+      "saving": "保存中...",
+      "copyDocument": "复制文档",
+      "copied": "已复制",
+      "documentActions": "文档操作",
+      "downloadDocument": "下载文档",
+      "deleteDocument": "删除文档",
+      "delete": "删除",
+      "deleting": "删除中...",
+      "expandDocument": "展开 {{key}}",
+      "collapseDocument": "收起 {{key}}"
+    },
+    "fields": {
+      "keyPlaceholder": "文档键",
+      "optionalTitle": "可选标题",
+      "bodyPlaceholder": "Markdown 正文"
+    },
+    "errors": {
+      "deleteFailed": "删除文档失败",
+      "invalidKeyFormat": "文档键只能包含小写字母、数字、下划线和连字符。",
+      "keyAndBodyRequired": "文档键和正文不能为空。",
+      "bodyRequired": "文档正文不能为空。",
+      "keyRule": "文档键格式无效。",
+      "remoteChangedAndReloadFailed": "远端文档已变化，且无法重新加载最新版本。",
+      "saveFailed": "保存文档失败",
+      "copyFailed": "复制文档失败"
+    },
+    "meta": {
+      "revisionUpdated": "修订 {{revision}}，更新于 {{updatedAt}}",
+      "updatedAt": "更新于 {{updatedAt}}"
+    },
+    "conflict": {
+      "title": "已过期",
+      "description": "你的草稿保存前，远端文档已经发生变化。",
+      "hideRemote": "隐藏远端内容",
+      "reviewRemote": "查看远端内容",
+      "keepMyDraft": "保留我的草稿",
+      "reloadRemote": "重新加载远端内容",
+      "overwriteRemote": "覆盖远端内容",
+      "remoteRevision": "远端修订 {{revision}}"
+    },
+    "autosave": {
+      "saving": "自动保存中...",
+      "saved": "已保存",
+      "saveError": "保存失败"
+    },
+    "confirmations": {
+      "delete": "删除此文档后不可恢复，确认删除吗？"
+    },
+    "revisions": {
+      "history": "修订历史",
+      "loading": "正在加载修订历史...",
+      "empty": "暂无修订历史",
+      "current": "当前",
+      "viewingRevision": "正在查看修订 {{revision}}",
+      "historicalPreviewDescription": "这是一个历史版本预览。恢复后会创建新的最新修订，并保持历史追加不变。",
+      "returnToLatest": "返回最新版本",
+      "restoring": "恢复中...",
+      "restoreThisRevision": "恢复此修订",
+      "viewingHistorical": "正在查看历史修订",
+      "outOfDate": "内容已过期",
+      "actors": {
+        "board": "董事会",
+        "agent": "代理",
+        "system": "系统"
+      },
+      "errors": {
+        "saveOrCancelBeforePreview": "请先保存或取消本地更改，再查看旧修订。"
+      }
+    }
+  },
   "attachments": {
     "title": "附件",
     "fallbackAlt": "附件",

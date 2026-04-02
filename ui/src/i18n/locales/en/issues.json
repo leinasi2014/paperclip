@@ -264,6 +264,82 @@
       "createFailed": "Failed to create issue. Try again."
     }
   },
+  "documents": {
+    "title": "Documents",
+    "actions": {
+      "newDocument": "New Document",
+      "new": "New",
+      "createDocument": "Create document",
+      "saving": "Saving...",
+      "copyDocument": "Copy document",
+      "copied": "Copied",
+      "documentActions": "Document actions",
+      "downloadDocument": "Download document",
+      "deleteDocument": "Delete document",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "expandDocument": "Expand {{key}}",
+      "collapseDocument": "Collapse {{key}}"
+    },
+    "fields": {
+      "keyPlaceholder": "Document key",
+      "optionalTitle": "Optional title",
+      "bodyPlaceholder": "Markdown body"
+    },
+    "errors": {
+      "deleteFailed": "Failed to delete document",
+      "invalidKeyFormat": "Document keys may only contain lowercase letters, numbers, underscores, and hyphens.",
+      "keyAndBodyRequired": "A document key and body are required.",
+      "bodyRequired": "Document body is required.",
+      "keyRule": "Document key format is invalid.",
+      "remoteChangedAndReloadFailed": "The document changed remotely and the latest version could not be reloaded.",
+      "saveFailed": "Failed to save document",
+      "copyFailed": "Could not copy document"
+    },
+    "meta": {
+      "revisionUpdated": "rev {{revision}} updated {{updatedAt}}",
+      "updatedAt": "updated {{updatedAt}}"
+    },
+    "conflict": {
+      "title": "Out of date",
+      "description": "The remote document changed before your draft was saved.",
+      "hideRemote": "Hide remote",
+      "reviewRemote": "Review remote",
+      "keepMyDraft": "Keep my draft",
+      "reloadRemote": "Reload remote",
+      "overwriteRemote": "Overwrite remote",
+      "remoteRevision": "Remote rev {{revision}}"
+    },
+    "autosave": {
+      "saving": "Autosaving...",
+      "saved": "Saved",
+      "saveError": "Could not save"
+    },
+    "confirmations": {
+      "delete": "Delete this document? This cannot be undone."
+    },
+    "revisions": {
+      "history": "Revision history",
+      "loading": "Loading revisions...",
+      "empty": "No revisions yet",
+      "current": "Current",
+      "viewingRevision": "Viewing revision {{revision}}",
+      "historicalPreviewDescription": "This is a historical preview. Restoring it creates a new latest revision and keeps history append-only.",
+      "returnToLatest": "Return to latest",
+      "restoring": "Restoring...",
+      "restoreThisRevision": "Restore this revision",
+      "viewingHistorical": "Viewing historical revision",
+      "outOfDate": "Out of date",
+      "actors": {
+        "board": "board",
+        "agent": "agent",
+        "system": "system"
+      },
+      "errors": {
+        "saveOrCancelBeforePreview": "Save or cancel your local changes before viewing an older revision."
+      }
+    }
+  },
   "attachments": {
     "title": "Attachments",
     "fallbackAlt": "attachment",

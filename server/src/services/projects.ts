@@ -30,6 +30,7 @@ import {
 import {
   PROJECT_COLORS,
   deriveProjectUrlKey,
+  hasNonAsciiContent,
   isUuidLike,
   normalizeProjectUrlKey,
   type ProjectCodebase,
@@ -414,6 +415,8 @@ export function resolveProjectNameForUniqueShortname(
 ): string {
   const requestedShortname = normalizeProjectUrlKey(requestedName);
   if (!requestedShortname) return requestedName;
+  // Non-ASCII names get a UUID suffix in deriveProjectUrlKey, making slugs inherently unique.
+  if (hasNonAsciiContent(requestedName)) return requestedName;
 
   const usedShortnames = new Set(
     existingProjects
