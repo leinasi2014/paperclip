@@ -104,6 +104,29 @@
       "breadcrumb": "New Agent",
       "title": "New Agent",
       "subtitle": "Advanced agent configuration",
+      "dialog": {
+        "header": "Add a new agent",
+        "recommendation": "We recommend letting your CEO handle agent setup. They know the org structure and can configure reporting, permissions, and adapters.",
+        "askCeo": "Ask the CEO to create a new agent",
+        "advancedLink": "I want advanced configuration myself",
+        "back": "Back",
+        "advancedDescription": "Choose your adapter type for advanced setup.",
+        "recommended": "Recommended",
+        "adapterDescriptions": {
+          "claude_local": "Local Claude agent",
+          "codex_local": "Local Codex agent",
+          "gemini_local": "Local Gemini agent",
+          "opencode_local": "Local multi-provider agent",
+          "hermes_local": "Local multi-provider agent",
+          "pi_local": "Local Pi agent",
+          "cursor": "Local Cursor agent",
+          "openclaw_gateway": "Invoke OpenClaw via gateway protocol"
+        },
+        "issueTemplate": {
+          "title": "Create a new agent",
+          "description": "(type in what kind of agent you want here)"
+        }
+      },
       "fields": {
         "namePlaceholder": "Agent name",
         "titlePlaceholder": "Title (e.g. VP of Engineering)"
@@ -639,5 +662,15 @@
       },
       "ok": "OK"
     }
+  },
+  "reportsToPicker": {
+    "disabledEmptyLabel": "Reports to: N/A (CEO)",
+    "chooseLabel": "Reports to...",
+    "unknownManager": "Unknown manager (stale ID)",
+    "reportsTo": "Reports to {{name}}",
+    "reportsToTerminated": "Reports to {{name}} (terminated)",
+    "noManager": "No manager",
+    "currentTerminated": "Current: {{name}} (terminated)",
+    "missingSavedManager": "Saved manager is missing from this company. Choose a new manager or clear."
   }
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowUp, ArrowDown, Minus, AlertTriangle } from "lucide-react";
 import { cn } from "../lib/utils";
 import { priorityColor, priorityColorDefault } from "../lib/status-colors";
@@ -22,9 +23,11 @@ interface PriorityIconProps {
 }
 
 export function PriorityIcon({ priority, onChange, className, showLabel }: PriorityIconProps) {
+  const { t } = useTranslation("issues");
   const [open, setOpen] = useState(false);
   const config = priorityConfig[priority] ?? priorityConfig.medium!;
   const Icon = config.icon;
+  const currentLabel = t(`priority.${priority}`, { defaultValue: config.label });
 
   const icon = (
     <span
@@ -39,12 +42,12 @@ export function PriorityIcon({ priority, onChange, className, showLabel }: Prior
     </span>
   );
 
-  if (!onChange) return showLabel ? <span className="inline-flex items-center gap-1.5">{icon}<span className="text-sm">{config.label}</span></span> : icon;
+  if (!onChange) return showLabel ? <span className="inline-flex items-center gap-1.5">{icon}<span className="text-sm">{currentLabel}</span></span> : icon;
 
   const trigger = showLabel ? (
     <button className="inline-flex items-center gap-1.5 cursor-pointer hover:bg-accent/50 rounded px-1 -mx-1 py-0.5 transition-colors">
       {icon}
-      <span className="text-sm">{config.label}</span>
+      <span className="text-sm">{currentLabel}</span>
     </button>
   ) : icon;
 
@@ -55,6 +58,7 @@ export function PriorityIcon({ priority, onChange, className, showLabel }: Prior
         {allPriorities.map((p) => {
           const c = priorityConfig[p]!;
           const PIcon = c.icon;
+          const label = t(`priority.${p}`, { defaultValue: c.label });
           return (
             <Button
               key={p}
@@ -67,7 +71,7 @@ export function PriorityIcon({ priority, onChange, className, showLabel }: Prior
               }}
             >
               <PIcon className={cn("h-3.5 w-3.5", c.color)} />
-              {c.label}
+              {label}
             </Button>
           );
         })}

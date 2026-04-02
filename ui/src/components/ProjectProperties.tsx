@@ -13,6 +13,14 @@ import { queryKeys } from "../lib/queryKeys";
 import { statusBadge, statusBadgeDefault } from "../lib/status-colors";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertCircle, Archive, ArchiveRestore, Check, ExternalLink, Github, Loader2, Plus, Trash2, X } from "lucide-react";
@@ -29,6 +37,8 @@ interface ProjectPropertiesProps {
   getFieldSaveState?: (field: ProjectConfigFieldKey) => ProjectFieldSaveState;
   onArchive?: (archived: boolean) => void;
   archivePending?: boolean;
+  onDelete?: () => void;
+  deletePending?: boolean;
 }
 
 export type ProjectFieldSaveState = "idle" | "saving" | "saved" | "error";
@@ -159,18 +169,36 @@ function ArchiveDangerZone({
   project,
   onArchive,
   archivePending,
+  onDelete,
+  deletePending,
   t,
 }: {
   project: Project;
   onArchive: (archived: boolean) => void;
   archivePending?: boolean;
+  onDelete?: () => void;
+  deletePending?: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
-  const [confirming, setConfirming] = useState(false);
+  const [dialogMode, setDialogMode] = useState<"archive" | "delete" | null>(null);
   const isArchive = !project.archivedAt;
-  const action = isArchive
+  const archiveActionLabel = isArchive
     ? t("projects:detail.properties.archive.actions.archive")
     : t("projects:detail.properties.archive.actions.unarchive");
+  const dialogTitle = dialogMode === "delete"
+    ? t("projects:detail.properties.archive.dialog.deleteTitle", { name: project.name })
+    : isArchive
+      ? t("projects:detail.properties.archive.dialog.archiveTitle", { name: project.name })
+      : t("projects:detail.properties.archive.dialog.unarchiveTitle", { name: project.name });
+  const dialogDescription = dialogMode === "delete"
+    ? t("projects:detail.properties.archive.dialog.deleteDescription", { name: project.name })
+    : isArchive
+      ? t("projects:detail.properties.archive.dialog.archiveDescription", { name: project.name })
+      : t("projects:detail.properties.archive.dialog.unarchiveDescription", { name: project.name });
+  const confirmLabel = dialogMode === "delete"
+    ? t("projects:detail.properties.archive.actions.delete")
+    : archiveActionLabel;
+  const pending = dialogMode === "delete" ? deletePending : archivePending;
 
   return (
     <div className="space-y-3 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-4">
@@ -179,54 +207,93 @@ function ArchiveDangerZone({
           ? t("projects:detail.properties.archive.descriptionArchive")
           : t("projects:detail.properties.archive.descriptionUnarchive")}
       </p>
-      {archivePending ? (
-        <Button size="sm" variant="destructive" disabled>
-          <Loader2 className="h-3 w-3 animate-spin mr-1" />
-          {isArchive
-            ? t("projects:detail.properties.archive.actions.archiving")
-            : t("projects:detail.properties.archive.actions.unarchiving")}
-        </Button>
-      ) : confirming ? (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-destructive font-medium">
-            {action} &ldquo;{project.name}&rdquo;?
-          </span>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => {
-              setConfirming(false);
-              onArchive(isArchive);
-            }}
-          >
-            {t("projects:detail.properties.archive.actions.confirm")}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setConfirming(false)}
-          >
-            {t("common:actions.cancel")}
-          </Button>
-        </div>
-      ) : (
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           size="sm"
           variant="destructive"
-          onClick={() => setConfirming(true)}
+          disabled={archivePending || deletePending}
+          onClick={() => setDialogMode("archive")}
         >
-          {isArchive ? (
+          {archivePending ? (
+            <><Loader2 className="h-3 w-3 animate-spin mr-1" />{isArchive
+              ? t("projects:detail.properties.archive.actions.archiving")
+              : t("projects:detail.properties.archive.actions.unarchiving")}</>
+          ) : isArchive ? (
             <><Archive className="h-3 w-3 mr-1" />{t("projects:detail.properties.archive.actions.archiveProject")}</>
           ) : (
             <><ArchiveRestore className="h-3 w-3 mr-1" />{t("projects:detail.properties.archive.actions.unarchiveProject")}</>
           )}
         </Button>
-      )}
+        {onDelete ? (
+          <Button
+            size="sm"
+            variant="destructive"
+            disabled={archivePending || deletePending}
+            onClick={() => setDialogMode("delete")}
+          >
+            {deletePending ? (
+              <><Loader2 className="h-3 w-3 animate-spin mr-1" />{t("projects:detail.properties.archive.actions.deleting")}</>
+            ) : (
+              <><Trash2 className="h-3 w-3 mr-1" />{t("projects:detail.properties.archive.actions.deleteProject")}</>
+            )}
+          </Button>
+        ) : null}
+      </div>
+
+      <Dialog open={dialogMode !== null} onOpenChange={(open) => {
+        if (!open && !pending) setDialogMode(null);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogDescription>{dialogDescription}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDialogMode(null)}
+              disabled={pending}
+            >
+              {t("common:actions.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={pending}
+              onClick={() => {
+                if (dialogMode === "delete") {
+                  onDelete?.();
+                  return;
+                }
+                onArchive(isArchive);
+              }}
+            >
+              {pending ? (
+                <><Loader2 className="h-3 w-3 animate-spin mr-1" />{dialogMode === "delete"
+                  ? t("projects:detail.properties.archive.actions.deleting")
+                  : isArchive
+                    ? t("projects:detail.properties.archive.actions.archiving")
+                    : t("projects:detail.properties.archive.actions.unarchiving")}</>
+              ) : (
+                confirmLabel
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSaveState, onArchive, archivePending }: ProjectPropertiesProps) {
+export function ProjectProperties({
+  project,
+  onUpdate,
+  onFieldUpdate,
+  getFieldSaveState,
+  onArchive,
+  archivePending,
+  onDelete,
+  deletePending,
+}: ProjectPropertiesProps) {
   const { t } = useTranslation(["projects", "common"]);
   const { selectedCompanyId } = useCompany();
   const queryClient = useQueryClient();
@@ -1133,6 +1200,8 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
               project={project}
               onArchive={onArchive}
               archivePending={archivePending}
+              onDelete={onDelete}
+              deletePending={deletePending}
               t={t}
             />
           </div>

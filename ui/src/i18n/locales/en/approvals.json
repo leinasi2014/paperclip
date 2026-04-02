@@ -17,6 +17,11 @@
     "pending": "No pending approvals.",
     "all": "No approvals yet."
   },
+  "card": {
+    "requestedBy": "requested by",
+    "notePrefix": "Note:",
+    "viewDetails": "View details"
+  },
   "types": {
     "hire_agent": "Hire Agent",
     "approve_ceo_strategy": "CEO Strategy",

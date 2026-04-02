@@ -12,6 +12,46 @@
   "actions": {
     "addProject": "添加项目"
   },
+  "newProject": {
+    "header": "新建项目",
+    "namePlaceholder": "项目名称",
+    "optional": "可选",
+    "statuses": {
+      "backlog": "待处理",
+      "planned": "已规划",
+      "in_progress": "进行中",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    },
+    "workspace": {
+      "repoUrlLabel": "仓库 URL",
+      "repoUrlPlaceholder": "https://github.com/org/repo",
+      "repoUrlTooltip": "关联一个 GitHub 仓库，这样 Agent 就可以为该项目拉取、读取并推送代码。",
+      "localFolderLabel": "本地文件夹",
+      "localFolderPlaceholder": "/absolute/path/to/workspace",
+      "localFolderTooltip": "设置本机上的绝对路径，供本地 Agent 在这个项目里读写文件。",
+      "errors": {
+        "absolutePath": "本地文件夹必须是完整的绝对路径。",
+        "invalidRepoUrl": "仓库必须是有效的 GitHub 仓库 URL。"
+      },
+      "fallbackNames": {
+        "localFolder": "本地文件夹",
+        "githubRepo": "GitHub 仓库"
+      }
+    },
+    "goals": {
+      "addGoal": "目标",
+      "addAnotherGoal": "+ 目标",
+      "noGoal": "无目标",
+      "allGoalsSelected": "所有目标都已选择。",
+      "removeGoalAria": "移除目标 {{title}}"
+    },
+    "footer": {
+      "createFailed": "创建项目失败。",
+      "creating": "创建中...",
+      "create": "创建项目"
+    }
+  },
   "errors": {
     "noCompanySelected": "未选择公司"
   },
@@ -38,8 +78,124 @@
     "toasts": {
       "archived": "已归档 {{name}}",
       "unarchived": "已恢复 {{name}}",
+      "deleted": "已删除 {{name}}",
       "archiveFailed": "归档项目失败",
-      "unarchiveFailed": "恢复项目失败"
+      "unarchiveFailed": "恢复项目失败",
+      "deleteFailed": "删除项目失败"
+    },
+    "properties": {
+      "saveState": {
+        "saving": "保存中...",
+        "saved": "已保存",
+        "failed": "保存失败"
+      },
+      "fields": {
+        "name": "名称",
+        "projectNamePlaceholder": "输入项目名称",
+        "description": "描述",
+        "descriptionPlaceholder": "添加描述...",
+        "noDescription": "暂无描述",
+        "status": "状态",
+        "lead": "负责人",
+        "goals": "目标",
+        "created": "创建时间",
+        "updated": "更新时间",
+        "targetDate": "目标日期"
+      },
+      "actions": {
+        "removeGoal": "移除 {{goal}}",
+        "goal": "目标"
+      },
+      "goalPicker": {
+        "allGoalsLinked": "所有目标已关联"
+      },
+      "workspace": {
+        "codebaseTitle": "代码库",
+        "codebaseHelpAria": "代码库信息",
+        "codebaseHelp": "连接仓库或本地文件夹以定义项目的代码库。",
+        "repo": "仓库",
+        "localFolder": "本地文件夹",
+        "notSet": "未设置",
+        "paperclipManagedFolder": "由 Paperclip 管理",
+        "additionalLegacyWorkspaces": "来自旧配置的附加工作区",
+        "noUrl": "无 URL",
+        "actions": {
+          "changeRepo": "更改",
+          "clearRepo": "清除仓库",
+          "setRepo": "设置仓库",
+          "changeLocalFolder": "更改",
+          "setLocalFolder": "设置文件夹",
+          "clearLocalFolder": "清除文件夹"
+        },
+        "placeholders": {
+          "localFolder": "/path/to/project",
+          "repoUrl": "https://github.com/owner/repo"
+        },
+        "errors": {
+          "localFolderAbsolutePath": "请输入绝对路径",
+          "invalidRepoUrl": "请输入有效的 GitHub 仓库 URL",
+          "saveFailed": "保存工作区失败",
+          "deleteFailed": "删除工作区失败",
+          "updateFailed": "更新工作区失败"
+        },
+        "confirmations": {
+          "clearLocalFolder": "移除本地文件夹？仓库链接将保留。",
+          "deleteLocalFolder": "确定要完全移除此工作区吗？",
+          "clearRepo": "移除仓库链接？本地文件夹将保留。",
+          "deleteRepo": "确定要完全移除此工作区吗？"
+        }
+      },
+      "executionWorkspace": {
+        "title": "执行工作区",
+        "helpAria": "执行工作区信息",
+        "help": "执行工作区让 Agent 在仓库的独立副本中工作，多个任务可以并行运行而不会冲突。",
+        "enableIsolatedTitle": "隔离工作区",
+        "enableIsolatedDescription": "为每次执行创建独立的工作区。",
+        "enabled": "已启用",
+        "disabled": "已禁用",
+        "defaultIsolatedTitle": "默认隔离",
+        "defaultIsolatedDescription": "新执行默认使用隔离工作区。",
+        "hostManagedImplementation": "宿主管理 via",
+        "notes": "更改仅对新的执行生效。现有工作区不受影响。",
+        "actions": {
+          "hideAdvanced": "隐藏高级设置",
+          "showAdvanced": "显示高级设置"
+        },
+        "fields": {
+          "baseRef": "基础引用",
+          "branchTemplate": "分支模板",
+          "worktreeParentDir": "工作树父目录",
+          "provisionCommand": "创建命令",
+          "teardownCommand": "销毁命令"
+        }
+      },
+      "archive": {
+        "dangerZone": "危险操作",
+        "descriptionArchive": "归档此项目将从默认项目列表中隐藏。你可以稍后恢复。",
+        "descriptionUnarchive": "恢复此项目将使其重新显示在项目列表中。",
+        "descriptionDelete": "删除此项目会永久移除其议题、项目专属目标、工作区、例行任务、预算以及相关插件状态，且无法撤销。",
+        "dialog": {
+          "archiveTitle": "归档“{{name}}”？",
+          "archiveDescription": "该项目会从默认项目列表中隐藏，你之后仍可恢复。",
+          "unarchiveTitle": "恢复“{{name}}”？",
+          "unarchiveDescription": "该项目会重新显示在项目列表中。",
+          "deleteTitle": "删除“{{name}}”？",
+          "deleteDescription": "这会永久移除该项目及其议题、项目专属目标、工作区、例行任务、预算和相关插件状态，此操作无法撤销。"
+        },
+        "actions": {
+          "archive": "归档",
+          "unarchive": "恢复",
+          "delete": "删除",
+          "archiving": "归档中...",
+          "unarchiving": "恢复中...",
+          "confirm": "确认",
+          "deleting": "删除中...",
+          "confirmDelete": "确定要永久删除项目“{{name}}”吗？此操作无法撤销。",
+          "deleteProject": "删除项目",
+          "archiveProject": "归档项目",
+          "unarchiveProject": "恢复项目"
+        }
+      }
     }
   }
 }

@@ -104,6 +104,29 @@
       "breadcrumb": "新建代理",
       "title": "新建代理",
       "subtitle": "高级代理配置",
+      "dialog": {
+        "header": "添加新代理",
+        "recommendation": "建议让你的 CEO 负责代理创建。他更了解组织结构，也能正确配置汇报关系、权限和适配器。",
+        "askCeo": "让 CEO 创建一个新代理",
+        "advancedLink": "我要自己做高级配置",
+        "back": "返回",
+        "advancedDescription": "选择用于高级配置的适配器类型。",
+        "recommended": "推荐",
+        "adapterDescriptions": {
+          "claude_local": "本地 Claude 代理",
+          "codex_local": "本地 Codex 代理",
+          "gemini_local": "本地 Gemini 代理",
+          "opencode_local": "本地多提供方代理",
+          "hermes_local": "本地多提供方代理",
+          "pi_local": "本地 Pi 代理",
+          "cursor": "本地 Cursor 代理",
+          "openclaw_gateway": "通过网关协议调用 OpenClaw"
+        },
+        "issueTemplate": {
+          "title": "创建一个新代理",
+          "description": "（在这里输入你想创建什么样的代理）"
+        }
+      },
       "fields": {
         "namePlaceholder": "代理名称",
         "titlePlaceholder": "头衔（例如：工程副总裁）"
@@ -639,5 +662,15 @@
       },
       "ok": "确定"
     }
+  },
+  "reportsToPicker": {
+    "disabledEmptyLabel": "汇报对象：不适用（CEO）",
+    "chooseLabel": "选择汇报对象...",
+    "unknownManager": "未知上级（旧 ID）",
+    "reportsTo": "汇报给 {{name}}",
+    "reportsToTerminated": "汇报给 {{name}}（已终止）",
+    "noManager": "无上级",
+    "currentTerminated": "当前：{{name}}（已终止）",
+    "missingSavedManager": "已保存的上级已不在当前公司中。请选择新的上级或清空。"
   }
 }

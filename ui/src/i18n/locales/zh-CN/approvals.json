@@ -17,6 +17,11 @@
     "pending": "当前没有待处理审批。",
     "all": "还没有审批记录。"
   },
+  "card": {
+    "requestedBy": "请求发起者",
+    "notePrefix": "备注：",
+    "viewDetails": "查看详情"
+  },
   "types": {
     "hire_agent": "招聘代理",
     "approve_ceo_strategy": "CEO 战略",

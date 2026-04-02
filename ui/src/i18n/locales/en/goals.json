@@ -29,7 +29,40 @@
       "placeholder": "Add a description..."
     }
   },
+  "properties": {
+    "none": "None",
+    "fields": {
+      "status": "Status",
+      "level": "Level",
+      "owner": "Owner",
+      "parentGoal": "Parent Goal",
+      "created": "Created",
+      "updated": "Updated"
+    }
+  },
   "dialogs": {
+    "newGoal": {
+      "headerGoal": "New goal",
+      "headerSubGoal": "New sub-goal",
+      "titlePlaceholder": "Goal title",
+      "parentGoal": "Parent goal",
+      "noParent": "No parent",
+      "createGoal": "Create goal",
+      "createSubGoal": "Create sub-goal",
+      "creating": "Creating…",
+      "levels": {
+        "company": "Company",
+        "team": "Team",
+        "agent": "Agent",
+        "task": "Task"
+      },
+      "statuses": {
+        "planned": "Planned",
+        "active": "Active",
+        "achieved": "Achieved",
+        "cancelled": "Cancelled"
+      }
+    },
     "deleteGoal": {
       "title": "Delete goal?",
       "description": "Delete \"{{title}}\"? This cannot be undone."

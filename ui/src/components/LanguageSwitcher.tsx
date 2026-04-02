@@ -20,7 +20,6 @@ const LANGUAGE_OPTIONS = [
 export function LanguageSwitcher() {
   const { t } = useTranslation("common");
   const { language, setLanguage } = useAppLocale();
-  const currentLanguage = LANGUAGE_OPTIONS.find((option) => option.value === language) ?? LANGUAGE_OPTIONS[0];
 
   return (
     <DropdownMenu>
@@ -31,10 +30,9 @@ export function LanguageSwitcher() {
           size="sm"
           aria-label={t("language.switcher")}
           title={t("language.switcher")}
-          className="h-9 gap-1.5 px-2.5 text-[13px] font-medium text-muted-foreground data-[state=open]:bg-accent/60 data-[state=open]:text-foreground"
+          className="h-9 gap-1.5 px-2 text-[13px] font-medium text-muted-foreground data-[state=open]:bg-accent/60 data-[state=open]:text-foreground"
         >
           <Globe className="h-4 w-4" />
-          <span>{t(currentLanguage.labelKey)}</span>
           <ChevronsUpDown className="h-3.5 w-3.5 opacity-70" />
         </Button>
       </DropdownMenuTrigger>

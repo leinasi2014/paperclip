@@ -1,6 +1,32 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, ne, or } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { projects, projectGoals, goals, projectWorkspaces, workspaceRuntimeServices } from "@paperclipai/db";
+import {
+  activityLog,
+  approvalComments,
+  approvals,
+  assets,
+  budgetIncidents,
+  budgetPolicies,
+  costEvents,
+  documents,
+  executionWorkspaces,
+  financeEvents,
+  goals,
+  issueApprovals,
+  issueAttachments,
+  issueComments,
+  issueDocuments,
+  issueInboxArchives,
+  issueReadStates,
+  issues,
+  pluginEntities,
+  pluginState,
+  projectGoals,
+  projects,
+  projectWorkspaces,
+  routines,
+  workspaceRuntimeServices,
+} from "@paperclipai/db";
 import {
   PROJECT_COLORS,
   deriveProjectUrlKey,
@@ -58,6 +84,19 @@ interface ProjectShortnameRow {
 
 interface ResolveProjectNameOptions {
   excludeProjectId?: string | null;
+}
+
+interface ProjectCascadeRemovalSummary {
+  issueIds: string[];
+  deletedGoalIds: string[];
+  preservedGoalIds: string[];
+  projectWorkspaceIds: string[];
+  executionWorkspaceIds: string[];
+}
+
+interface ProjectCascadeRemovalResult {
+  project: ProjectRow & { urlKey: string };
+  summary: ProjectCascadeRemovalSummary;
 }
 
 /** Batch-load goal refs for a set of projects. */
@@ -289,6 +328,38 @@ function resolveGoalIds(data: { goalIds?: string[]; goalId?: string | null }): s
   return undefined;
 }
 
+function buildDescendantMap(goalRows: Array<{ id: string; parentId: string | null }>) {
+  const childrenByParentId = new Map<string, string[]>();
+  for (const row of goalRows) {
+    if (!row.parentId) continue;
+    const list = childrenByParentId.get(row.parentId) ?? [];
+    list.push(row.id);
+    childrenByParentId.set(row.parentId, list);
+  }
+  return childrenByParentId;
+}
+
+function collectGoalTreeIds(rootId: string, childrenByParentId: Map<string, string[]>) {
+  const ordered: string[] = [];
+  const stack = [rootId];
+  const seen = new Set<string>();
+  while (stack.length > 0) {
+    const current = stack.pop()!;
+    if (seen.has(current)) continue;
+    seen.add(current);
+    ordered.push(current);
+    const children = childrenByParentId.get(current) ?? [];
+    for (const childId of children) {
+      stack.push(childId);
+    }
+  }
+  return ordered;
+}
+
+function uniqueIds(values: Array<string | null | undefined>) {
+  return [...new Set(values.filter((value): value is string => Boolean(value)))];
+}
+
 function readNonEmptyString(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -416,6 +487,7 @@ export function projectService(db: Db) {
     },
 
     getById: async (id: string): Promise<ProjectWithGoals | null> => {
+      if (!isUuidLike(id)) return null;
       const row = await db
         .select()
         .from(projects)
@@ -519,6 +591,336 @@ export function projectService(db: Db) {
       const [enriched] = withGoals ? await attachWorkspaces(db, [withGoals]) : [];
       return enriched ?? null;
     },
+
+    removeCascade: async (id: string): Promise<ProjectCascadeRemovalResult | null> =>
+      db.transaction(async (tx) => {
+        const existing = await tx
+          .select()
+          .from(projects)
+          .where(eq(projects.id, id))
+          .then((rows) => rows[0] ?? null);
+        if (!existing) return null;
+
+        const companyId = existing.companyId;
+        const now = new Date();
+        const [projectIssueRows, projectWorkspaceRows, executionWorkspaceRows, projectGoalRows] = await Promise.all([
+          tx
+            .select({ id: issues.id })
+            .from(issues)
+            .where(and(eq(issues.companyId, companyId), eq(issues.projectId, id))),
+          tx
+            .select({ id: projectWorkspaces.id })
+            .from(projectWorkspaces)
+            .where(and(eq(projectWorkspaces.companyId, companyId), eq(projectWorkspaces.projectId, id))),
+          tx
+            .select({ id: executionWorkspaces.id })
+            .from(executionWorkspaces)
+            .where(and(eq(executionWorkspaces.companyId, companyId), eq(executionWorkspaces.projectId, id))),
+          tx
+            .select({ goalId: projectGoals.goalId })
+            .from(projectGoals)
+            .where(and(eq(projectGoals.companyId, companyId), eq(projectGoals.projectId, id))),
+        ]);
+
+        const issueIds = projectIssueRows.map((row) => row.id);
+        const projectWorkspaceIds = projectWorkspaceRows.map((row) => row.id);
+        const executionWorkspaceIds = executionWorkspaceRows.map((row) => row.id);
+        const rootGoalIds = uniqueIds([existing.goalId, ...projectGoalRows.map((row) => row.goalId)]);
+
+        const linkedApprovalIds = issueIds.length > 0
+          ? uniqueIds(
+            (
+              await tx
+                .select({ approvalId: issueApprovals.approvalId })
+                .from(issueApprovals)
+                .where(inArray(issueApprovals.issueId, issueIds))
+            ).map((row) => row.approvalId),
+          )
+          : [];
+
+        let deletedGoalIds: string[] = [];
+        let preservedGoalIds: string[] = [];
+        if (rootGoalIds.length > 0) {
+          const allGoalRows = await tx
+            .select({ id: goals.id, parentId: goals.parentId })
+            .from(goals)
+            .where(eq(goals.companyId, companyId));
+          const childrenByParentId = buildDescendantMap(allGoalRows);
+          const goalTrees = rootGoalIds.map((rootId) => collectGoalTreeIds(rootId, childrenByParentId));
+          const candidateGoalIds = uniqueIds(goalTrees.flat());
+
+          if (candidateGoalIds.length > 0) {
+            const [linkedToOtherProjects, legacyLinkedToOtherProjects, issuesOutsideProject, routinesOutsideProject] =
+              await Promise.all([
+                tx
+                  .select({ goalId: projectGoals.goalId })
+                  .from(projectGoals)
+                  .where(
+                    and(
+                      eq(projectGoals.companyId, companyId),
+                      inArray(projectGoals.goalId, candidateGoalIds),
+                      ne(projectGoals.projectId, id),
+                    ),
+                  ),
+                tx
+                  .select({ goalId: projects.goalId })
+                  .from(projects)
+                  .where(
+                    and(
+                      eq(projects.companyId, companyId),
+                      ne(projects.id, id),
+                      inArray(projects.goalId, candidateGoalIds),
+                    ),
+                  ),
+                tx
+                  .select({ goalId: issues.goalId })
+                  .from(issues)
+                  .where(
+                    and(
+                      eq(issues.companyId, companyId),
+                      inArray(issues.goalId, candidateGoalIds),
+                      or(ne(issues.projectId, id), isNull(issues.projectId)),
+                    ),
+                  ),
+                tx
+                  .select({ goalId: routines.goalId })
+                  .from(routines)
+                  .where(
+                    and(
+                      eq(routines.companyId, companyId),
+                      inArray(routines.goalId, candidateGoalIds),
+                      ne(routines.projectId, id),
+                    ),
+                  ),
+              ]);
+
+            const externallyReferencedGoalIds = new Set<string>(uniqueIds([
+              ...linkedToOtherProjects.map((row) => row.goalId),
+              ...legacyLinkedToOtherProjects.map((row) => row.goalId),
+              ...issuesOutsideProject.map((row) => row.goalId),
+              ...routinesOutsideProject.map((row) => row.goalId),
+            ]));
+
+            const preservedGoalIdSet = new Set<string>();
+            for (const tree of goalTrees) {
+              if (tree.some((goalId) => externallyReferencedGoalIds.has(goalId))) {
+                for (const goalId of tree) {
+                  preservedGoalIdSet.add(goalId);
+                }
+              }
+            }
+
+            deletedGoalIds = candidateGoalIds.filter((goalId) => !preservedGoalIdSet.has(goalId));
+            preservedGoalIds = candidateGoalIds.filter((goalId) => preservedGoalIdSet.has(goalId));
+          }
+        }
+
+        const attachmentAssetIds = issueIds.length > 0
+          ? uniqueIds(
+            (
+              await tx
+                .select({ assetId: issueAttachments.assetId })
+                .from(issueAttachments)
+                .where(inArray(issueAttachments.issueId, issueIds))
+            ).map((row) => row.assetId),
+          )
+          : [];
+        const issueDocumentIds = issueIds.length > 0
+          ? uniqueIds(
+            (
+              await tx
+                .select({ documentId: issueDocuments.documentId })
+                .from(issueDocuments)
+                .where(inArray(issueDocuments.issueId, issueIds))
+            ).map((row) => row.documentId),
+          )
+          : [];
+
+        if (issueIds.length > 0) {
+          await tx.delete(issueComments).where(inArray(issueComments.issueId, issueIds));
+          await tx.delete(issueReadStates).where(inArray(issueReadStates.issueId, issueIds));
+          await tx.delete(issueInboxArchives).where(inArray(issueInboxArchives.issueId, issueIds));
+          await tx
+            .update(issues)
+            .set({ parentId: null, updatedAt: now })
+            .where(and(eq(issues.companyId, companyId), inArray(issues.parentId, issueIds)));
+          await tx.update(costEvents).set({ issueId: null }).where(inArray(costEvents.issueId, issueIds));
+          await tx.update(financeEvents).set({ issueId: null }).where(inArray(financeEvents.issueId, issueIds));
+          await tx.delete(issues).where(inArray(issues.id, issueIds));
+
+          if (attachmentAssetIds.length > 0) {
+            await tx.delete(assets).where(inArray(assets.id, attachmentAssetIds));
+          }
+          if (issueDocumentIds.length > 0) {
+            await tx.delete(documents).where(inArray(documents.id, issueDocumentIds));
+          }
+        }
+
+        const removableCostEventIds = await tx
+          .select({ id: costEvents.id })
+          .from(costEvents)
+          .where(
+            and(
+              eq(costEvents.companyId, companyId),
+              or(
+                eq(costEvents.projectId, id),
+                ...(issueIds.length > 0 ? [inArray(costEvents.issueId, issueIds)] : []),
+                ...(deletedGoalIds.length > 0 ? [inArray(costEvents.goalId, deletedGoalIds)] : []),
+              ),
+            ),
+          )
+          .then((rows) => rows.map((row) => row.id));
+
+        await tx.delete(financeEvents).where(
+          and(
+            eq(financeEvents.companyId, companyId),
+            or(
+              eq(financeEvents.projectId, id),
+              ...(issueIds.length > 0 ? [inArray(financeEvents.issueId, issueIds)] : []),
+              ...(deletedGoalIds.length > 0 ? [inArray(financeEvents.goalId, deletedGoalIds)] : []),
+              ...(removableCostEventIds.length > 0 ? [inArray(financeEvents.costEventId, removableCostEventIds)] : []),
+            ),
+          ),
+        );
+        if (removableCostEventIds.length > 0) {
+          await tx.delete(costEvents).where(inArray(costEvents.id, removableCostEventIds));
+        }
+
+        if (deletedGoalIds.length > 0) {
+          await tx
+            .update(goals)
+            .set({ parentId: null, updatedAt: now })
+            .where(and(eq(goals.companyId, companyId), inArray(goals.parentId, deletedGoalIds)));
+          await tx.update(issues).set({ goalId: null, updatedAt: now }).where(inArray(issues.goalId, deletedGoalIds));
+          await tx
+            .update(projects)
+            .set({ goalId: null, updatedAt: now })
+            .where(and(eq(projects.companyId, companyId), inArray(projects.goalId, deletedGoalIds)));
+          await tx.update(routines).set({ goalId: null, updatedAt: now }).where(inArray(routines.goalId, deletedGoalIds));
+          await tx.delete(goals).where(inArray(goals.id, deletedGoalIds));
+        }
+
+        const projectBudgetPolicyIds = await tx
+          .select({ id: budgetPolicies.id })
+          .from(budgetPolicies)
+          .where(
+            and(
+              eq(budgetPolicies.companyId, companyId),
+              eq(budgetPolicies.scopeType, "project"),
+              eq(budgetPolicies.scopeId, id),
+            ),
+          )
+          .then((rows) => rows.map((row) => row.id));
+
+        await tx.delete(budgetIncidents).where(
+          and(
+            eq(budgetIncidents.companyId, companyId),
+            or(
+              and(eq(budgetIncidents.scopeType, "project"), eq(budgetIncidents.scopeId, id)),
+              ...(projectBudgetPolicyIds.length > 0 ? [inArray(budgetIncidents.policyId, projectBudgetPolicyIds)] : []),
+            ),
+          ),
+        );
+        if (projectBudgetPolicyIds.length > 0) {
+          await tx.delete(budgetPolicies).where(inArray(budgetPolicies.id, projectBudgetPolicyIds));
+        }
+
+        if (linkedApprovalIds.length > 0) {
+          const [approvalIdsWithRemainingIssueLinks, approvalIdsWithBudgetLinks] = await Promise.all([
+            tx
+              .select({ approvalId: issueApprovals.approvalId })
+              .from(issueApprovals)
+              .where(inArray(issueApprovals.approvalId, linkedApprovalIds))
+              .then((rows) => new Set(rows.map((row) => row.approvalId))),
+            tx
+              .select({ approvalId: budgetIncidents.approvalId })
+              .from(budgetIncidents)
+              .where(inArray(budgetIncidents.approvalId, linkedApprovalIds))
+              .then((rows) => new Set(rows.map((row) => row.approvalId).filter((value): value is string => Boolean(value)))),
+          ]);
+
+          const approvalIdsToDelete = linkedApprovalIds.filter(
+            (approvalId) =>
+              !approvalIdsWithRemainingIssueLinks.has(approvalId) && !approvalIdsWithBudgetLinks.has(approvalId),
+          );
+          if (approvalIdsToDelete.length > 0) {
+            await tx.delete(approvalComments).where(inArray(approvalComments.approvalId, approvalIdsToDelete));
+            await tx.delete(approvals).where(inArray(approvals.id, approvalIdsToDelete));
+          }
+        }
+
+        await tx.delete(pluginState).where(and(eq(pluginState.scopeKind, "project"), eq(pluginState.scopeId, id)));
+        await tx.delete(pluginEntities).where(and(eq(pluginEntities.scopeKind, "project"), eq(pluginEntities.scopeId, id)));
+
+        if (projectWorkspaceIds.length > 0) {
+          await tx.delete(pluginState).where(
+            and(eq(pluginState.scopeKind, "project_workspace"), inArray(pluginState.scopeId, projectWorkspaceIds)),
+          );
+          await tx.delete(pluginEntities).where(
+            and(eq(pluginEntities.scopeKind, "project_workspace"), inArray(pluginEntities.scopeId, projectWorkspaceIds)),
+          );
+        }
+        if (issueIds.length > 0) {
+          await tx.delete(pluginState).where(and(eq(pluginState.scopeKind, "issue"), inArray(pluginState.scopeId, issueIds)));
+          await tx.delete(pluginEntities).where(
+            and(eq(pluginEntities.scopeKind, "issue"), inArray(pluginEntities.scopeId, issueIds)),
+          );
+        }
+        if (deletedGoalIds.length > 0) {
+          await tx.delete(pluginState).where(and(eq(pluginState.scopeKind, "goal"), inArray(pluginState.scopeId, deletedGoalIds)));
+          await tx.delete(pluginEntities).where(
+            and(eq(pluginEntities.scopeKind, "goal"), inArray(pluginEntities.scopeId, deletedGoalIds)),
+          );
+        }
+
+        await tx.delete(workspaceRuntimeServices).where(
+          and(
+            eq(workspaceRuntimeServices.companyId, companyId),
+            or(
+              eq(workspaceRuntimeServices.projectId, id),
+              ...(projectWorkspaceIds.length > 0
+                ? [inArray(workspaceRuntimeServices.projectWorkspaceId, projectWorkspaceIds)]
+                : []),
+              ...(executionWorkspaceIds.length > 0
+                ? [inArray(workspaceRuntimeServices.executionWorkspaceId, executionWorkspaceIds)]
+                : []),
+              ...(issueIds.length > 0 ? [inArray(workspaceRuntimeServices.issueId, issueIds)] : []),
+            ),
+          ),
+        );
+
+        await tx.delete(activityLog).where(
+          and(eq(activityLog.companyId, companyId), eq(activityLog.entityType, "project"), eq(activityLog.entityId, id)),
+        );
+        if (issueIds.length > 0) {
+          await tx.delete(activityLog).where(
+            and(eq(activityLog.companyId, companyId), eq(activityLog.entityType, "issue"), inArray(activityLog.entityId, issueIds)),
+          );
+        }
+        if (deletedGoalIds.length > 0) {
+          await tx.delete(activityLog).where(
+            and(eq(activityLog.companyId, companyId), eq(activityLog.entityType, "goal"), inArray(activityLog.entityId, deletedGoalIds)),
+          );
+        }
+
+        const removed = await tx
+          .delete(projects)
+          .where(eq(projects.id, id))
+          .returning()
+          .then((rows) => rows[0] ?? null);
+        if (!removed) return null;
+
+        return {
+          project: { ...removed, urlKey: deriveProjectUrlKey(removed.name, removed.id) },
+          summary: {
+            issueIds,
+            deletedGoalIds,
+            preservedGoalIds,
+            projectWorkspaceIds,
+            executionWorkspaceIds,
+          },
+        };
+      }),
 
     remove: (id: string) =>
       db

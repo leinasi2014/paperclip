@@ -12,6 +12,46 @@
   "actions": {
     "addProject": "Add Project"
   },
+  "newProject": {
+    "header": "New project",
+    "namePlaceholder": "Project name",
+    "optional": "optional",
+    "statuses": {
+      "backlog": "Backlog",
+      "planned": "Planned",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "workspace": {
+      "repoUrlLabel": "Repo URL",
+      "repoUrlPlaceholder": "https://github.com/org/repo",
+      "repoUrlTooltip": "Link a GitHub repository so agents can clone, read, and push code for this project.",
+      "localFolderLabel": "Local folder",
+      "localFolderPlaceholder": "/absolute/path/to/workspace",
+      "localFolderTooltip": "Set an absolute path on this machine where local agents will read and write files for this project.",
+      "errors": {
+        "absolutePath": "Local folder must be a full absolute path.",
+        "invalidRepoUrl": "Repo must use a valid GitHub repo URL."
+      },
+      "fallbackNames": {
+        "localFolder": "Local folder",
+        "githubRepo": "GitHub repo"
+      }
+    },
+    "goals": {
+      "addGoal": "Goal",
+      "addAnotherGoal": "+ Goal",
+      "noGoal": "No goal",
+      "allGoalsSelected": "All goals already selected.",
+      "removeGoalAria": "Remove goal {{title}}"
+    },
+    "footer": {
+      "createFailed": "Failed to create project.",
+      "creating": "Creating...",
+      "create": "Create project"
+    }
+  },
   "errors": {
     "noCompanySelected": "No company selected"
   },
@@ -38,8 +78,124 @@
     "toasts": {
       "archived": "{{name}} archived",
       "unarchived": "{{name}} restored",
+      "deleted": "{{name}} deleted",
       "archiveFailed": "Failed to archive project",
-      "unarchiveFailed": "Failed to restore project"
+      "unarchiveFailed": "Failed to restore project",
+      "deleteFailed": "Failed to delete project"
+    },
+    "properties": {
+      "saveState": {
+        "saving": "Saving...",
+        "saved": "Saved",
+        "failed": "Failed to save"
+      },
+      "fields": {
+        "name": "Name",
+        "projectNamePlaceholder": "Enter project name",
+        "description": "Description",
+        "descriptionPlaceholder": "Add description...",
+        "noDescription": "No description",
+        "status": "Status",
+        "lead": "Lead",
+        "goals": "Goals",
+        "created": "Created",
+        "updated": "Updated",
+        "targetDate": "Target date"
+      },
+      "actions": {
+        "removeGoal": "Remove {{goal}}",
+        "goal": "Goal"
+      },
+      "goalPicker": {
+        "allGoalsLinked": "All goals are already linked"
+      },
+      "workspace": {
+        "codebaseTitle": "Codebase",
+        "codebaseHelpAria": "Codebase info",
+        "codebaseHelp": "Connect a repository or local folder to define the project's codebase.",
+        "repo": "Repository",
+        "localFolder": "Local folder",
+        "notSet": "Not set",
+        "paperclipManagedFolder": "Managed by Paperclip",
+        "additionalLegacyWorkspaces": "Additional workspaces from legacy configuration",
+        "noUrl": "No URL",
+        "actions": {
+          "changeRepo": "Change",
+          "clearRepo": "Clear repo",
+          "setRepo": "Set repo",
+          "changeLocalFolder": "Change",
+          "setLocalFolder": "Set folder",
+          "clearLocalFolder": "Clear folder"
+        },
+        "placeholders": {
+          "localFolder": "/path/to/project",
+          "repoUrl": "https://github.com/owner/repo"
+        },
+        "errors": {
+          "localFolderAbsolutePath": "Please enter an absolute path",
+          "invalidRepoUrl": "Please enter a valid GitHub repository URL",
+          "saveFailed": "Failed to save workspace",
+          "deleteFailed": "Failed to delete workspace",
+          "updateFailed": "Failed to update workspace"
+        },
+        "confirmations": {
+          "clearLocalFolder": "Remove the local folder? The repo link will be kept.",
+          "deleteLocalFolder": "Remove this workspace entirely?",
+          "clearRepo": "Remove the repo link? The local folder will be kept.",
+          "deleteRepo": "Remove this workspace entirely?"
+        }
+      },
+      "executionWorkspace": {
+        "title": "Execution workspaces",
+        "helpAria": "Execution workspace info",
+        "help": "Execution workspaces let agents work in isolated copies of the repository, so multiple tasks can run in parallel without conflicts.",
+        "enableIsolatedTitle": "Isolated workspaces",
+        "enableIsolatedDescription": "Create a separate workspace for each execution.",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "defaultIsolatedTitle": "Default to isolated",
+        "defaultIsolatedDescription": "Use isolated workspaces by default for new executions.",
+        "hostManagedImplementation": "Host-managed via",
+        "notes": "Changes apply to new executions. Existing workspaces are not affected.",
+        "actions": {
+          "hideAdvanced": "Hide advanced",
+          "showAdvanced": "Show advanced"
+        },
+        "fields": {
+          "baseRef": "Base ref",
+          "branchTemplate": "Branch template",
+          "worktreeParentDir": "Worktree parent directory",
+          "provisionCommand": "Provision command",
+          "teardownCommand": "Teardown command"
+        }
+      },
+      "archive": {
+        "dangerZone": "Danger zone",
+        "descriptionArchive": "Archiving this project will hide it from the default project list. You can restore it later.",
+        "descriptionUnarchive": "Restoring this project will make it visible in the project list again.",
+        "descriptionDelete": "Deleting this project permanently removes its issues, project-owned goals, workspaces, routines, budgets, and related plugin state. This cannot be undone.",
+        "dialog": {
+          "archiveTitle": "Archive {{name}}?",
+          "archiveDescription": "This project will be hidden from the default project list. You can restore it later.",
+          "unarchiveTitle": "Restore {{name}}?",
+          "unarchiveDescription": "This project will become visible in the project list again.",
+          "deleteTitle": "Delete {{name}}?",
+          "deleteDescription": "This permanently removes the project, its issues, project-owned goals, workspaces, routines, budgets, and related plugin state. This action cannot be undone."
+        },
+        "actions": {
+          "archive": "Archive",
+          "unarchive": "Restore",
+          "delete": "Delete",
+          "archiving": "Archiving...",
+          "unarchiving": "Restoring...",
+          "confirm": "Confirm",
+          "deleting": "Deleting...",
+          "confirmDelete": "Delete project \"{{name}}\" permanently? This cannot be undone.",
+          "deleteProject": "Delete project",
+          "archiveProject": "Archive project",
+          "unarchiveProject": "Restore project"
+        }
+      }
     }
   }
 }

@@ -30,6 +30,74 @@
     "medium": "中",
     "low": "低"
   },
+  "status": {
+    "backlog": "待办池",
+    "todo": "待做",
+    "in_progress": "进行中",
+    "in_review": "审核中",
+    "blocked": "已阻塞",
+    "done": "已完成",
+    "cancelled": "已取消",
+    "planned": "计划中",
+    "active": "进行中",
+    "achieved": "已达成"
+  },
+  "list": {
+    "search": {
+      "placeholder": "搜索议题...",
+      "ariaLabel": "搜索议题",
+      "assigneesPlaceholder": "搜索负责人..."
+    },
+    "actions": {
+      "newIssue": "新建议题",
+      "listView": "列表视图",
+      "boardView": "看板视图",
+      "filter": "筛选",
+      "filtersCount": "筛选：{{count}}",
+      "clear": "清除",
+      "sort": "排序",
+      "group": "分组",
+      "createIssue": "创建议题"
+    },
+    "sections": {
+      "filters": "筛选",
+      "quickFilters": "快捷筛选",
+      "status": "状态",
+      "priority": "优先级",
+      "assignee": "负责人",
+      "labels": "标签",
+      "project": "项目"
+    },
+    "presets": {
+      "all": "全部",
+      "active": "活跃",
+      "backlog": "待办池",
+      "done": "已完成"
+    },
+    "sortOptions": {
+      "status": "状态",
+      "priority": "优先级",
+      "title": "标题",
+      "created": "创建时间",
+      "updated": "更新时间"
+    },
+    "groupOptions": {
+      "status": "状态",
+      "priority": "优先级",
+      "assignee": "负责人",
+      "none": "无"
+    },
+    "empty": {
+      "noMatches": "没有议题匹配当前筛选条件或搜索。"
+    },
+    "assignee": {
+      "unassigned": "未分配负责人",
+      "placeholder": "负责人"
+    },
+    "groups": {
+      "user": "用户"
+    }
+  },
   "toasts": {
     "commentFailed": {
       "title": "评论失败",
@@ -63,6 +131,42 @@
   },
   "project": {
     "none": "无项目"
+  },
+  "properties": {
+    "user": "用户",
+    "fields": {
+      "status": "状态",
+      "priority": "优先级",
+      "labels": "标签",
+      "assignee": "负责人",
+      "project": "项目",
+      "parent": "父议题",
+      "depth": "深度",
+      "createdBy": "创建者",
+      "started": "开始时间",
+      "completed": "完成时间",
+      "created": "创建时间",
+      "updated": "更新时间"
+    },
+    "labels": {
+      "none": "没有标签",
+      "search": "搜索标签...",
+      "delete": "删除 {{name}}",
+      "new": "新标签",
+      "creating": "创建中…",
+      "create": "创建标签"
+    },
+    "assignee": {
+      "unassigned": "未分配",
+      "search": "搜索负责人...",
+      "noAssignee": "无负责人",
+      "assignToMe": "分配给我",
+      "assignToUser": "分配给 {{name}}",
+      "assignToRequester": "分配给请求人"
+    },
+    "project": {
+      "search": "搜索项目..."
+    }
   },
   "actions": {
     "copyAsMarkdown": "以 Markdown 复制议题",

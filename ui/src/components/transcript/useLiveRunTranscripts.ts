@@ -68,6 +68,7 @@ export function useLiveRunTranscripts({
   const seenChunkKeysRef = useRef(new Set<string>());
   const pendingLogRowsByRunRef = useRef(new Map<string, string>());
   const logOffsetByRunRef = useRef(new Map<string, number>());
+  const completedLogReadsRef = useRef(new Set<string>());
   const { data: generalSettings } = useQuery({
     queryKey: queryKeys.instance.generalSettings,
     queryFn: () => instanceSettingsApi.getGeneral(),
@@ -129,6 +130,11 @@ export function useLiveRunTranscripts({
         logOffsetByRunRef.current.delete(runId);
       }
     }
+    for (const runId of completedLogReadsRef.current) {
+      if (!knownRunIds.has(runId)) {
+        completedLogReadsRef.current.delete(runId);
+      }
+    }
   }, [runs]);
 
   useEffect(() => {
@@ -146,10 +152,14 @@ export function useLiveRunTranscripts({
 
         if (result.nextOffset !== undefined) {
           logOffsetByRunRef.current.set(run.id, result.nextOffset);
+          completedLogReadsRef.current.delete(run.id);
           return;
         }
         if (result.content.length > 0) {
           logOffsetByRunRef.current.set(run.id, offset + result.content.length);
+        }
+        if (isTerminalStatus(run.status)) {
+          completedLogReadsRef.current.add(run.id);
         }
       } catch {
         // Ignore log read errors while output is initializing.
@@ -157,7 +167,11 @@ export function useLiveRunTranscripts({
     };
 
     const readAll = async () => {
-      await Promise.all(runs.map((run) => readRunLog(run)));
+      await Promise.all(
+        runs
+          .filter((run) => !completedLogReadsRef.current.has(run.id))
+          .map((run) => readRunLog(run)),
+      );
     };
 
     void readAll();

@@ -63,6 +63,8 @@ describe("LanguageSwitcher", () => {
 
     const trigger = container.querySelector('button[aria-label="language.switcher"]');
     expect(trigger).not.toBeNull();
+    expect(trigger?.textContent).not.toContain("language.en");
+    expect(trigger?.textContent).not.toContain("language.zhCN");
     expect(container.querySelectorAll("button[data-language]").length).toBe(0);
 
     act(() => {

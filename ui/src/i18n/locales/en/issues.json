@@ -30,6 +30,74 @@
     "medium": "medium",
     "low": "low"
   },
+  "status": {
+    "backlog": "Backlog",
+    "todo": "Todo",
+    "in_progress": "In Progress",
+    "in_review": "In Review",
+    "blocked": "Blocked",
+    "done": "Done",
+    "cancelled": "Cancelled",
+    "planned": "Planned",
+    "active": "Active",
+    "achieved": "Achieved"
+  },
+  "list": {
+    "search": {
+      "placeholder": "Search issues...",
+      "ariaLabel": "Search issues",
+      "assigneesPlaceholder": "Search assignees..."
+    },
+    "actions": {
+      "newIssue": "New Issue",
+      "listView": "List view",
+      "boardView": "Board view",
+      "filter": "Filter",
+      "filtersCount": "Filters: {{count}}",
+      "clear": "Clear",
+      "sort": "Sort",
+      "group": "Group",
+      "createIssue": "Create Issue"
+    },
+    "sections": {
+      "filters": "Filters",
+      "quickFilters": "Quick filters",
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "labels": "Labels",
+      "project": "Project"
+    },
+    "presets": {
+      "all": "All",
+      "active": "Active",
+      "backlog": "Backlog",
+      "done": "Done"
+    },
+    "sortOptions": {
+      "status": "Status",
+      "priority": "Priority",
+      "title": "Title",
+      "created": "Created",
+      "updated": "Updated"
+    },
+    "groupOptions": {
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "none": "None"
+    },
+    "empty": {
+      "noMatches": "No issues match the current filters or search."
+    },
+    "assignee": {
+      "unassigned": "No assignee",
+      "placeholder": "Assignee"
+    },
+    "groups": {
+      "user": "User"
+    }
+  },
   "toasts": {
     "commentFailed": {
       "title": "Comment failed",
@@ -63,6 +131,42 @@
   },
   "project": {
     "none": "No project"
+  },
+  "properties": {
+    "user": "User",
+    "fields": {
+      "status": "Status",
+      "priority": "Priority",
+      "labels": "Labels",
+      "assignee": "Assignee",
+      "project": "Project",
+      "parent": "Parent",
+      "depth": "Depth",
+      "createdBy": "Created by",
+      "started": "Started",
+      "completed": "Completed",
+      "created": "Created",
+      "updated": "Updated"
+    },
+    "labels": {
+      "none": "No labels",
+      "search": "Search labels...",
+      "delete": "Delete {{name}}",
+      "new": "New label",
+      "creating": "Creating…",
+      "create": "Create label"
+    },
+    "assignee": {
+      "unassigned": "Unassigned",
+      "search": "Search assignees...",
+      "noAssignee": "No assignee",
+      "assignToMe": "Assign to me",
+      "assignToUser": "Assign to {{name}}",
+      "assignToRequester": "Assign to requester"
+    },
+    "project": {
+      "search": "Search projects..."
+    }
   },
   "actions": {
     "copyAsMarkdown": "Copy issue as markdown",

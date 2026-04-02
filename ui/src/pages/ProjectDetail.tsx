@@ -606,6 +606,25 @@ export function ProjectDetail() {
     },
   });
 
+  const deleteProject = useMutation({
+    mutationFn: () => projectsApi.remove(projectLookupRef, resolvedCompanyId ?? lookupCompanyId),
+    onSuccess: (deletedProject) => {
+      const name = deletedProject?.name ?? project?.name ?? t("shared.project");
+      if (resolvedCompanyId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.projects.list(resolvedCompanyId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard(resolvedCompanyId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.budgets.overview(resolvedCompanyId) });
+      }
+      queryClient.removeQueries({ queryKey: queryKeys.projects.detail(routeProjectRef) });
+      queryClient.removeQueries({ queryKey: queryKeys.projects.detail(projectLookupRef) });
+      pushToast({ title: t("detail.toasts.deleted", { name }), tone: "success" });
+      navigate("/projects");
+    },
+    onError: () => {
+      pushToast({ title: t("detail.toasts.deleteFailed"), tone: "error" });
+    },
+  });
+
   const { data: budgetOverview } = useQuery({
     queryKey: queryKeys.budgets.overview(resolvedCompanyId ?? "__none__"),
     queryFn: () => budgetsApi.overview(resolvedCompanyId!),
@@ -927,6 +946,8 @@ export function ProjectDetail() {
             getFieldSaveState={(field) => fieldSaveStates[field] ?? "idle"}
             onArchive={(archived) => archiveProject.mutate(archived)}
             archivePending={archiveProject.isPending}
+            onDelete={() => deleteProject.mutate()}
+            deletePending={deleteProject.isPending}
           />
         </div>
       )}
