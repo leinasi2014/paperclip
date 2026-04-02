@@ -33,6 +33,7 @@ If `PAPERCLIP_APPROVAL_ID` is set:
 - Read enough issue, goal, project, and comment context to understand why the task exists.
 - If a wake was triggered by a comment mention, read that comment thread before acting.
 - Do not reload full context when incremental comment reads are enough.
+- For simple control-plane tasks, stay light. Do not reopen heavy memory, long threads, or large skills if one API read is enough.
 
 ## 6. Do the Work
 
@@ -45,6 +46,7 @@ If `PAPERCLIP_APPROVAL_ID` is set:
 - If blocked, update the issue to `blocked` with a clear blocker comment before exiting.
 - If the task should move to another person, reassign or create a follow-up issue instead of letting it sit.
 - Escalate through your chain of command when you cannot unblock yourself.
+- If the blocker is missing permission for a control-plane action, do not create a verification or audit subtask. Escalate once and stop.
 
 ## 8. Exit
 

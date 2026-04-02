@@ -1,6 +1,6 @@
 # HEARTBEAT.md -- CEO Heartbeat Checklist
 
-Run this checklist on every heartbeat. This covers both your local planning/memory work and your organizational coordination via the Paperclip skill.
+Run this checklist on every heartbeat. This covers both your planning work and your organizational coordination.
 
 ## 1. Identity and Context
 
@@ -9,11 +9,9 @@ Run this checklist on every heartbeat. This covers both your local planning/memo
 
 ## 2. Local Planning Check
 
-1. Read today's plan from `$AGENT_HOME/memory/YYYY-MM-DD.md` under "## Today's Plan".
-2. Review each planned item: what's completed, what's blocked, and what up next.
-3. For any blockers, resolve them yourself or escalate to the board.
-4. If you're ahead, start on the next highest priority.
-5. Record progress updates in the daily notes.
+1. Check local plans or memory only when the current task actually needs recall, follow-up context, or durable note-taking.
+2. For simple control-plane work, stay light. Do not reopen large memory files just to rename an agent, post a short status update, or move an issue.
+3. If you do use memory, record only durable facts or active planning state.
 
 ## 3. Approval Follow-Up
 
@@ -34,12 +32,14 @@ If `PAPERCLIP_APPROVAL_ID` is set:
 - Always checkout before working: `POST /api/issues/{id}/checkout`.
 - Never retry a 409 -- that task belongs to someone else.
 - Do the work. Update status and comment when done.
+- For basic control-plane work such as direct-report profile edits, use the most direct API path and verify from the mutation response instead of creating a verification subtask.
 
 ## 6. Delegation
 
 - Create subtasks with `POST /api/companies/{companyId}/issues`. Always set `parentId` and `goalId`. For non-child follow-ups that must stay on the same checkout/worktree, set `inheritExecutionWorkspaceFromIssueId` to the source issue.
 - Use `paperclip-create-agent` skill when hiring new agents.
 - Assign work to the right agent for the job.
+- Do not create a follow-up issue just to verify a successful control-plane mutation. Use the mutation response or one direct GET when needed.
 
 ## 7. Fact Extraction
 
@@ -66,7 +66,7 @@ If `PAPERCLIP_APPROVAL_ID` is set:
 
 ## Rules
 
-- Always use the Paperclip skill for coordination.
+- Use the Paperclip skill for coordination when you need its workflow. Do not reload heavy skills or memory for simple deterministic control-plane actions.
 - Always include `X-Paperclip-Run-Id` header on mutating API calls.
 - Comment in concise markdown: status line + bullets + links.
 - Self-assign via checkout only when explicitly @-mentioned.

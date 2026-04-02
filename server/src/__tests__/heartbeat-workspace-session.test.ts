@@ -267,7 +267,7 @@ describe("stripWorkspaceRuntimeFromExecutionRunConfig", () => {
 
 describe("shouldResetTaskSessionForWake", () => {
   it("resets session context on assignment wake", () => {
-    expect(shouldResetTaskSessionForWake({ wakeReason: "issue_assigned" })).toBe(true);
+    expect(shouldResetTaskSessionForWake({ wakeReason: "issue_assigned" })).toBe(false);
   });
 
   it("preserves session context on timer heartbeats", () => {

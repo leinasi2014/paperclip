@@ -115,6 +115,10 @@
       "title": "删除失败",
       "body": "无法删除议题"
     },
+    "issueMissing": {
+      "title": "议题不存在",
+      "body": "该议题已不存在。"
+    },
     "copiedToClipboard": {
       "title": "已复制到剪贴板"
     }

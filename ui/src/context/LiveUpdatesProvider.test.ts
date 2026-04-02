@@ -34,6 +34,50 @@ describe("LiveUpdatesProvider issue invalidation", () => {
       queryKey: queryKeys.issues.listUnreadTouchedByMe("company-1"),
     });
   });
+
+  it("removes issue detail queries instead of invalidating them for issue.deleted", () => {
+    const invalidations: unknown[] = [];
+    const removals: unknown[] = [];
+    const queryClient = {
+      invalidateQueries: (input: unknown) => {
+        invalidations.push(input);
+      },
+      removeQueries: (input: unknown) => {
+        removals.push(input);
+      },
+      getQueryData: () => undefined,
+    };
+
+    __liveUpdatesTestUtils.invalidateActivityQueries(
+      queryClient as never,
+      "company-1",
+      {
+        action: "issue.deleted",
+        entityType: "issue",
+        entityId: "issue-1",
+        details: { identifier: "PAP-759" },
+      },
+    );
+
+    expect(removals).toContainEqual({
+      queryKey: queryKeys.issues.detail("issue-1"),
+    });
+    expect(removals).toContainEqual({
+      queryKey: queryKeys.issues.detail("PAP-759"),
+    });
+    expect(removals).toContainEqual({
+      queryKey: queryKeys.issues.comments("issue-1"),
+    });
+    expect(invalidations).toContainEqual({
+      queryKey: queryKeys.issues.list("company-1"),
+    });
+    expect(invalidations).toContainEqual({
+      queryKey: queryKeys.sidebarBadges("company-1"),
+    });
+    expect(invalidations).not.toContainEqual({
+      queryKey: queryKeys.issues.detail("issue-1"),
+    });
+  });
 });
 
 describe("LiveUpdatesProvider visible issue toast suppression", () => {

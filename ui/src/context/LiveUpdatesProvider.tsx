@@ -476,6 +476,23 @@ function invalidateHeartbeatQueries(
   }
 }
 
+function removeIssueDetailQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  issueRefs: string[],
+) {
+  for (const ref of issueRefs) {
+    queryClient.removeQueries({ queryKey: queryKeys.issues.detail(ref) });
+    queryClient.removeQueries({ queryKey: queryKeys.issues.comments(ref) });
+    queryClient.removeQueries({ queryKey: queryKeys.issues.activity(ref) });
+    queryClient.removeQueries({ queryKey: queryKeys.issues.runs(ref) });
+    queryClient.removeQueries({ queryKey: queryKeys.issues.documents(ref) });
+    queryClient.removeQueries({ queryKey: queryKeys.issues.attachments(ref) });
+    queryClient.removeQueries({ queryKey: queryKeys.issues.approvals(ref) });
+    queryClient.removeQueries({ queryKey: queryKeys.issues.liveRuns(ref) });
+    queryClient.removeQueries({ queryKey: queryKeys.issues.activeRun(ref) });
+  }
+}
+
 function invalidateActivityQueries(
   queryClient: ReturnType<typeof useQueryClient>,
   companyId: string,
@@ -494,18 +511,23 @@ function invalidateActivityQueries(
     queryClient.invalidateQueries({ queryKey: queryKeys.issues.listTouchedByMe(companyId) });
     queryClient.invalidateQueries({ queryKey: queryKeys.issues.listUnreadTouchedByMe(companyId) });
     if (entityId) {
+      const action = readString(payload.action);
       const details = readRecord(payload.details);
       const issueRefs = resolveIssueQueryRefs(queryClient, companyId, entityId, details);
-      for (const ref of issueRefs) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.issues.detail(ref) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.issues.comments(ref) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.issues.activity(ref) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.issues.runs(ref) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.issues.documents(ref) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.issues.attachments(ref) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.issues.approvals(ref) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.issues.liveRuns(ref) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.issues.activeRun(ref) });
+      if (action === "issue.deleted") {
+        removeIssueDetailQueries(queryClient, issueRefs);
+      } else {
+        for (const ref of issueRefs) {
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.detail(ref) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.comments(ref) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.activity(ref) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.runs(ref) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.documents(ref) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.attachments(ref) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.approvals(ref) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.liveRuns(ref) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.activeRun(ref) });
+        }
       }
     }
     return;
@@ -707,6 +729,7 @@ export const __liveUpdatesTestUtils = {
   buildRunStatusToast,
   closeSocketQuietly,
   invalidateActivityQueries,
+  removeIssueDetailQueries,
   resolveLiveCompanyId,
   shouldSuppressActivityToastForVisibleIssue,
   shouldSuppressRunStatusToastForVisibleIssue,

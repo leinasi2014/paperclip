@@ -203,6 +203,11 @@ export function useLiveRunTranscripts({
       const url = `${protocol}://${window.location.host}/api/companies/${encodeURIComponent(companyId)}/events/ws`;
       socket = new WebSocket(url);
 
+      socket.onopen = () => {
+        if (!closed) return;
+        socket?.close(1000, "live_run_transcripts_unmount");
+      };
+
       socket.onmessage = (message) => {
         const raw = typeof message.data === "string" ? message.data : "";
         if (!raw) return;
@@ -264,7 +269,9 @@ export function useLiveRunTranscripts({
       };
 
       socket.onerror = () => {
-        socket?.close();
+        if (socket?.readyState === WebSocket.OPEN) {
+          socket.close();
+        }
       };
 
       socket.onclose = () => {
@@ -278,10 +285,14 @@ export function useLiveRunTranscripts({
       closed = true;
       if (reconnectTimer !== null) window.clearTimeout(reconnectTimer);
       if (socket) {
+        const readyState = socket.readyState;
         socket.onmessage = null;
+        socket.onopen = null;
         socket.onerror = null;
         socket.onclose = null;
-        socket.close(1000, "live_run_transcripts_unmount");
+        if (readyState === WebSocket.OPEN) {
+          socket.close(1000, "live_run_transcripts_unmount");
+        }
       }
     };
   }, [activeRunIds, companyId, runById]);

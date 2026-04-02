@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { pickTextColorForPillBg } from "@/lib/color-contrast";
 import { Link, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { ApiError } from "../api/client";
 import { issuesApi } from "../api/issues";
 import { activityApi } from "../api/activity";
 import { heartbeatsApi } from "../api/heartbeats";
@@ -142,6 +143,14 @@ function titleizeFilename(input: string) {
     .join(" ");
 }
 
+function collectIssueQueryRefs(...refs: Array<string | null | undefined>) {
+  return Array.from(
+    new Set(
+      refs.filter((value): value is string => typeof value === "string" && value.trim().length > 0),
+    ),
+  );
+}
+
 function formatAction(
   action: string,
   details: Record<string, unknown> | null | undefined,
@@ -253,8 +262,10 @@ export function IssueDetail() {
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [attachmentDragActive, setAttachmentDragActive] = useState(false);
   const [optimisticComments, setOptimisticComments] = useState<OptimisticIssueComment[]>([]);
+  const [isIssueBeingRemoved, setIsIssueBeingRemoved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const lastMarkedReadIssueIdRef = useRef<string | null>(null);
+  const missingIssueRedirectedRef = useRef<string | null>(null);
   const statusLabel = (value: string) =>
     tCommon(`status.${value}`, { defaultValue: humanizeValue(value) });
   const priorityLabel = (value: string) =>
@@ -267,52 +278,58 @@ export function IssueDetail() {
   const { data: issue, isLoading, error } = useQuery({
     queryKey: queryKeys.issues.detail(issueId!),
     queryFn: () => issuesApi.get(issueId!),
-    enabled: !!issueId,
+    enabled: !!issueId && !isIssueBeingRemoved,
   });
+  const issueMissing = error instanceof ApiError && error.status === 404;
+  const canLoadIssueResources = !!issue?.id && !issueMissing && !isIssueBeingRemoved;
+  const issueQueryRefs = useMemo(
+    () => collectIssueQueryRefs(issueId, issue?.id, issue?.identifier),
+    [issueId, issue?.id, issue?.identifier],
+  );
   const resolvedCompanyId = issue?.companyId ?? selectedCompanyId;
 
   const { data: comments } = useQuery({
     queryKey: queryKeys.issues.comments(issueId!),
     queryFn: () => issuesApi.listComments(issueId!),
-    enabled: !!issueId,
+    enabled: canLoadIssueResources,
   });
 
   const { data: activity } = useQuery({
     queryKey: queryKeys.issues.activity(issueId!),
     queryFn: () => activityApi.forIssue(issueId!),
-    enabled: !!issueId,
+    enabled: canLoadIssueResources,
   });
 
   const { data: linkedRuns } = useQuery({
     queryKey: queryKeys.issues.runs(issueId!),
     queryFn: () => activityApi.runsForIssue(issueId!),
-    enabled: !!issueId,
+    enabled: canLoadIssueResources,
     refetchInterval: 5000,
   });
 
   const { data: linkedApprovals } = useQuery({
     queryKey: queryKeys.issues.approvals(issueId!),
     queryFn: () => issuesApi.listApprovals(issueId!),
-    enabled: !!issueId,
+    enabled: canLoadIssueResources,
   });
 
   const { data: attachments } = useQuery({
     queryKey: queryKeys.issues.attachments(issueId!),
     queryFn: () => issuesApi.listAttachments(issueId!),
-    enabled: !!issueId,
+    enabled: canLoadIssueResources,
   });
 
   const { data: liveRuns } = useQuery({
     queryKey: queryKeys.issues.liveRuns(issueId!),
     queryFn: () => heartbeatsApi.liveRunsForIssue(issueId!),
-    enabled: !!issueId,
+    enabled: canLoadIssueResources,
     refetchInterval: 3000,
   });
 
   const { data: activeRun } = useQuery({
     queryKey: queryKeys.issues.activeRun(issueId!),
     queryFn: () => heartbeatsApi.activeRunForIssue(issueId!),
-    enabled: !!issueId,
+    enabled: canLoadIssueResources,
     refetchInterval: 3000,
   });
 
@@ -552,15 +569,52 @@ export function IssueDetail() {
     };
   }, [linkedRuns]);
 
+  const invalidateIssueResourceQueries = useCallback((refs: string[]) => {
+    for (const ref of refs) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.detail(ref) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.comments(ref) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.activity(ref) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.runs(ref) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.approvals(ref) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.attachments(ref) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.documents(ref) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.liveRuns(ref) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.activeRun(ref) });
+    }
+  }, [queryClient]);
+
+  const cancelIssueResourceQueries = useCallback(async (refs: string[]) => {
+    await Promise.all(
+      refs.flatMap((ref) => [
+        queryClient.cancelQueries({ queryKey: queryKeys.issues.detail(ref) }),
+        queryClient.cancelQueries({ queryKey: queryKeys.issues.comments(ref) }),
+        queryClient.cancelQueries({ queryKey: queryKeys.issues.activity(ref) }),
+        queryClient.cancelQueries({ queryKey: queryKeys.issues.runs(ref) }),
+        queryClient.cancelQueries({ queryKey: queryKeys.issues.approvals(ref) }),
+        queryClient.cancelQueries({ queryKey: queryKeys.issues.attachments(ref) }),
+        queryClient.cancelQueries({ queryKey: queryKeys.issues.documents(ref) }),
+        queryClient.cancelQueries({ queryKey: queryKeys.issues.liveRuns(ref) }),
+        queryClient.cancelQueries({ queryKey: queryKeys.issues.activeRun(ref) }),
+      ]),
+    );
+  }, [queryClient]);
+
+  const removeIssueResourceQueries = useCallback((refs: string[]) => {
+    for (const ref of refs) {
+      queryClient.removeQueries({ queryKey: queryKeys.issues.detail(ref) });
+      queryClient.removeQueries({ queryKey: queryKeys.issues.comments(ref) });
+      queryClient.removeQueries({ queryKey: queryKeys.issues.activity(ref) });
+      queryClient.removeQueries({ queryKey: queryKeys.issues.runs(ref) });
+      queryClient.removeQueries({ queryKey: queryKeys.issues.approvals(ref) });
+      queryClient.removeQueries({ queryKey: queryKeys.issues.attachments(ref) });
+      queryClient.removeQueries({ queryKey: queryKeys.issues.documents(ref) });
+      queryClient.removeQueries({ queryKey: queryKeys.issues.liveRuns(ref) });
+      queryClient.removeQueries({ queryKey: queryKeys.issues.activeRun(ref) });
+    }
+  }, [queryClient]);
+
   const invalidateIssue = () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.issues.detail(issueId!) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.issues.activity(issueId!) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.issues.runs(issueId!) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.issues.approvals(issueId!) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.issues.attachments(issueId!) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.issues.documents(issueId!) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.issues.liveRuns(issueId!) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.issues.activeRun(issueId!) });
+    invalidateIssueResourceQueries(issueQueryRefs);
     if (selectedCompanyId) {
       queryClient.invalidateQueries({ queryKey: queryKeys.issues.list(selectedCompanyId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.issues.listMineByMe(selectedCompanyId) });
@@ -591,34 +645,30 @@ export function IssueDetail() {
 
   const deleteIssue = useMutation({
     mutationFn: () => issuesApi.remove(issueId!),
-    onSuccess: async (deletedIssue) => {
+    onMutate: async () => {
+      setIsIssueBeingRemoved(true);
+      await cancelIssueResourceQueries(issueQueryRefs);
+    },
+    onSuccess: (deletedIssue) => {
       const companyId = deletedIssue.companyId ?? issue?.companyId ?? selectedCompanyId ?? null;
-
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.detail(issueId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.comments(issueId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.activity(issueId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.runs(issueId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.approvals(issueId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.attachments(issueId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.documents(issueId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.liveRuns(issueId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.activeRun(issueId!) });
+      const deletedIssueRefs = collectIssueQueryRefs(issueId, deletedIssue.id, deletedIssue.identifier);
+      removeIssueResourceQueries(deletedIssueRefs);
 
       if (companyId) {
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: queryKeys.issues.list(companyId) }),
-          queryClient.invalidateQueries({ queryKey: queryKeys.issues.listMineByMe(companyId) }),
-          queryClient.invalidateQueries({ queryKey: queryKeys.issues.listTouchedByMe(companyId) }),
-          queryClient.invalidateQueries({ queryKey: queryKeys.issues.listUnreadTouchedByMe(companyId) }),
-          queryClient.invalidateQueries({ queryKey: queryKeys.sidebarBadges(companyId) }),
-          queryClient.invalidateQueries({ queryKey: queryKeys.activity(companyId) }),
-          queryClient.invalidateQueries({ queryKey: queryKeys.dashboard(companyId) }),
-        ]);
+        queryClient.invalidateQueries({ queryKey: queryKeys.issues.list(companyId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.issues.listMineByMe(companyId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.issues.listTouchedByMe(companyId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.issues.listUnreadTouchedByMe(companyId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.sidebarBadges(companyId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.activity(companyId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard(companyId) });
       }
 
-      navigate("/issues", { replace: true });
+      navigate(sourceBreadcrumb.href || "/issues", { replace: true });
     },
     onError: (err) => {
+      setIsIssueBeingRemoved(false);
+      invalidateIssueResourceQueries(issueQueryRefs);
       pushToast({
         title: t("toasts.deleteFailed.title", { defaultValue: "Delete failed" }),
         body: err instanceof Error
@@ -873,6 +923,30 @@ export function IssueDetail() {
   });
 
   useEffect(() => {
+    if (!issueMissing || !issueId) return;
+    if (missingIssueRedirectedRef.current === issueId) return;
+    missingIssueRedirectedRef.current = issueId;
+    removeIssueResourceQueries(issueQueryRefs);
+    pushToast({
+      title: t("toasts.issueMissing.title", { defaultValue: "Issue not found" }),
+      body: t("toasts.issueMissing.body", {
+        defaultValue: "This issue no longer exists.",
+      }),
+      tone: "warn",
+    });
+    navigate(sourceBreadcrumb.href || "/issues", { replace: true });
+  }, [
+    issueMissing,
+    issueId,
+    issueQueryRefs,
+    navigate,
+    pushToast,
+    removeIssueResourceQueries,
+    sourceBreadcrumb.href,
+    t,
+  ]);
+
+  useEffect(() => {
     const titleLabel = issue?.title ?? issueId ?? t("shared.issue", { defaultValue: "Issue" });
     setBreadcrumbs([
       sourceBreadcrumb,
@@ -932,6 +1006,7 @@ export function IssueDetail() {
       </p>
     );
   }
+  if (issueMissing) return null;
   if (error) return <p className="text-sm text-destructive">{error.message}</p>;
   if (!issue) return null;
 

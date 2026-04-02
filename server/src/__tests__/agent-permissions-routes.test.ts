@@ -26,7 +26,7 @@ const baseAgent = {
   spentMonthlyCents: 0,
   pauseReason: null,
   pausedAt: null,
-  permissions: { canCreateAgents: false },
+  permissions: { canCreateAgents: false, canUpdateDirectReportProfiles: false },
   lastHeartbeatAt: null,
   metadata: null,
   createdAt: new Date("2026-03-19T00:00:00.000Z"),
@@ -36,6 +36,7 @@ const baseAgent = {
 const mockAgentService = vi.hoisted(() => ({
   getById: vi.fn(),
   create: vi.fn(),
+  update: vi.fn(),
   updatePermissions: vi.fn(),
   getChainOfCommand: vi.fn(),
   resolveByReference: vi.fn(),
@@ -103,8 +104,11 @@ vi.mock("../services/index.js", () => ({
   workspaceOperationService: () => mockWorkspaceOperationService,
 }));
 
-function createDbStub() {
-  return {
+function createDbStub(options?: {
+  snapshot?: () => unknown;
+  restore?: (snapshot: unknown) => void;
+}) {
+  const db = {
     select: vi.fn().mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({
@@ -116,17 +120,29 @@ function createDbStub() {
         }),
       }),
     }),
+    transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) => {
+      const snapshot = options?.snapshot ? options.snapshot() : undefined;
+      try {
+        return await fn(db);
+      } catch (error) {
+        if (options?.restore) {
+          options.restore(snapshot);
+        }
+        throw error;
+      }
+    }),
   };
+  return db;
 }
 
-function createApp(actor: Record<string, unknown>) {
+function createApp(actor: Record<string, unknown>, db: Record<string, unknown> = createDbStub()) {
   const app = express();
   app.use(express.json());
   app.use((req, _res, next) => {
     (req as any).actor = actor;
     next();
   });
-  app.use("/api", agentRoutes(createDbStub() as any));
+  app.use("/api", agentRoutes(db as any));
   app.use(errorHandler);
   return app;
 }
@@ -139,6 +155,11 @@ describe("agent permission routes", () => {
     mockAgentService.resolveByReference.mockResolvedValue({ ambiguous: false, agent: baseAgent });
     mockAgentService.create.mockResolvedValue(baseAgent);
     mockAgentService.updatePermissions.mockResolvedValue(baseAgent);
+    mockAgentService.update.mockImplementation(async (id: string, patch: Record<string, unknown>) => ({
+      ...baseAgent,
+      id,
+      ...patch,
+    }));
     mockAccessService.getMembership.mockResolvedValue({
       id: "membership-1",
       companyId,
@@ -246,7 +267,7 @@ describe("agent permission routes", () => {
   it("keeps task assignment enabled when agent creation privilege is enabled", async () => {
     mockAgentService.updatePermissions.mockResolvedValue({
       ...baseAgent,
-      permissions: { canCreateAgents: true },
+      permissions: { canCreateAgents: true, canUpdateDirectReportProfiles: false },
     });
 
     const app = createApp({
@@ -272,6 +293,154 @@ describe("agent permission routes", () => {
     );
     expect(res.body.access.canAssignTasks).toBe(true);
     expect(res.body.access.taskAssignSource).toBe("agent_creator");
+  });
+
+  it("allows the board to batch update basic agent profile fields", async () => {
+    const app = createApp({
+      type: "board",
+      userId: "board-user",
+      source: "local_implicit",
+      isInstanceAdmin: true,
+      companyIds: [companyId],
+    });
+
+    const res = await request(app)
+      .patch(`/api/companies/${companyId}/agents/basic-profile`)
+      .send({
+        updates: [
+          {
+            agentId,
+            name: "Platform CTO",
+            title: "Chief Technology Officer",
+            icon: "crown",
+          },
+        ],
+      });
+
+    expect(res.status).toBe(200);
+    expect(mockAgentService.update).toHaveBeenCalledWith(
+      agentId,
+      {
+        name: "Platform CTO",
+        title: "Chief Technology Officer",
+        icon: "crown",
+      },
+      expect.objectContaining({
+        recordRevision: expect.objectContaining({
+          source: "basic_profile_batch",
+        }),
+      }),
+    );
+    expect(res.body).toEqual([
+      expect.objectContaining({
+        id: agentId,
+        name: "Platform CTO",
+        title: "Chief Technology Officer",
+        icon: "crown",
+      }),
+    ]);
+  });
+
+  it("allows scoped managers to batch update direct reports only", async () => {
+    const managerId = "33333333-3333-4333-8333-333333333333";
+    const directReportId = "44444444-4444-4444-8444-444444444444";
+    const manager = {
+      ...baseAgent,
+      id: managerId,
+      role: "cto",
+      permissions: { canCreateAgents: false, canUpdateDirectReportProfiles: true },
+    };
+    const directReport = {
+      ...baseAgent,
+      id: directReportId,
+      reportsTo: managerId,
+    };
+    mockAgentService.getById.mockImplementation(async (id: string) => {
+      if (id === managerId) return manager;
+      if (id === directReportId) return directReport;
+      return baseAgent;
+    });
+    mockAgentService.update.mockImplementation(async (id: string, patch: Record<string, unknown>) => ({
+      ...directReport,
+      id,
+      ...patch,
+    }));
+
+    const app = createApp({
+      type: "agent",
+      agentId: managerId,
+      companyId,
+      runId: "run-1",
+      source: "agent_key",
+    });
+
+    const res = await request(app)
+      .patch(`/api/companies/${companyId}/agents/basic-profile`)
+      .send({
+        updates: [
+          {
+            agentId: directReportId,
+            name: "Frontend Designer",
+          },
+        ],
+      });
+
+    expect(res.status).toBe(200);
+    expect(mockAgentService.update).toHaveBeenCalledWith(
+      directReportId,
+      { name: "Frontend Designer" },
+      expect.any(Object),
+    );
+  });
+
+  it("rolls back the batch when a later profile update activity write fails", async () => {
+    const firstAgentId = "44444444-4444-4444-8444-444444444444";
+    const secondAgentId = "55555555-5555-4555-8555-555555555555";
+    const agentState = new Map<string, typeof baseAgent>([
+      [firstAgentId, { ...baseAgent, id: firstAgentId, name: "Designer One" }],
+      [secondAgentId, { ...baseAgent, id: secondAgentId, name: "Designer Two" }],
+    ]);
+    mockAgentService.getById.mockImplementation(async (id: string) => agentState.get(id) ?? null);
+    mockAgentService.update.mockImplementation(async (id: string, patch: Record<string, unknown>) => {
+      const current = agentState.get(id);
+      if (!current) return null;
+      const next = { ...current, ...patch, updatedAt: new Date("2026-03-20T00:00:00.000Z") };
+      agentState.set(id, next);
+      return next;
+    });
+    mockLogActivity
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("activity write failed"));
+
+    const db = createDbStub({
+      snapshot: () => Array.from(agentState.entries()).map(([id, value]) => [id, { ...value }]),
+      restore: (snapshot) => {
+        agentState.clear();
+        for (const [id, value] of snapshot as Array<[string, typeof baseAgent]>) {
+          agentState.set(id, value);
+        }
+      },
+    });
+    const app = createApp({
+      type: "board",
+      userId: "board-user",
+      source: "local_implicit",
+      isInstanceAdmin: true,
+      companyIds: [companyId],
+    }, db);
+
+    const res = await request(app)
+      .patch(`/api/companies/${companyId}/agents/basic-profile`)
+      .send({
+        updates: [
+          { agentId: firstAgentId, name: "Renamed One" },
+          { agentId: secondAgentId, name: "Renamed Two" },
+        ],
+      });
+
+    expect(res.status).toBe(500);
+    expect(agentState.get(firstAgentId)?.name).toBe("Designer One");
+    expect(agentState.get(secondAgentId)?.name).toBe("Designer Two");
   });
 
   it("exposes a dedicated agent route for the inbox mine view", async () => {

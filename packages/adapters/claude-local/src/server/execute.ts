@@ -116,6 +116,8 @@ async function buildClaudeRuntimeConfig(input: ClaudeExecutionInput): Promise<Cl
   const workspaceRepoRef = asString(workspaceContext.repoRef, "") || null;
   const workspaceBranch = asString(workspaceContext.branchName, "") || null;
   const workspaceWorktreePath = asString(workspaceContext.worktreePath, "") || null;
+  const instructionsRootPath = asString(workspaceContext.instructionsRootPath, "") || null;
+  const instructionsEntryFile = asString(workspaceContext.instructionsEntryFile, "") || null;
   const agentHome = asString(workspaceContext.agentHome, "") || null;
   const workspaceHints = Array.isArray(context.paperclipWorkspaces)
     ? context.paperclipWorkspaces.filter(
@@ -210,6 +212,12 @@ async function buildClaudeRuntimeConfig(input: ClaudeExecutionInput): Promise<Cl
   }
   if (workspaceWorktreePath) {
     env.PAPERCLIP_WORKSPACE_WORKTREE_PATH = workspaceWorktreePath;
+  }
+  if (instructionsRootPath) {
+    env.PAPERCLIP_INSTRUCTIONS_ROOT = instructionsRootPath;
+  }
+  if (instructionsEntryFile) {
+    env.PAPERCLIP_INSTRUCTIONS_ENTRY_FILE = instructionsEntryFile;
   }
   if (agentHome) {
     env.AGENT_HOME = agentHome;

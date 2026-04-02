@@ -16,7 +16,9 @@ import {
   testAdapterEnvironmentSchema,
   type AgentSkillSnapshot,
   type InstanceSchedulerHeartbeatAgent,
+  type UpdateBasicAgentProfiles,
   upsertAgentInstructionsFileSchema,
+  updateBasicAgentProfilesSchema,
   updateAgentInstructionsBundleSchema,
   updateAgentPermissionsSchema,
   updateAgentInstructionsPathSchema,
@@ -105,6 +107,13 @@ export function agentRoutes(db: Db) {
   function canCreateAgents(agent: { role: string; permissions: Record<string, unknown> | null | undefined }) {
     if (!agent.permissions || typeof agent.permissions !== "object") return false;
     return Boolean((agent.permissions as Record<string, unknown>).canCreateAgents);
+  }
+
+  function canUpdateDirectReportProfiles(agent: {
+    permissions: Record<string, unknown> | null | undefined;
+  }) {
+    if (!agent.permissions || typeof agent.permissions !== "object") return false;
+    return Boolean((agent.permissions as Record<string, unknown>).canUpdateDirectReportProfiles);
   }
 
   async function buildAgentAccessState(agent: NonNullable<Awaited<ReturnType<typeof svc.getById>>>) {
@@ -875,6 +884,90 @@ export function agentRoutes(db: Db) {
     res.json(result.map((agent) => redactForRestrictedAgentView(agent)));
   });
 
+  router.patch(
+    "/companies/:companyId/agents/basic-profile",
+    validate(updateBasicAgentProfilesSchema),
+    async (req, res) => {
+      const companyId = req.params.companyId as string;
+      assertCompanyAccess(req, companyId);
+      const body = req.body as UpdateBasicAgentProfiles;
+
+      let actorAgent:
+        | NonNullable<Awaited<ReturnType<typeof svc.getById>>>
+        | null = null;
+
+      if (req.actor.type === "agent") {
+        actorAgent = req.actor.agentId ? await svc.getById(req.actor.agentId) : null;
+        if (!actorAgent || actorAgent.companyId !== companyId) {
+          res.status(403).json({ error: "Agent authentication required" });
+          return;
+        }
+        if (actorAgent.role !== "ceo" && !canUpdateDirectReportProfiles(actorAgent)) {
+          res.status(403).json({ error: "Missing permission: can update direct report profiles" });
+          return;
+        }
+      }
+
+      const actor = getActorInfo(req);
+      const updatedAgents = await db.transaction(async (tx) => {
+        const txDb = tx as unknown as Db;
+        const txAgentService = agentService(txDb);
+        const targetIds = Array.from(new Set(body.updates.map((entry) => entry.agentId)));
+        const targets = new Map<string, NonNullable<Awaited<ReturnType<typeof txAgentService.getById>>>>();
+        for (const targetId of targetIds) {
+          const target = await txAgentService.getById(targetId);
+          if (!target || target.companyId !== companyId) {
+            throw notFound("Agent not found");
+          }
+          targets.set(targetId, target);
+        }
+
+        if (actorAgent && actorAgent.role !== "ceo") {
+          const invalidTarget = body.updates.find((entry) => targets.get(entry.agentId)?.reportsTo !== actorAgent.id);
+          if (invalidTarget) {
+            throw forbidden("Can only update direct reports");
+          }
+        }
+
+        const nextAgents = [];
+        for (const entry of body.updates) {
+          const patch: Record<string, unknown> = {};
+          if (entry.name !== undefined) patch.name = entry.name;
+          if (entry.title !== undefined) patch.title = entry.title;
+          if (entry.icon !== undefined) patch.icon = entry.icon;
+
+          const updated = await txAgentService.update(entry.agentId, patch, {
+            recordRevision: {
+              createdByAgentId: actor.agentId,
+              createdByUserId: actor.actorType === "user" ? actor.actorId : null,
+              source: "basic_profile_batch",
+            },
+          });
+          if (!updated) {
+            throw notFound("Agent not found");
+          }
+
+          nextAgents.push(updated);
+          await logActivity(txDb, {
+            companyId: updated.companyId,
+            actorType: actor.actorType,
+            actorId: actor.actorId,
+            agentId: actor.agentId,
+            runId: actor.runId,
+            action: "agent.updated",
+            entityType: "agent",
+            entityId: updated.id,
+            details: summarizeAgentUpdateDetails(patch),
+          });
+        }
+
+        return nextAgents;
+      });
+
+      res.json(updatedAgents);
+    },
+  );
+
   router.get("/instance/scheduler-heartbeats", async (req, res) => {
     assertInstanceAdmin(req);
 
@@ -1450,7 +1543,11 @@ export function agentRoutes(db: Db) {
       }
     }
 
-    const agent = await svc.updatePermissions(id, req.body);
+    const agent = await svc.updatePermissions(id, {
+      canCreateAgents: req.body.canCreateAgents,
+      canUpdateDirectReportProfiles:
+        req.body.canUpdateDirectReportProfiles ?? existing.permissions?.canUpdateDirectReportProfiles ?? false,
+    });
     if (!agent) {
       res.status(404).json({ error: "Agent not found" });
       return;
@@ -1481,6 +1578,7 @@ export function agentRoutes(db: Db) {
       details: {
         canCreateAgents: agent.permissions?.canCreateAgents ?? false,
         canAssignTasks: effectiveCanAssignTasks,
+        canUpdateDirectReportProfiles: agent.permissions?.canUpdateDirectReportProfiles ?? false,
       },
     });
 

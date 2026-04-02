@@ -40,6 +40,9 @@ import { isAllowedContentType, MAX_ATTACHMENT_BYTES } from "../attachment-types.
 import { queueIssueAssignmentWakeup } from "../services/issue-assignment-wakeup.js";
 
 const MAX_ISSUE_COMMENT_LIMIT = 500;
+const MISSING_ISSUE_ID = "00000000-0000-0000-0000-000000000000";
+const ISSUE_IDENTIFIER_PATTERN = /^[A-Z]+-\d+$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const updateIssueRouteSchema = updateIssueSchema.extend({
   interrupt: z.boolean().optional(),
 });
@@ -191,13 +194,18 @@ export function issueRoutes(db: Db, storage: StorageService) {
   }
 
   async function normalizeIssueIdentifier(rawId: string): Promise<string> {
-    if (/^[A-Z]+-\d+$/i.test(rawId)) {
-      const issue = await svc.getByIdentifier(rawId);
+    const normalized = rawId.trim();
+    if (ISSUE_IDENTIFIER_PATTERN.test(normalized)) {
+      const issue = await svc.getByIdentifier(normalized);
       if (issue) {
         return issue.id;
       }
+      return MISSING_ISSUE_ID;
     }
-    return rawId;
+    if (UUID_PATTERN.test(normalized)) {
+      return normalized;
+    }
+    return MISSING_ISSUE_ID;
   }
 
   async function resolveIssueProjectAndGoal(issue: {

@@ -67,6 +67,30 @@ curl -sS "$PAPERCLIP_API_URL/llms/agent-icons.txt" \
 - run prompt in adapter config (`promptTemplate` where applicable)
 - source issue linkage (`sourceIssueId` or `sourceIssueIds`) when this hire came from an issue
 
+Allowed system role values:
+
+- `ceo`
+- `cto`
+- `cmo`
+- `cfo`
+- `engineer`
+- `designer`
+- `pm`
+- `qa`
+- `devops`
+- `researcher`
+- `general`
+
+Use `role` for the closest system/governance role.
+Use `title` for the company's real job title.
+
+Examples:
+
+- `role: "pm", title: "Product Manager"`
+- `role: "engineer", title: "Full-Stack Engineer"`
+- `role: "general", title: "Editor"`
+- `role: "general", title: "Story Producer"`
+
 7. Submit hire request.
 
 ```sh

@@ -503,4 +503,5 @@ describe("agent skill routes", () => {
       | undefined;
     expect(approvalInput?.payload?.adapterConfig?.promptTemplate).toBeUndefined();
   });
+
 });

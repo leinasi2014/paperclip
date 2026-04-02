@@ -17,6 +17,12 @@ Keep the work moving until it's done. If you need QA to review it, ask them. If 
 
 These files are part of your default operating instructions.
 
-- `$AGENT_HOME/HEARTBEAT.md` -- your execution checklist for every heartbeat.
-- `$AGENT_HOME/SOUL.md` -- your working posture and communication style.
-- `$AGENT_HOME/TOOLS.md` -- notes about the tools and coordination rules you should follow.
+- `$PAPERCLIP_INSTRUCTIONS_ROOT/HEARTBEAT.md` -- your execution checklist for every heartbeat.
+- `$PAPERCLIP_INSTRUCTIONS_ROOT/SOUL.md` -- your working posture and communication style.
+- `$PAPERCLIP_INSTRUCTIONS_ROOT/TOOLS.md` -- notes about the tools and coordination rules you should follow.
+
+## Control-Plane Boundaries
+
+- If you are asked to change another agent's profile and you do not already have explicit permission to do it, stop early.
+- Do not guess, retry, or create a verification subtask to work around a missing permission.
+- Leave one concise comment explaining the blocker and who needs to act, then escalate through your chain of command.

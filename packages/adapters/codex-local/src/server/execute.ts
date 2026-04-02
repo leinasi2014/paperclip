@@ -236,6 +236,8 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   const workspaceRepoRef = asString(workspaceContext.repoRef, "");
   const workspaceBranch = asString(workspaceContext.branchName, "");
   const workspaceWorktreePath = asString(workspaceContext.worktreePath, "");
+  const instructionsRootPath = asString(workspaceContext.instructionsRootPath, "");
+  const instructionsEntryFile = asString(workspaceContext.instructionsEntryFile, "");
   const agentHome = asString(workspaceContext.agentHome, "");
   const workspaceHints = Array.isArray(context.paperclipWorkspaces)
     ? context.paperclipWorkspaces.filter(
@@ -350,6 +352,12 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   }
   if (workspaceWorktreePath) {
     env.PAPERCLIP_WORKSPACE_WORKTREE_PATH = workspaceWorktreePath;
+  }
+  if (instructionsRootPath) {
+    env.PAPERCLIP_INSTRUCTIONS_ROOT = instructionsRootPath;
+  }
+  if (instructionsEntryFile) {
+    env.PAPERCLIP_INSTRUCTIONS_ENTRY_FILE = instructionsEntryFile;
   }
   if (agentHome) {
     env.AGENT_HOME = agentHome;

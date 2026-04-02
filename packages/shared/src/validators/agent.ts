@@ -10,6 +10,7 @@ import { envConfigSchema } from "./secret.js";
 
 export const agentPermissionsSchema = z.object({
   canCreateAgents: z.boolean().optional().default(false),
+  canUpdateDirectReportProfiles: z.boolean().optional().default(false),
 });
 
 export const agentInstructionsBundleModeSchema = z.enum(["managed", "external"]);
@@ -130,6 +131,31 @@ export type TestAdapterEnvironment = z.infer<typeof testAdapterEnvironmentSchema
 export const updateAgentPermissionsSchema = z.object({
   canCreateAgents: z.boolean(),
   canAssignTasks: z.boolean(),
+  canUpdateDirectReportProfiles: z.boolean().optional(),
 });
 
 export type UpdateAgentPermissions = z.infer<typeof updateAgentPermissionsSchema>;
+
+export const updateBasicAgentProfilesSchema = z.object({
+  updates: z.array(
+    z.object({
+      agentId: z.string().uuid(),
+      name: z.string().trim().min(1).optional(),
+      title: z.string().optional().nullable(),
+      icon: z.enum(AGENT_ICON_NAMES).optional().nullable(),
+    }).superRefine((value, ctx) => {
+      if (
+        value.name === undefined &&
+        value.title === undefined &&
+        value.icon === undefined
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Each update must include at least one editable field",
+        });
+      }
+    }),
+  ).min(1).max(50),
+});
+
+export type UpdateBasicAgentProfiles = z.infer<typeof updateBasicAgentProfilesSchema>;

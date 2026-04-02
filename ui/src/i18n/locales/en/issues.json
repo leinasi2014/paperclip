@@ -115,6 +115,10 @@
       "title": "Delete failed",
       "body": "Unable to delete issue"
     },
+    "issueMissing": {
+      "title": "Issue not found",
+      "body": "This issue no longer exists."
+    },
     "copiedToClipboard": {
       "title": "Copied to clipboard"
     }

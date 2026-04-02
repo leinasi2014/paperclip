@@ -1,0 +1,2482 @@
+diff --git a/packages/shared/src/validators/agent.ts b/packages/shared/src/validators/agent.ts
+index 288ae683..7d0517d5 100644
+--- a/packages/shared/src/validators/agent.ts
++++ b/packages/shared/src/validators/agent.ts
+@@ -1,52 +1,53 @@
+ import { z } from "zod";
+ import {
+   AGENT_ADAPTER_TYPES,
+   AGENT_ICON_NAMES,
+   AGENT_ROLES,
+   AGENT_STATUSES,
+   INBOX_MINE_ISSUE_STATUS_FILTER,
+ } from "../constants.js";
+ import { envConfigSchema } from "./secret.js";
+ 
+ export const agentPermissionsSchema = z.object({
+   canCreateAgents: z.boolean().optional().default(false),
++  canUpdateDirectReportProfiles: z.boolean().optional().default(false),
+ });
+ 
+ export const agentInstructionsBundleModeSchema = z.enum(["managed", "external"]);
+ 
+ export const updateAgentInstructionsBundleSchema = z.object({
+   mode: agentInstructionsBundleModeSchema.optional(),
+   rootPath: z.string().trim().min(1).nullable().optional(),
+   entryFile: z.string().trim().min(1).optional(),
+   clearLegacyPromptTemplate: z.boolean().optional().default(false),
+ });
+ 
+ export type UpdateAgentInstructionsBundle = z.infer<typeof updateAgentInstructionsBundleSchema>;
+ 
+ export const upsertAgentInstructionsFileSchema = z.object({
+   path: z.string().trim().min(1),
+   content: z.string(),
+   clearLegacyPromptTemplate: z.boolean().optional().default(false),
+ });
+ 
+ export type UpsertAgentInstructionsFile = z.infer<typeof upsertAgentInstructionsFileSchema>;
+ 
+ const adapterConfigSchema = z.record(z.unknown()).superRefine((value, ctx) => {
+   const envValue = value.env;
+   if (envValue === undefined) return;
+   const parsed = envConfigSchema.safeParse(envValue);
+   if (!parsed.success) {
+     ctx.addIssue({
+       code: z.ZodIssueCode.custom,
+       message: "adapterConfig.env must be a map of valid env bindings",
+       path: ["env"],
+     });
+   }
+ });
+ 
+ export const createAgentSchema = z.object({
+   name: z.string().min(1),
+   role: z.enum(AGENT_ROLES).optional().default("general"),
+   title: z.string().optional().nullable(),
+   icon: z.enum(AGENT_ICON_NAMES).optional().nullable(),
+   reportsTo: z.string().uuid().optional().nullable(),
+@@ -93,43 +94,68 @@ export const createAgentKeySchema = z.object({
+ });
+ 
+ export type CreateAgentKey = z.infer<typeof createAgentKeySchema>;
+ 
+ export const agentMineInboxQuerySchema = z.object({
+   userId: z.string().trim().min(1),
+   status: z.string().trim().min(1).optional().default(INBOX_MINE_ISSUE_STATUS_FILTER),
+ });
+ 
+ export type AgentMineInboxQuery = z.infer<typeof agentMineInboxQuerySchema>;
+ 
+ export const wakeAgentSchema = z.object({
+   source: z.enum(["timer", "assignment", "on_demand", "automation"]).optional().default("on_demand"),
+   triggerDetail: z.enum(["manual", "ping", "callback", "system"]).optional(),
+   reason: z.string().optional().nullable(),
+   payload: z.record(z.unknown()).optional().nullable(),
+   idempotencyKey: z.string().optional().nullable(),
+   forceFreshSession: z.preprocess(
+     (value) => (value === null ? undefined : value),
+     z.boolean().optional().default(false),
+   ),
+ });
+ 
+ export type WakeAgent = z.infer<typeof wakeAgentSchema>;
+ 
+ export const resetAgentSessionSchema = z.object({
+   taskKey: z.string().min(1).optional().nullable(),
+ });
+ 
+ export type ResetAgentSession = z.infer<typeof resetAgentSessionSchema>;
+ 
+ export const testAdapterEnvironmentSchema = z.object({
+   adapterConfig: adapterConfigSchema.optional().default({}),
+ });
+ 
+ export type TestAdapterEnvironment = z.infer<typeof testAdapterEnvironmentSchema>;
+ 
+ export const updateAgentPermissionsSchema = z.object({
+   canCreateAgents: z.boolean(),
+   canAssignTasks: z.boolean(),
++  canUpdateDirectReportProfiles: z.boolean().optional(),
+ });
+ 
+ export type UpdateAgentPermissions = z.infer<typeof updateAgentPermissionsSchema>;
++
++export const updateBasicAgentProfilesSchema = z.object({
++  updates: z.array(
++    z.object({
++      agentId: z.string().uuid(),
++      name: z.string().trim().min(1).optional(),
++      title: z.string().optional().nullable(),
++      icon: z.enum(AGENT_ICON_NAMES).optional().nullable(),
++    }).superRefine((value, ctx) => {
++      if (
++        value.name === undefined &&
++        value.title === undefined &&
++        value.icon === undefined
++      ) {
++        ctx.addIssue({
++          code: z.ZodIssueCode.custom,
++          message: "Each update must include at least one editable field",
++        });
++      }
++    }),
++  ).min(1).max(50),
++});
++
++export type UpdateBasicAgentProfiles = z.infer<typeof updateBasicAgentProfilesSchema>;
+diff --git a/server/src/__tests__/agent-permissions-routes.test.ts b/server/src/__tests__/agent-permissions-routes.test.ts
+index 7bd79f76..160f1037 100644
+--- a/server/src/__tests__/agent-permissions-routes.test.ts
++++ b/server/src/__tests__/agent-permissions-routes.test.ts
+@@ -1,78 +1,79 @@
+ import express from "express";
+ import request from "supertest";
+ import { beforeEach, describe, expect, it, vi } from "vitest";
+ import { INBOX_MINE_ISSUE_STATUS_FILTER } from "@paperclipai/shared";
+ import { agentRoutes } from "../routes/agents.js";
+ import { errorHandler } from "../middleware/index.js";
+ 
+ const agentId = "11111111-1111-4111-8111-111111111111";
+ const companyId = "22222222-2222-4222-8222-222222222222";
+ 
+ const baseAgent = {
+   id: agentId,
+   companyId,
+   name: "Builder",
+   urlKey: "builder",
+   role: "engineer",
+   title: "Builder",
+   icon: null,
+   status: "idle",
+   reportsTo: null,
+   capabilities: null,
+   adapterType: "process",
+   adapterConfig: {},
+   runtimeConfig: {},
+   budgetMonthlyCents: 0,
+   spentMonthlyCents: 0,
+   pauseReason: null,
+   pausedAt: null,
+-  permissions: { canCreateAgents: false },
++  permissions: { canCreateAgents: false, canUpdateDirectReportProfiles: false },
+   lastHeartbeatAt: null,
+   metadata: null,
+   createdAt: new Date("2026-03-19T00:00:00.000Z"),
+   updatedAt: new Date("2026-03-19T00:00:00.000Z"),
+ };
+ 
+ const mockAgentService = vi.hoisted(() => ({
+   getById: vi.fn(),
+   create: vi.fn(),
++  update: vi.fn(),
+   updatePermissions: vi.fn(),
+   getChainOfCommand: vi.fn(),
+   resolveByReference: vi.fn(),
+ }));
+ 
+ const mockAccessService = vi.hoisted(() => ({
+   canUser: vi.fn(),
+   hasPermission: vi.fn(),
+   getMembership: vi.fn(),
+   ensureMembership: vi.fn(),
+   listPrincipalGrants: vi.fn(),
+   setPrincipalPermission: vi.fn(),
+ }));
+ 
+ const mockApprovalService = vi.hoisted(() => ({
+   create: vi.fn(),
+   getById: vi.fn(),
+ }));
+ 
+ const mockBudgetService = vi.hoisted(() => ({
+   upsertPolicy: vi.fn(),
+ }));
+ 
+ const mockHeartbeatService = vi.hoisted(() => ({
+   listTaskSessions: vi.fn(),
+   resetRuntimeSession: vi.fn(),
+ }));
+ 
+ const mockIssueApprovalService = vi.hoisted(() => ({
+   linkManyForApproval: vi.fn(),
+ }));
+ 
+ const mockIssueService = vi.hoisted(() => ({
+   list: vi.fn(),
+ }));
+ 
+ const mockSecretService = vi.hoisted(() => ({
+   normalizeAdapterConfigForPersistence: vi.fn(),
+   resolveAdapterConfigForRuntime: vi.fn(),
+ }));
+@@ -102,80 +103,85 @@ vi.mock("../services/index.js", () => ({
+   syncInstructionsBundleConfigFromFilePath: vi.fn((_agent, config) => config),
+   workspaceOperationService: () => mockWorkspaceOperationService,
+ }));
+ 
+ function createDbStub() {
+   return {
+     select: vi.fn().mockReturnValue({
+       from: vi.fn().mockReturnValue({
+         where: vi.fn().mockReturnValue({
+           then: vi.fn().mockResolvedValue([{
+             id: companyId,
+             name: "Paperclip",
+             requireBoardApprovalForNewAgents: false,
+           }]),
+         }),
+       }),
+     }),
+   };
+ }
+ 
+ function createApp(actor: Record<string, unknown>) {
+   const app = express();
+   app.use(express.json());
+   app.use((req, _res, next) => {
+     (req as any).actor = actor;
+     next();
+   });
+   app.use("/api", agentRoutes(createDbStub() as any));
+   app.use(errorHandler);
+   return app;
+ }
+ 
+ describe("agent permission routes", () => {
+   beforeEach(() => {
+     vi.clearAllMocks();
+     mockAgentService.getById.mockResolvedValue(baseAgent);
+     mockAgentService.getChainOfCommand.mockResolvedValue([]);
+     mockAgentService.resolveByReference.mockResolvedValue({ ambiguous: false, agent: baseAgent });
+     mockAgentService.create.mockResolvedValue(baseAgent);
+     mockAgentService.updatePermissions.mockResolvedValue(baseAgent);
++    mockAgentService.update.mockImplementation(async (id: string, patch: Record<string, unknown>) => ({
++      ...baseAgent,
++      id,
++      ...patch,
++    }));
+     mockAccessService.getMembership.mockResolvedValue({
+       id: "membership-1",
+       companyId,
+       principalType: "agent",
+       principalId: agentId,
+       status: "active",
+       membershipRole: "member",
+       createdAt: new Date("2026-03-19T00:00:00.000Z"),
+       updatedAt: new Date("2026-03-19T00:00:00.000Z"),
+     });
+     mockAccessService.listPrincipalGrants.mockResolvedValue([]);
+     mockAccessService.ensureMembership.mockResolvedValue(undefined);
+     mockAccessService.setPrincipalPermission.mockResolvedValue(undefined);
+     mockCompanySkillService.listRuntimeSkillEntries.mockResolvedValue([]);
+     mockCompanySkillService.resolveRequestedSkillKeys.mockImplementation(async (_companyId, requested) => requested);
+     mockBudgetService.upsertPolicy.mockResolvedValue(undefined);
+     mockAgentInstructionsService.materializeManagedBundle.mockImplementation(
+       async (agent: Record<string, unknown>, files: Record<string, string>) => ({
+         bundle: null,
+         adapterConfig: {
+           ...((agent.adapterConfig as Record<string, unknown> | undefined) ?? {}),
+           instructionsBundleMode: "managed",
+           instructionsRootPath: `/tmp/${String(agent.id)}/instructions`,
+           instructionsEntryFile: "AGENTS.md",
+           instructionsFilePath: `/tmp/${String(agent.id)}/instructions/AGENTS.md`,
+           promptTemplate: files["AGENTS.md"] ?? "",
+         },
+       }),
+     );
+     mockCompanySkillService.listRuntimeSkillEntries.mockResolvedValue([]);
+     mockCompanySkillService.resolveRequestedSkillKeys.mockImplementation(
+       async (_companyId: string, requested: string[]) => requested,
+     );
+     mockSecretService.normalizeAdapterConfigForPersistence.mockImplementation(async (_companyId, config) => config);
+     mockSecretService.resolveAdapterConfigForRuntime.mockImplementation(async (_companyId, config) => ({ config }));
+     mockLogActivity.mockResolvedValue(undefined);
+   });
+ 
+   it("grants tasks:assign by default when board creates a new agent", async () => {
+     const app = createApp({
+@@ -209,106 +215,204 @@ describe("agent permission routes", () => {
+       agentId,
+       "tasks:assign",
+       true,
+       "board-user",
+     );
+   });
+ 
+   it("exposes explicit task assignment access on agent detail", async () => {
+     mockAccessService.listPrincipalGrants.mockResolvedValue([
+       {
+         id: "grant-1",
+         companyId,
+         principalType: "agent",
+         principalId: agentId,
+         permissionKey: "tasks:assign",
+         scope: null,
+         grantedByUserId: "board-user",
+         createdAt: new Date("2026-03-19T00:00:00.000Z"),
+         updatedAt: new Date("2026-03-19T00:00:00.000Z"),
+       },
+     ]);
+ 
+     const app = createApp({
+       type: "board",
+       userId: "board-user",
+       source: "local_implicit",
+       isInstanceAdmin: true,
+       companyIds: [companyId],
+     });
+ 
+     const res = await request(app).get(`/api/agents/${agentId}`);
+ 
+     expect(res.status).toBe(200);
+     expect(res.body.access.canAssignTasks).toBe(true);
+     expect(res.body.access.taskAssignSource).toBe("explicit_grant");
+   });
+ 
+   it("keeps task assignment enabled when agent creation privilege is enabled", async () => {
+     mockAgentService.updatePermissions.mockResolvedValue({
+       ...baseAgent,
+-      permissions: { canCreateAgents: true },
++      permissions: { canCreateAgents: true, canUpdateDirectReportProfiles: false },
+     });
+ 
+     const app = createApp({
+       type: "board",
+       userId: "board-user",
+       source: "local_implicit",
+       isInstanceAdmin: true,
+       companyIds: [companyId],
+     });
+ 
+     const res = await request(app)
+       .patch(`/api/agents/${agentId}/permissions`)
+       .send({ canCreateAgents: true, canAssignTasks: false });
+ 
+     expect(res.status).toBe(200);
+     expect(mockAccessService.setPrincipalPermission).toHaveBeenCalledWith(
+       companyId,
+       "agent",
+       agentId,
+       "tasks:assign",
+       true,
+       "board-user",
+     );
+     expect(res.body.access.canAssignTasks).toBe(true);
+     expect(res.body.access.taskAssignSource).toBe("agent_creator");
+   });
+ 
++  it("allows the board to batch update basic agent profile fields", async () => {
++    const app = createApp({
++      type: "board",
++      userId: "board-user",
++      source: "local_implicit",
++      isInstanceAdmin: true,
++      companyIds: [companyId],
++    });
++
++    const res = await request(app)
++      .patch(`/api/companies/${companyId}/agents/basic-profile`)
++      .send({
++        updates: [
++          {
++            agentId,
++            name: "Platform CTO",
++            title: "Chief Technology Officer",
++            icon: "crown",
++          },
++        ],
++      });
++
++    expect(res.status).toBe(200);
++    expect(mockAgentService.update).toHaveBeenCalledWith(
++      agentId,
++      {
++        name: "Platform CTO",
++        title: "Chief Technology Officer",
++        icon: "crown",
++      },
++      expect.objectContaining({
++        recordRevision: expect.objectContaining({
++          source: "basic_profile_batch",
++        }),
++      }),
++    );
++    expect(res.body).toEqual([
++      expect.objectContaining({
++        id: agentId,
++        name: "Platform CTO",
++        title: "Chief Technology Officer",
++        icon: "crown",
++      }),
++    ]);
++  });
++
++  it("allows scoped managers to batch update direct reports only", async () => {
++    const managerId = "33333333-3333-4333-8333-333333333333";
++    const directReportId = "44444444-4444-4444-8444-444444444444";
++    const manager = {
++      ...baseAgent,
++      id: managerId,
++      role: "cto",
++      permissions: { canCreateAgents: false, canUpdateDirectReportProfiles: true },
++    };
++    const directReport = {
++      ...baseAgent,
++      id: directReportId,
++      reportsTo: managerId,
++    };
++    mockAgentService.getById.mockImplementation(async (id: string) => {
++      if (id === managerId) return manager;
++      if (id === directReportId) return directReport;
++      return baseAgent;
++    });
++    mockAgentService.update.mockImplementation(async (id: string, patch: Record<string, unknown>) => ({
++      ...directReport,
++      id,
++      ...patch,
++    }));
++
++    const app = createApp({
++      type: "agent",
++      agentId: managerId,
++      companyId,
++      runId: "run-1",
++      source: "agent_key",
++    });
++
++    const res = await request(app)
++      .patch(`/api/companies/${companyId}/agents/basic-profile`)
++      .send({
++        updates: [
++          {
++            agentId: directReportId,
++            name: "Frontend Designer",
++          },
++        ],
++      });
++
++    expect(res.status).toBe(200);
++    expect(mockAgentService.update).toHaveBeenCalledWith(
++      directReportId,
++      { name: "Frontend Designer" },
++      expect.any(Object),
++    );
++  });
++
+   it("exposes a dedicated agent route for the inbox mine view", async () => {
+     mockIssueService.list.mockResolvedValue([
+       {
+         id: "issue-1",
+         identifier: "PAP-910",
+         title: "Inbox follow-up",
+         status: "todo",
+       },
+     ]);
+ 
+     const app = createApp({
+       type: "agent",
+       agentId,
+       companyId,
+       runId: "run-1",
+       source: "agent_key",
+     });
+ 
+     const res = await request(app)
+       .get("/api/agents/me/inbox/mine")
+       .query({ userId: "board-user" });
+ 
+     expect(res.status).toBe(200);
+     expect(mockIssueService.list).toHaveBeenCalledWith(companyId, {
+       touchedByUserId: "board-user",
+       inboxArchivedByUserId: "board-user",
+       status: INBOX_MINE_ISSUE_STATUS_FILTER,
+     });
+     expect(res.body).toEqual([
+       {
+         id: "issue-1",
+         identifier: "PAP-910",
+         title: "Inbox follow-up",
+         status: "todo",
+       },
+     ]);
+   });
+ });
+diff --git a/server/src/__tests__/agent-skills-routes.test.ts b/server/src/__tests__/agent-skills-routes.test.ts
+index b90e7302..9868b9e1 100644
+--- a/server/src/__tests__/agent-skills-routes.test.ts
++++ b/server/src/__tests__/agent-skills-routes.test.ts
+@@ -466,41 +466,42 @@ describe("agent skill routes", () => {
+         adapterType: "claude_local",
+         adapterConfig: {
+           promptTemplate: "You are QA.",
+         },
+       });
+ 
+     expect(res.status, JSON.stringify(res.body)).toBe(201);
+     expect(mockAgentInstructionsService.materializeManagedBundle).toHaveBeenCalledWith(
+       expect.objectContaining({
+         id: "11111111-1111-4111-8111-111111111111",
+         role: "engineer",
+         adapterType: "claude_local",
+       }),
+       expect.objectContaining({
+         "AGENTS.md": expect.stringMatching(
+           /Keep the work moving until it's done\.[\s\S]*## Role-Specific Instructions[\s\S]*You are QA\./,
+         ),
+         "HEARTBEAT.md": expect.stringContaining("Worker Heartbeat Checklist"),
+         "SOUL.md": expect.stringContaining("Worker Persona"),
+         "TOOLS.md": expect.stringContaining("Use the Paperclip skill for coordination work"),
+       }),
+       { entryFile: "AGENTS.md", replaceExisting: false },
+     );
+     expect(mockApprovalService.create).toHaveBeenCalledWith(
+       "company-1",
+       expect.objectContaining({
+         payload: expect.objectContaining({
+           adapterConfig: expect.objectContaining({
+             instructionsBundleMode: "managed",
+             instructionsEntryFile: "AGENTS.md",
+             instructionsFilePath: "/tmp/11111111-1111-4111-8111-111111111111/instructions/AGENTS.md",
+           }),
+         }),
+       }),
+     );
+     const approvalInput = mockApprovalService.create.mock.calls.at(-1)?.[1] as
+       | { payload?: { adapterConfig?: Record<string, unknown> } }
+       | undefined;
+     expect(approvalInput?.payload?.adapterConfig?.promptTemplate).toBeUndefined();
+   });
++
+ });
+diff --git a/server/src/__tests__/heartbeat-workspace-session.test.ts b/server/src/__tests__/heartbeat-workspace-session.test.ts
+index 17718055..9cf4ad17 100644
+--- a/server/src/__tests__/heartbeat-workspace-session.test.ts
++++ b/server/src/__tests__/heartbeat-workspace-session.test.ts
+@@ -230,81 +230,81 @@ describe("buildRealizedExecutionWorkspaceFromPersisted", () => {
+         cleanupReason: null,
+         config: null,
+         metadata: null,
+         createdAt: new Date(),
+         updatedAt: new Date(),
+       },
+     });
+ 
+     expect(result).toBeNull();
+   });
+ });
+ 
+ describe("stripWorkspaceRuntimeFromExecutionRunConfig", () => {
+   it("removes workspace runtime before heartbeat execution", () => {
+     const input = {
+       cwd: "/tmp/project",
+       workspaceStrategy: {
+         type: "git_worktree",
+       },
+       workspaceRuntime: {
+         services: [{ name: "web" }],
+       },
+     };
+ 
+     const result = stripWorkspaceRuntimeFromExecutionRunConfig(input);
+ 
+     expect(result).toEqual({
+       cwd: "/tmp/project",
+       workspaceStrategy: {
+         type: "git_worktree",
+       },
+     });
+     expect(input.workspaceRuntime).toEqual({
+       services: [{ name: "web" }],
+     });
+   });
+ });
+ 
+ describe("shouldResetTaskSessionForWake", () => {
+   it("resets session context on assignment wake", () => {
+-    expect(shouldResetTaskSessionForWake({ wakeReason: "issue_assigned" })).toBe(true);
++    expect(shouldResetTaskSessionForWake({ wakeReason: "issue_assigned" })).toBe(false);
+   });
+ 
+   it("preserves session context on timer heartbeats", () => {
+     expect(shouldResetTaskSessionForWake({ wakeSource: "timer" })).toBe(false);
+   });
+ 
+   it("preserves session context on manual on-demand invokes by default", () => {
+     expect(
+       shouldResetTaskSessionForWake({
+         wakeSource: "on_demand",
+         wakeTriggerDetail: "manual",
+       }),
+     ).toBe(false);
+   });
+ 
+   it("resets session context when a fresh session is explicitly requested", () => {
+     expect(
+       shouldResetTaskSessionForWake({
+         wakeSource: "on_demand",
+         wakeTriggerDetail: "manual",
+         forceFreshSession: true,
+       }),
+     ).toBe(true);
+   });
+ 
+   it("does not reset session context on mention wake comment", () => {
+     expect(
+       shouldResetTaskSessionForWake({
+         wakeReason: "issue_comment_mentioned",
+         wakeCommentId: "comment-1",
+       }),
+     ).toBe(false);
+   });
+ 
+   it("does not reset session context when commentId is present", () => {
+     expect(
+       shouldResetTaskSessionForWake({
+         wakeReason: "issue_commented",
+         commentId: "comment-2",
+       }),
+diff --git a/server/src/routes/agents.ts b/server/src/routes/agents.ts
+index 963773ab..31f2b353 100644
+--- a/server/src/routes/agents.ts
++++ b/server/src/routes/agents.ts
+@@ -1,59 +1,61 @@
+ import { Router, type Request } from "express";
+ import { generateKeyPairSync, randomUUID } from "node:crypto";
+ import path from "node:path";
+ import type { Db } from "@paperclipai/db";
+ import { agents as agentsTable, companies, heartbeatRuns } from "@paperclipai/db";
+ import { and, desc, eq, inArray, not, sql } from "drizzle-orm";
+ import {
+   agentSkillSyncSchema,
+   agentMineInboxQuerySchema,
+   createAgentKeySchema,
+   createAgentHireSchema,
+   createAgentSchema,
+   deriveAgentUrlKey,
+   isUuidLike,
+   resetAgentSessionSchema,
+   testAdapterEnvironmentSchema,
+   type AgentSkillSnapshot,
+   type InstanceSchedulerHeartbeatAgent,
++  type UpdateBasicAgentProfiles,
+   upsertAgentInstructionsFileSchema,
++  updateBasicAgentProfilesSchema,
+   updateAgentInstructionsBundleSchema,
+   updateAgentPermissionsSchema,
+   updateAgentInstructionsPathSchema,
+   wakeAgentSchema,
+   updateAgentSchema,
+ } from "@paperclipai/shared";
+ import {
+   readPaperclipSkillSyncPreference,
+   writePaperclipSkillSyncPreference,
+ } from "@paperclipai/adapter-utils/server-utils";
+ import { validate } from "../middleware/validate.js";
+ import {
+   agentService,
+   agentInstructionsService,
+   accessService,
+   approvalService,
+   companySkillService,
+   budgetService,
+   heartbeatService,
+   issueApprovalService,
+   issueService,
+   logActivity,
+   secretService,
+   syncInstructionsBundleConfigFromFilePath,
+   workspaceOperationService,
+ } from "../services/index.js";
+ import { conflict, forbidden, notFound, unprocessable } from "../errors.js";
+ import { assertBoard, assertCompanyAccess, assertInstanceAdmin, getActorInfo } from "./authz.js";
+ import { findServerAdapter, listAdapterModels, detectAdapterModel } from "../adapters/index.js";
+ import { redactEventPayload } from "../redaction.js";
+ import { redactCurrentUserValue } from "../log-redaction.js";
+ import { renderOrgChartSvg, renderOrgChartPng, type OrgNode, type OrgChartStyle, ORG_CHART_STYLES } from "./org-chart-svg.js";
+ import { instanceSettingsService } from "../services/instance-settings.js";
+ import { runClaudeLogin } from "@paperclipai/adapter-claude-local/server";
+ import {
+   DEFAULT_CODEX_LOCAL_BYPASS_APPROVALS_AND_SANDBOX,
+   DEFAULT_CODEX_LOCAL_MODEL,
+ } from "@paperclipai/adapter-codex-local";
+ import { DEFAULT_CURSOR_LOCAL_MODEL } from "@paperclipai/adapter-cursor-local";
+ import { DEFAULT_GEMINI_LOCAL_MODEL } from "@paperclipai/adapter-gemini-local";
+@@ -70,80 +72,87 @@ export function agentRoutes(db: Db) {
+     gemini_local: "instructionsFilePath",
+     opencode_local: "instructionsFilePath",
+     cursor: "instructionsFilePath",
+     pi_local: "instructionsFilePath",
+   };
+   const DEFAULT_MANAGED_INSTRUCTIONS_ADAPTER_TYPES = new Set(Object.keys(DEFAULT_INSTRUCTIONS_PATH_KEYS));
+   const KNOWN_INSTRUCTIONS_PATH_KEYS = new Set(["instructionsFilePath", "agentsMdPath"]);
+   const KNOWN_INSTRUCTIONS_BUNDLE_KEYS = [
+     "instructionsBundleMode",
+     "instructionsRootPath",
+     "instructionsEntryFile",
+     "instructionsFilePath",
+     "agentsMdPath",
+   ] as const;
+ 
+   const router = Router();
+   const svc = agentService(db);
+   const access = accessService(db);
+   const approvalsSvc = approvalService(db);
+   const budgets = budgetService(db);
+   const heartbeat = heartbeatService(db);
+   const issueApprovalsSvc = issueApprovalService(db);
+   const secretsSvc = secretService(db);
+   const instructions = agentInstructionsService();
+   const companySkills = companySkillService(db);
+   const workspaceOperations = workspaceOperationService(db);
+   const instanceSettings = instanceSettingsService(db);
+   const strictSecretsMode = process.env.PAPERCLIP_SECRETS_STRICT_MODE === "true";
+ 
+   async function getCurrentUserRedactionOptions() {
+     return {
+       enabled: (await instanceSettings.getGeneral()).censorUsernameInLogs,
+     };
+   }
+ 
+   function canCreateAgents(agent: { role: string; permissions: Record<string, unknown> | null | undefined }) {
+     if (!agent.permissions || typeof agent.permissions !== "object") return false;
+     return Boolean((agent.permissions as Record<string, unknown>).canCreateAgents);
+   }
+ 
++  function canUpdateDirectReportProfiles(agent: {
++    permissions: Record<string, unknown> | null | undefined;
++  }) {
++    if (!agent.permissions || typeof agent.permissions !== "object") return false;
++    return Boolean((agent.permissions as Record<string, unknown>).canUpdateDirectReportProfiles);
++  }
++
+   async function buildAgentAccessState(agent: NonNullable<Awaited<ReturnType<typeof svc.getById>>>) {
+     const membership = await access.getMembership(agent.companyId, "agent", agent.id);
+     const grants = membership
+       ? await access.listPrincipalGrants(agent.companyId, "agent", agent.id)
+       : [];
+     const hasExplicitTaskAssignGrant = grants.some((grant) => grant.permissionKey === "tasks:assign");
+ 
+     if (agent.role === "ceo") {
+       return {
+         canAssignTasks: true,
+         taskAssignSource: "ceo_role" as const,
+         membership,
+         grants,
+       };
+     }
+ 
+     if (canCreateAgents(agent)) {
+       return {
+         canAssignTasks: true,
+         taskAssignSource: "agent_creator" as const,
+         membership,
+         grants,
+       };
+     }
+ 
+     if (hasExplicitTaskAssignGrant) {
+       return {
+         canAssignTasks: true,
+         taskAssignSource: "explicit_grant" as const,
+         membership,
+         grants,
+       };
+     }
+ 
+     return {
+       canAssignTasks: false,
+       taskAssignSource: "none" as const,
+       membership,
+       grants,
+     };
+@@ -838,80 +847,161 @@ export function agentRoutes(db: Db) {
+               adapterType: updated.adapterType,
+               config: runtimeSkillConfig,
+             })
+           : buildUnsupportedSkillSnapshot(updated.adapterType, desiredSkills);
+ 
+       await logActivity(db, {
+         companyId: updated.companyId,
+         actorType: actor.actorType,
+         actorId: actor.actorId,
+         action: "agent.skills_synced",
+         entityType: "agent",
+         entityId: updated.id,
+         agentId: actor.agentId,
+         runId: actor.runId,
+         details: {
+           adapterType: updated.adapterType,
+           desiredSkills,
+           mode: snapshot.mode,
+           supported: snapshot.supported,
+           entryCount: snapshot.entries.length,
+           warningCount: snapshot.warnings.length,
+         },
+       });
+ 
+       res.json(snapshot);
+     },
+   );
+ 
+   router.get("/companies/:companyId/agents", async (req, res) => {
+     const companyId = req.params.companyId as string;
+     assertCompanyAccess(req, companyId);
+     const result = await svc.list(companyId);
+     const canReadConfigs = await actorCanReadConfigurationsForCompany(req, companyId);
+     if (canReadConfigs || req.actor.type === "board") {
+       res.json(result);
+       return;
+     }
+     res.json(result.map((agent) => redactForRestrictedAgentView(agent)));
+   });
+ 
++  router.patch(
++    "/companies/:companyId/agents/basic-profile",
++    validate(updateBasicAgentProfilesSchema),
++    async (req, res) => {
++      const companyId = req.params.companyId as string;
++      assertCompanyAccess(req, companyId);
++      const body = req.body as UpdateBasicAgentProfiles;
++
++      let actorAgent:
++        | NonNullable<Awaited<ReturnType<typeof svc.getById>>>
++        | null = null;
++
++      if (req.actor.type === "agent") {
++        actorAgent = req.actor.agentId ? await svc.getById(req.actor.agentId) : null;
++        if (!actorAgent || actorAgent.companyId !== companyId) {
++          res.status(403).json({ error: "Agent authentication required" });
++          return;
++        }
++        if (actorAgent.role !== "ceo" && !canUpdateDirectReportProfiles(actorAgent)) {
++          res.status(403).json({ error: "Missing permission: can update direct report profiles" });
++          return;
++        }
++      }
++
++      const targetIds = Array.from(new Set(body.updates.map((entry) => entry.agentId)));
++      const targets = new Map<string, NonNullable<Awaited<ReturnType<typeof svc.getById>>>>();
++      for (const targetId of targetIds) {
++        const target = await svc.getById(targetId);
++        if (!target || target.companyId !== companyId) {
++          res.status(404).json({ error: "Agent not found" });
++          return;
++        }
++        targets.set(targetId, target);
++      }
++
++      if (actorAgent && actorAgent.role !== "ceo") {
++        const invalidTarget = body.updates.find((entry) => targets.get(entry.agentId)?.reportsTo !== actorAgent.id);
++        if (invalidTarget) {
++          res.status(403).json({ error: "Can only update direct reports" });
++          return;
++        }
++      }
++
++      const actor = getActorInfo(req);
++      const updatedAgents = [];
++      for (const entry of body.updates) {
++        const patch: Record<string, unknown> = {};
++        if (entry.name !== undefined) patch.name = entry.name;
++        if (entry.title !== undefined) patch.title = entry.title;
++        if (entry.icon !== undefined) patch.icon = entry.icon;
++
++        const updated = await svc.update(entry.agentId, patch, {
++          recordRevision: {
++            createdByAgentId: actor.agentId,
++            createdByUserId: actor.actorType === "user" ? actor.actorId : null,
++            source: "basic_profile_batch",
++          },
++        });
++        if (!updated) {
++          res.status(404).json({ error: "Agent not found" });
++          return;
++        }
++
++        updatedAgents.push(updated);
++        await logActivity(db, {
++          companyId: updated.companyId,
++          actorType: actor.actorType,
++          actorId: actor.actorId,
++          agentId: actor.agentId,
++          runId: actor.runId,
++          action: "agent.updated",
++          entityType: "agent",
++          entityId: updated.id,
++          details: summarizeAgentUpdateDetails(patch),
++        });
++      }
++
++      res.json(updatedAgents);
++    },
++  );
++
+   router.get("/instance/scheduler-heartbeats", async (req, res) => {
+     assertInstanceAdmin(req);
+ 
+     const rows = await db
+       .select({
+         id: agentsTable.id,
+         companyId: agentsTable.companyId,
+         agentName: agentsTable.name,
+         role: agentsTable.role,
+         title: agentsTable.title,
+         status: agentsTable.status,
+         adapterType: agentsTable.adapterType,
+         runtimeConfig: agentsTable.runtimeConfig,
+         lastHeartbeatAt: agentsTable.lastHeartbeatAt,
+         companyName: companies.name,
+         companyIssuePrefix: companies.issuePrefix,
+       })
+       .from(agentsTable)
+       .innerJoin(companies, eq(agentsTable.companyId, companies.id))
+       .orderBy(companies.name, agentsTable.name);
+ 
+     const items: InstanceSchedulerHeartbeatAgent[] = rows
+       .map((row) => {
+         const policy = parseSchedulerHeartbeatPolicy(row.runtimeConfig);
+         const statusEligible =
+           row.status !== "paused" &&
+           row.status !== "terminated" &&
+           row.status !== "pending_approval";
+ 
+         return {
+           id: row.id,
+           companyId: row.companyId,
+           companyName: row.companyName,
+           companyIssuePrefix: row.companyIssuePrefix,
+           agentName: row.agentName,
+           agentUrlKey: deriveAgentUrlKey(row.agentName, row.id),
+           role: row.role as InstanceSchedulerHeartbeatAgent["role"],
+           title: row.title,
+           status: row.status as InstanceSchedulerHeartbeatAgent["status"],
+           adapterType: row.adapterType,
+@@ -1413,111 +1503,116 @@ export function agentRoutes(db: Db) {
+       req.actor.type === "board" ? (req.actor.userId ?? null) : null,
+     );
+ 
+     if (agent.budgetMonthlyCents > 0) {
+       await budgets.upsertPolicy(
+         companyId,
+         {
+           scopeType: "agent",
+           scopeId: agent.id,
+           amount: agent.budgetMonthlyCents,
+           windowKind: "calendar_month_utc",
+         },
+         actor.actorType === "user" ? actor.actorId : null,
+       );
+     }
+ 
+     res.status(201).json(agent);
+   });
+ 
+   router.patch("/agents/:id/permissions", validate(updateAgentPermissionsSchema), async (req, res) => {
+     const id = req.params.id as string;
+     const existing = await svc.getById(id);
+     if (!existing) {
+       res.status(404).json({ error: "Agent not found" });
+       return;
+     }
+     assertCompanyAccess(req, existing.companyId);
+ 
+     if (req.actor.type === "agent") {
+       const actorAgent = req.actor.agentId ? await svc.getById(req.actor.agentId) : null;
+       if (!actorAgent || actorAgent.companyId !== existing.companyId) {
+         res.status(403).json({ error: "Forbidden" });
+         return;
+       }
+       if (actorAgent.role !== "ceo") {
+         res.status(403).json({ error: "Only CEO can manage permissions" });
+         return;
+       }
+     }
+ 
+-    const agent = await svc.updatePermissions(id, req.body);
++    const agent = await svc.updatePermissions(id, {
++      canCreateAgents: req.body.canCreateAgents,
++      canUpdateDirectReportProfiles:
++        req.body.canUpdateDirectReportProfiles ?? existing.permissions?.canUpdateDirectReportProfiles ?? false,
++    });
+     if (!agent) {
+       res.status(404).json({ error: "Agent not found" });
+       return;
+     }
+ 
+     const effectiveCanAssignTasks =
+       agent.role === "ceo" || Boolean(agent.permissions?.canCreateAgents) || req.body.canAssignTasks;
+     await access.ensureMembership(agent.companyId, "agent", agent.id, "member", "active");
+     await access.setPrincipalPermission(
+       agent.companyId,
+       "agent",
+       agent.id,
+       "tasks:assign",
+       effectiveCanAssignTasks,
+       req.actor.type === "board" ? (req.actor.userId ?? null) : null,
+     );
+ 
+     const actor = getActorInfo(req);
+     await logActivity(db, {
+       companyId: agent.companyId,
+       actorType: actor.actorType,
+       actorId: actor.actorId,
+       agentId: actor.agentId,
+       runId: actor.runId,
+       action: "agent.permissions_updated",
+       entityType: "agent",
+       entityId: agent.id,
+       details: {
+         canCreateAgents: agent.permissions?.canCreateAgents ?? false,
+         canAssignTasks: effectiveCanAssignTasks,
++        canUpdateDirectReportProfiles: agent.permissions?.canUpdateDirectReportProfiles ?? false,
+       },
+     });
+ 
+     res.json(await buildAgentDetail(agent));
+   });
+ 
+   router.patch("/agents/:id/instructions-path", validate(updateAgentInstructionsPathSchema), async (req, res) => {
+     const id = req.params.id as string;
+     const existing = await svc.getById(id);
+     if (!existing) {
+       res.status(404).json({ error: "Agent not found" });
+       return;
+     }
+ 
+     await assertCanManageInstructionsPath(req, existing);
+ 
+     const existingAdapterConfig = asRecord(existing.adapterConfig) ?? {};
+     const explicitKey = asNonEmptyString(req.body.adapterConfigKey);
+     const defaultKey = DEFAULT_INSTRUCTIONS_PATH_KEYS[existing.adapterType] ?? null;
+     const adapterConfigKey = explicitKey ?? defaultKey;
+     if (!adapterConfigKey) {
+       res.status(422).json({
+         error: `No default instructions path key for adapter type '${existing.adapterType}'. Provide adapterConfigKey.`,
+       });
+       return;
+     }
+ 
+     const nextAdapterConfig: Record<string, unknown> = { ...existingAdapterConfig };
+     if (req.body.path === null) {
+       delete nextAdapterConfig[adapterConfigKey];
+     } else {
+       nextAdapterConfig[adapterConfigKey] = resolveInstructionsFilePath(req.body.path, existingAdapterConfig);
+     }
+ 
+     const syncedAdapterConfig = syncInstructionsBundleConfigFromFilePath(existing, nextAdapterConfig);
+     const normalizedAdapterConfig = await secretsSvc.normalizeAdapterConfigForPersistence(
+       existing.companyId,
+       syncedAdapterConfig,
+       { strictMode: strictSecretsMode },
+     );
+diff --git a/server/src/services/heartbeat.ts b/server/src/services/heartbeat.ts
+index 60b06680..db444ad6 100644
+--- a/server/src/services/heartbeat.ts
++++ b/server/src/services/heartbeat.ts
+@@ -1,179 +1,184 @@
+ import fs from "node:fs/promises";
+ import path from "node:path";
+ import { execFile as execFileCallback } from "node:child_process";
+ import { promisify } from "node:util";
+ import { and, asc, desc, eq, gt, inArray, sql } from "drizzle-orm";
+ import type { Db } from "@paperclipai/db";
+-import type { BillingType, ExecutionWorkspace, ExecutionWorkspaceConfig } from "@paperclipai/shared";
++import type { ExecutionWorkspaceConfig } from "@paperclipai/shared";
+ import {
+   agents,
+   agentRuntimeState,
+   agentTaskSessions,
+   agentWakeupRequests,
+   heartbeatRunEvents,
+   heartbeatRuns,
+   issues,
+   projects,
+   projectWorkspaces,
+ } from "@paperclipai/db";
+ import { conflict, HttpError, notFound } from "../errors.js";
+ import { logger } from "../middleware/logger.js";
+ import { publishLiveEvent } from "./live-events.js";
+ import { getRunLogStore, type RunLogHandle } from "./run-log-store.js";
+ import { getServerAdapter, runningProcesses } from "../adapters/index.js";
+-import type { AdapterExecutionResult, AdapterInvocationMeta, AdapterSessionCodec, UsageSummary } from "../adapters/index.js";
++import type { AdapterExecutionResult, AdapterInvocationMeta, AdapterSessionCodec } from "../adapters/index.js";
+ import { createLocalAgentJwt } from "../agent-auth-jwt.js";
+-import { parseObject, asBoolean, asNumber, appendWithCap, MAX_EXCERPT_BYTES } from "../adapters/utils.js";
++import { parseObject, asBoolean, asNumber } from "../adapters/utils.js";
+ import { costService } from "./costs.js";
+ import { companySkillService } from "./company-skills.js";
+ import { budgetService, type BudgetEnforcementScope } from "./budgets.js";
+ import { secretService } from "./secrets.js";
+-import { resolveDefaultAgentWorkspaceDir, resolveManagedProjectWorkspaceDir } from "../home-paths.js";
++import {
++  resolveDefaultAgentWorkspaceDir,
++  resolveManagedProjectWorkspaceDir,
++} from "../home-paths.js";
+ import { summarizeHeartbeatRunResultJson } from "./heartbeat-run-summary.js";
+ import {
+   buildWorkspaceReadyComment,
+   cleanupExecutionWorkspaceArtifacts,
+   ensureRuntimeServicesForRun,
+   persistAdapterManagedRuntimeServices,
+   realizeExecutionWorkspace,
+   releaseRuntimeServicesForRun,
+   type ExecutionWorkspaceInput,
+-  type RealizedExecutionWorkspace,
+   sanitizeRuntimeServiceBaseEnv,
+ } from "./workspace-runtime.js";
+ import { issueService } from "./issues.js";
+ import { executionWorkspaceService, mergeExecutionWorkspaceConfig } from "./execution-workspaces.js";
+ import { workspaceOperationService } from "./workspace-operations.js";
+ import {
+   buildExecutionWorkspaceAdapterConfig,
+   gateProjectExecutionWorkspacePolicy,
+   issueExecutionWorkspaceModeForPersistedWorkspace,
+   parseIssueExecutionWorkspaceSettings,
+   parseProjectExecutionWorkspacePolicy,
+   resolveExecutionWorkspaceMode,
+ } from "./execution-workspace-policy.js";
+ import { instanceSettingsService } from "./instance-settings.js";
+ import { redactCurrentUserText, redactCurrentUserValue } from "../log-redaction.js";
+ import {
+   hasSessionCompactionThresholds,
+-  resolveSessionCompactionPolicy,
+   type SessionCompactionPolicy,
+ } from "@paperclipai/adapter-utils";
++import {
++  type InstructionsCompatibilityAction,
++  ensureLegacyInstructionsCompatibilityFiles,
++  refreshLegacyManagedInstructionsBundleIfNeeded,
++} from "./heartbeat/instructions-compat.js";
++import {
++  deriveCommentId,
++  deriveTaskKeyWithHeartbeatFallback,
++  describeSessionResetReason,
++  enrichWakeContextSnapshot,
++  isSameTaskScope,
++  mergeCoalescedContextSnapshot,
++  runTaskKey,
++  shouldResetTaskSessionForWake,
++} from "./heartbeat/context.js";
++import {
++  appendExcerpt,
++  formatCount,
++  normalizeMaxConcurrentRuns,
++  normalizeSessionParams,
++  readNonEmptyString,
++  truncateDisplayId,
++} from "./heartbeat/shared.js";
++import {
++  applyPersistedExecutionWorkspaceConfig,
++  buildRealizedExecutionWorkspaceFromPersisted,
++  formatRuntimeWorkspaceWarningLog,
++  prioritizeProjectWorkspaceCandidatesForRun,
++  stripWorkspaceRuntimeFromExecutionRunConfig,
++  type ResolvedWorkspaceForRun,
++} from "./heartbeat/workspace.js";
++import {
++  buildExplicitResumeSessionOverride,
++  parseSessionCompactionPolicy,
++  resolveRuntimeSessionParamsForWorkspace,
++} from "./heartbeat/session.js";
++import {
++  deriveNormalizedUsageDelta,
++  normalizeBilledCostCents,
++  normalizeLedgerBillingType,
++  normalizeUsageTotals,
++  readRawUsageTotals,
++  resolveLedgerBiller,
++  resolveLedgerScopeForRun,
++} from "./heartbeat/usage.js";
++
++export {
++  deriveTaskKeyWithHeartbeatFallback,
++  shouldResetTaskSessionForWake,
++} from "./heartbeat/context.js";
++export {
++  applyPersistedExecutionWorkspaceConfig,
++  buildRealizedExecutionWorkspaceFromPersisted,
++  formatRuntimeWorkspaceWarningLog,
++  prioritizeProjectWorkspaceCandidatesForRun,
++  stripWorkspaceRuntimeFromExecutionRunConfig,
++} from "./heartbeat/workspace.js";
++export {
++  buildExplicitResumeSessionOverride,
++  parseSessionCompactionPolicy,
++  resolveRuntimeSessionParamsForWorkspace,
++} from "./heartbeat/session.js";
++export type { ResolvedWorkspaceForRun } from "./heartbeat/workspace.js";
+ 
+ const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
+ const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
+ const HEARTBEAT_MAX_CONCURRENT_RUNS_MAX = 10;
+ const DEFERRED_WAKE_CONTEXT_KEY = "_paperclipWakeContext";
+ const DETACHED_PROCESS_ERROR_CODE = "process_detached";
+ const startLocksByAgent = new Map<string, Promise<void>>();
+ const REPO_ONLY_CWD_SENTINEL = "/__paperclip_repo_only__";
+ const MANAGED_WORKSPACE_GIT_CLONE_TIMEOUT_MS = 10 * 60 * 1000;
+ const execFile = promisify(execFileCallback);
+ const SESSIONED_LOCAL_ADAPTERS = new Set([
+   "claude_local",
+   "codex_local",
+   "cursor",
+   "gemini_local",
+   "opencode_local",
+   "pi_local",
+ ]);
+ 
+-export function applyPersistedExecutionWorkspaceConfig(input: {
+-  config: Record<string, unknown>;
+-  workspaceConfig: ExecutionWorkspaceConfig | null;
+-  mode: ReturnType<typeof resolveExecutionWorkspaceMode>;
+-}) {
+-  const nextConfig = { ...input.config };
+-
+-  if (input.mode !== "agent_default") {
+-    if (input.workspaceConfig?.workspaceRuntime === null) {
+-      delete nextConfig.workspaceRuntime;
+-    } else if (input.workspaceConfig?.workspaceRuntime) {
+-      nextConfig.workspaceRuntime = { ...input.workspaceConfig.workspaceRuntime };
+-    }
+-  }
+-
+-  if (input.workspaceConfig && input.mode === "isolated_workspace") {
+-    const nextStrategy = parseObject(nextConfig.workspaceStrategy);
+-    if (input.workspaceConfig.provisionCommand === null) delete nextStrategy.provisionCommand;
+-    else nextStrategy.provisionCommand = input.workspaceConfig.provisionCommand;
+-    if (input.workspaceConfig.teardownCommand === null) delete nextStrategy.teardownCommand;
+-    else nextStrategy.teardownCommand = input.workspaceConfig.teardownCommand;
+-    nextConfig.workspaceStrategy = nextStrategy;
+-  }
+-
+-  return nextConfig;
+-}
+-
+-export function stripWorkspaceRuntimeFromExecutionRunConfig(config: Record<string, unknown>) {
+-  const nextConfig = { ...config };
+-  delete nextConfig.workspaceRuntime;
+-  return nextConfig;
+-}
+-
+-export function buildRealizedExecutionWorkspaceFromPersisted(input: {
+-  base: ExecutionWorkspaceInput;
+-  workspace: ExecutionWorkspace;
+-}): RealizedExecutionWorkspace | null {
+-  const cwd = readNonEmptyString(input.workspace.cwd) ?? readNonEmptyString(input.workspace.providerRef);
+-  if (!cwd) {
+-    return null;
+-  }
+-
+-  const strategy = input.workspace.strategyType === "git_worktree" ? "git_worktree" : "project_primary";
+-  return {
+-    baseCwd: input.base.baseCwd,
+-    source: input.workspace.mode === "shared_workspace" ? "project_primary" : "task_session",
+-    projectId: input.workspace.projectId ?? input.base.projectId,
+-    workspaceId: input.workspace.projectWorkspaceId ?? input.base.workspaceId,
+-    repoUrl: input.workspace.repoUrl ?? input.base.repoUrl,
+-    repoRef: input.workspace.baseRef ?? input.base.repoRef,
+-    strategy,
+-    cwd,
+-    branchName: input.workspace.branchName ?? null,
+-    worktreePath: strategy === "git_worktree" ? (readNonEmptyString(input.workspace.providerRef) ?? cwd) : null,
+-    warnings: [],
+-    created: false,
+-  };
+-}
+-
+ function buildExecutionWorkspaceConfigSnapshot(config: Record<string, unknown>): Partial<ExecutionWorkspaceConfig> | null {
+   const strategy = parseObject(config.workspaceStrategy);
+   const snapshot: Partial<ExecutionWorkspaceConfig> = {};
+ 
+   if ("workspaceStrategy" in config) {
+     snapshot.provisionCommand = typeof strategy.provisionCommand === "string" ? strategy.provisionCommand : null;
+     snapshot.teardownCommand = typeof strategy.teardownCommand === "string" ? strategy.teardownCommand : null;
+   }
+ 
+   if ("workspaceRuntime" in config) {
+     const workspaceRuntime = parseObject(config.workspaceRuntime);
+     snapshot.workspaceRuntime = Object.keys(workspaceRuntime).length > 0 ? workspaceRuntime : null;
+   }
+ 
+   const hasSnapshot = Object.values(snapshot).some((value) => {
+     if (value === null) return false;
+     if (typeof value === "object") return Object.keys(value).length > 0;
+     return true;
+   });
+   return hasSnapshot ? snapshot : null;
+ }
+ 
+ function deriveRepoNameFromRepoUrl(repoUrl: string | null): string | null {
+   const trimmed = repoUrl?.trim() ?? "";
+   if (!trimmed) return null;
+   try {
+     const parsed = new URL(trimmed);
+     const cleanedPath = parsed.pathname.replace(/\/+$/, "");
+     const repoName = cleanedPath.split("/").filter(Boolean).pop()?.replace(/\.git$/i, "") ?? "";
+     return repoName || null;
+   } catch {
+     return null;
+   }
+ }
+ 
+ async function ensureManagedProjectWorkspace(input: {
+   companyId: string;
+   projectId: string;
+   repoUrl: string | null;
+ }): Promise<{ cwd: string; warning: string | null }> {
+@@ -221,643 +226,192 @@ async function ensureManagedProjectWorkspace(input: {
+     const reason = error instanceof Error ? error.message : String(error);
+     throw new Error(`Failed to prepare managed checkout for "${input.repoUrl}" at "${cwd}": ${reason}`);
+   }
+ }
+ 
+ const heartbeatRunListColumns = {
+   id: heartbeatRuns.id,
+   companyId: heartbeatRuns.companyId,
+   agentId: heartbeatRuns.agentId,
+   invocationSource: heartbeatRuns.invocationSource,
+   triggerDetail: heartbeatRuns.triggerDetail,
+   status: heartbeatRuns.status,
+   startedAt: heartbeatRuns.startedAt,
+   finishedAt: heartbeatRuns.finishedAt,
+   error: heartbeatRuns.error,
+   wakeupRequestId: heartbeatRuns.wakeupRequestId,
+   exitCode: heartbeatRuns.exitCode,
+   signal: heartbeatRuns.signal,
+   usageJson: heartbeatRuns.usageJson,
+   resultJson: heartbeatRuns.resultJson,
+   sessionIdBefore: heartbeatRuns.sessionIdBefore,
+   sessionIdAfter: heartbeatRuns.sessionIdAfter,
+   logStore: heartbeatRuns.logStore,
+   logRef: heartbeatRuns.logRef,
+   logBytes: heartbeatRuns.logBytes,
+   logSha256: heartbeatRuns.logSha256,
+   logCompressed: heartbeatRuns.logCompressed,
+   stdoutExcerpt: sql<string | null>`NULL`.as("stdoutExcerpt"),
+   stderrExcerpt: sql<string | null>`NULL`.as("stderrExcerpt"),
+   errorCode: heartbeatRuns.errorCode,
+   externalRunId: heartbeatRuns.externalRunId,
+   processPid: heartbeatRuns.processPid,
+   processStartedAt: heartbeatRuns.processStartedAt,
+   retryOfRunId: heartbeatRuns.retryOfRunId,
+   processLossRetryCount: heartbeatRuns.processLossRetryCount,
+   contextSnapshot: heartbeatRuns.contextSnapshot,
+   createdAt: heartbeatRuns.createdAt,
+   updatedAt: heartbeatRuns.updatedAt,
+ } as const;
+ 
+-function appendExcerpt(prev: string, chunk: string) {
+-  return appendWithCap(prev, chunk, MAX_EXCERPT_BYTES);
+-}
+-
+-function normalizeMaxConcurrentRuns(value: unknown) {
+-  const parsed = Math.floor(asNumber(value, HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT));
+-  if (!Number.isFinite(parsed)) return HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT;
+-  return Math.max(HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT, Math.min(HEARTBEAT_MAX_CONCURRENT_RUNS_MAX, parsed));
+-}
+-
+ async function withAgentStartLock<T>(agentId: string, fn: () => Promise<T>) {
+   const previous = startLocksByAgent.get(agentId) ?? Promise.resolve();
+   const run = previous.then(fn);
+   const marker = run.then(
+     () => undefined,
+     () => undefined,
+   );
+   startLocksByAgent.set(agentId, marker);
+   try {
+     return await run;
+   } finally {
+     if (startLocksByAgent.get(agentId) === marker) {
+       startLocksByAgent.delete(agentId);
+     }
+   }
+ }
+ 
+ interface WakeupOptions {
+   source?: "timer" | "assignment" | "on_demand" | "automation";
+   triggerDetail?: "manual" | "ping" | "callback" | "system";
+   reason?: string | null;
+   payload?: Record<string, unknown> | null;
+   idempotencyKey?: string | null;
+   requestedByActorType?: "user" | "agent" | "system";
+   requestedByActorId?: string | null;
+   contextSnapshot?: Record<string, unknown>;
+ }
+ 
+ type UsageTotals = {
+   inputTokens: number;
+   cachedInputTokens: number;
+   outputTokens: number;
+ };
+ 
+ type SessionCompactionDecision = {
+   rotate: boolean;
+   reason: string | null;
+   handoffMarkdown: string | null;
+   previousRunId: string | null;
+ };
+ 
+ interface ParsedIssueAssigneeAdapterOverrides {
+   adapterConfig: Record<string, unknown> | null;
+   useProjectWorkspace: boolean | null;
+ }
+ 
+-export type ResolvedWorkspaceForRun = {
+-  cwd: string;
+-  source: "project_primary" | "task_session" | "agent_home";
+-  projectId: string | null;
+-  workspaceId: string | null;
+-  repoUrl: string | null;
+-  repoRef: string | null;
+-  workspaceHints: Array<{
+-    workspaceId: string;
+-    cwd: string | null;
+-    repoUrl: string | null;
+-    repoRef: string | null;
+-  }>;
+-  warnings: string[];
+-};
+-
+-type ProjectWorkspaceCandidate = {
+-  id: string;
+-};
+-
+-export function prioritizeProjectWorkspaceCandidatesForRun<T extends ProjectWorkspaceCandidate>(
+-  rows: T[],
+-  preferredWorkspaceId: string | null | undefined,
+-): T[] {
+-  if (!preferredWorkspaceId) return rows;
+-  const preferredIndex = rows.findIndex((row) => row.id === preferredWorkspaceId);
+-  if (preferredIndex <= 0) return rows;
+-  return [rows[preferredIndex]!, ...rows.slice(0, preferredIndex), ...rows.slice(preferredIndex + 1)];
+-}
+-
+-function readNonEmptyString(value: unknown): string | null {
+-  return typeof value === "string" && value.trim().length > 0 ? value : null;
+-}
+-
+-function normalizeLedgerBillingType(value: unknown): BillingType {
+-  const raw = readNonEmptyString(value);
+-  switch (raw) {
+-    case "api":
+-    case "metered_api":
+-      return "metered_api";
+-    case "subscription":
+-    case "subscription_included":
+-      return "subscription_included";
+-    case "subscription_overage":
+-      return "subscription_overage";
+-    case "credits":
+-      return "credits";
+-    case "fixed":
+-      return "fixed";
+-    default:
+-      return "unknown";
+-  }
+-}
+-
+-function resolveLedgerBiller(result: AdapterExecutionResult): string {
+-  return readNonEmptyString(result.biller) ?? readNonEmptyString(result.provider) ?? "unknown";
+-}
+-
+-function normalizeBilledCostCents(costUsd: number | null | undefined, billingType: BillingType): number {
+-  if (billingType === "subscription_included") return 0;
+-  if (typeof costUsd !== "number" || !Number.isFinite(costUsd)) return 0;
+-  return Math.max(0, Math.round(costUsd * 100));
+-}
+-
+-async function resolveLedgerScopeForRun(
+-  db: Db,
+-  companyId: string,
+-  run: typeof heartbeatRuns.$inferSelect,
+-) {
+-  const context = parseObject(run.contextSnapshot);
+-  const contextIssueId = readNonEmptyString(context.issueId);
+-  const contextProjectId = readNonEmptyString(context.projectId);
+-
+-  if (!contextIssueId) {
+-    return {
+-      issueId: null,
+-      projectId: contextProjectId,
+-    };
+-  }
+-
+-  const issue = await db
+-    .select({
+-      id: issues.id,
+-      projectId: issues.projectId,
+-    })
+-    .from(issues)
+-    .where(and(eq(issues.id, contextIssueId), eq(issues.companyId, companyId)))
+-    .then((rows) => rows[0] ?? null);
+-
+-  return {
+-    issueId: issue?.id ?? null,
+-    projectId: issue?.projectId ?? contextProjectId,
+-  };
+-}
+-
+-type ResumeSessionRow = {
+-  sessionParamsJson: Record<string, unknown> | null;
+-  sessionDisplayId: string | null;
+-  lastRunId: string | null;
+-};
+-
+-export function buildExplicitResumeSessionOverride(input: {
+-  resumeFromRunId: string;
+-  resumeRunSessionIdBefore: string | null;
+-  resumeRunSessionIdAfter: string | null;
+-  taskSession: ResumeSessionRow | null;
+-  sessionCodec: AdapterSessionCodec;
+-}) {
+-  const desiredDisplayId = truncateDisplayId(
+-    input.resumeRunSessionIdAfter ?? input.resumeRunSessionIdBefore,
+-  );
+-  const taskSessionParams = normalizeSessionParams(
+-    input.sessionCodec.deserialize(input.taskSession?.sessionParamsJson ?? null),
+-  );
+-  const taskSessionDisplayId = truncateDisplayId(
+-    input.taskSession?.sessionDisplayId ??
+-      (input.sessionCodec.getDisplayId ? input.sessionCodec.getDisplayId(taskSessionParams) : null) ??
+-      readNonEmptyString(taskSessionParams?.sessionId),
+-  );
+-  const canReuseTaskSessionParams =
+-    input.taskSession != null &&
+-    (
+-      input.taskSession.lastRunId === input.resumeFromRunId ||
+-      (!!desiredDisplayId && taskSessionDisplayId === desiredDisplayId)
+-    );
+-  const sessionParams =
+-    canReuseTaskSessionParams
+-      ? taskSessionParams
+-      : desiredDisplayId
+-        ? { sessionId: desiredDisplayId }
+-        : null;
+-  const sessionDisplayId = desiredDisplayId ?? (canReuseTaskSessionParams ? taskSessionDisplayId : null);
+-
+-  if (!sessionDisplayId && !sessionParams) return null;
+-  return {
+-    sessionDisplayId,
+-    sessionParams,
+-  };
+-}
+-
+-function normalizeUsageTotals(usage: UsageSummary | null | undefined): UsageTotals | null {
+-  if (!usage) return null;
+-  return {
+-    inputTokens: Math.max(0, Math.floor(asNumber(usage.inputTokens, 0))),
+-    cachedInputTokens: Math.max(0, Math.floor(asNumber(usage.cachedInputTokens, 0))),
+-    outputTokens: Math.max(0, Math.floor(asNumber(usage.outputTokens, 0))),
+-  };
+-}
+-
+-function readRawUsageTotals(usageJson: unknown): UsageTotals | null {
+-  const parsed = parseObject(usageJson);
+-  if (Object.keys(parsed).length === 0) return null;
+-
+-  const inputTokens = Math.max(
+-    0,
+-    Math.floor(asNumber(parsed.rawInputTokens, asNumber(parsed.inputTokens, 0))),
+-  );
+-  const cachedInputTokens = Math.max(
+-    0,
+-    Math.floor(asNumber(parsed.rawCachedInputTokens, asNumber(parsed.cachedInputTokens, 0))),
+-  );
+-  const outputTokens = Math.max(
+-    0,
+-    Math.floor(asNumber(parsed.rawOutputTokens, asNumber(parsed.outputTokens, 0))),
+-  );
+-
+-  if (inputTokens <= 0 && cachedInputTokens <= 0 && outputTokens <= 0) {
+-    return null;
+-  }
+-
+-  return {
+-    inputTokens,
+-    cachedInputTokens,
+-    outputTokens,
+-  };
+-}
+-
+-function deriveNormalizedUsageDelta(current: UsageTotals | null, previous: UsageTotals | null): UsageTotals | null {
+-  if (!current) return null;
+-  if (!previous) return { ...current };
+-
+-  const inputTokens = current.inputTokens >= previous.inputTokens
+-    ? current.inputTokens - previous.inputTokens
+-    : current.inputTokens;
+-  const cachedInputTokens = current.cachedInputTokens >= previous.cachedInputTokens
+-    ? current.cachedInputTokens - previous.cachedInputTokens
+-    : current.cachedInputTokens;
+-  const outputTokens = current.outputTokens >= previous.outputTokens
+-    ? current.outputTokens - previous.outputTokens
+-    : current.outputTokens;
+-
+-  return {
+-    inputTokens: Math.max(0, inputTokens),
+-    cachedInputTokens: Math.max(0, cachedInputTokens),
+-    outputTokens: Math.max(0, outputTokens),
+-  };
+-}
+-
+-function formatCount(value: number | null | undefined) {
+-  if (typeof value !== "number" || !Number.isFinite(value)) return "0";
+-  return value.toLocaleString("en-US");
+-}
+-
+-export function parseSessionCompactionPolicy(agent: typeof agents.$inferSelect): SessionCompactionPolicy {
+-  return resolveSessionCompactionPolicy(agent.adapterType, agent.runtimeConfig).policy;
+-}
+-
+-export function resolveRuntimeSessionParamsForWorkspace(input: {
+-  agentId: string;
+-  previousSessionParams: Record<string, unknown> | null;
+-  resolvedWorkspace: ResolvedWorkspaceForRun;
+-}) {
+-  const { agentId, previousSessionParams, resolvedWorkspace } = input;
+-  const previousSessionId = readNonEmptyString(previousSessionParams?.sessionId);
+-  const previousCwd = readNonEmptyString(previousSessionParams?.cwd);
+-  if (!previousSessionId || !previousCwd) {
+-    return {
+-      sessionParams: previousSessionParams,
+-      warning: null as string | null,
+-    };
+-  }
+-  if (resolvedWorkspace.source !== "project_primary") {
+-    return {
+-      sessionParams: previousSessionParams,
+-      warning: null as string | null,
+-    };
+-  }
+-  const projectCwd = readNonEmptyString(resolvedWorkspace.cwd);
+-  if (!projectCwd) {
+-    return {
+-      sessionParams: previousSessionParams,
+-      warning: null as string | null,
+-    };
+-  }
+-  const fallbackAgentHomeCwd = resolveDefaultAgentWorkspaceDir(agentId);
+-  if (path.resolve(previousCwd) !== path.resolve(fallbackAgentHomeCwd)) {
+-    return {
+-      sessionParams: previousSessionParams,
+-      warning: null as string | null,
+-    };
+-  }
+-  if (path.resolve(projectCwd) === path.resolve(previousCwd)) {
+-    return {
+-      sessionParams: previousSessionParams,
+-      warning: null as string | null,
+-    };
+-  }
+-  const previousWorkspaceId = readNonEmptyString(previousSessionParams?.workspaceId);
+-  if (
+-    previousWorkspaceId &&
+-    resolvedWorkspace.workspaceId &&
+-    previousWorkspaceId !== resolvedWorkspace.workspaceId
+-  ) {
+-    return {
+-      sessionParams: previousSessionParams,
+-      warning: null as string | null,
+-    };
+-  }
+-
+-  const migratedSessionParams: Record<string, unknown> = {
+-    ...(previousSessionParams ?? {}),
+-    cwd: projectCwd,
+-  };
+-  if (resolvedWorkspace.workspaceId) migratedSessionParams.workspaceId = resolvedWorkspace.workspaceId;
+-  if (resolvedWorkspace.repoUrl) migratedSessionParams.repoUrl = resolvedWorkspace.repoUrl;
+-  if (resolvedWorkspace.repoRef) migratedSessionParams.repoRef = resolvedWorkspace.repoRef;
+-
+-  return {
+-    sessionParams: migratedSessionParams,
+-    warning:
+-      `Project workspace "${projectCwd}" is now available. ` +
+-      `Attempting to resume session "${previousSessionId}" that was previously saved in fallback workspace "${previousCwd}".`,
+-  };
+-}
+-
+ function parseIssueAssigneeAdapterOverrides(
+   raw: unknown,
+ ): ParsedIssueAssigneeAdapterOverrides | null {
+   const parsed = parseObject(raw);
+   const parsedAdapterConfig = parseObject(parsed.adapterConfig);
+   const adapterConfig =
+     Object.keys(parsedAdapterConfig).length > 0 ? parsedAdapterConfig : null;
+   const useProjectWorkspace =
+     typeof parsed.useProjectWorkspace === "boolean"
+       ? parsed.useProjectWorkspace
+       : null;
+   if (!adapterConfig && useProjectWorkspace === null) return null;
+   return {
+     adapterConfig,
+     useProjectWorkspace,
+   };
+ }
+ 
+-/**
+- * Synthetic task key for timer/heartbeat wakes that have no issue context.
+- * This allows timer wakes to participate in the `agentTaskSessions` system
+- * and benefit from robust session resume, instead of relying solely on the
+- * simpler `agentRuntimeState.sessionId` fallback.
+- */
+-const HEARTBEAT_TASK_KEY = "__heartbeat__";
+-
+-function deriveTaskKey(
+-  contextSnapshot: Record<string, unknown> | null | undefined,
+-  payload: Record<string, unknown> | null | undefined,
+-) {
+-  return (
+-    readNonEmptyString(contextSnapshot?.taskKey) ??
+-    readNonEmptyString(contextSnapshot?.taskId) ??
+-    readNonEmptyString(contextSnapshot?.issueId) ??
+-    readNonEmptyString(payload?.taskKey) ??
+-    readNonEmptyString(payload?.taskId) ??
+-    readNonEmptyString(payload?.issueId) ??
+-    null
+-  );
+-}
+-
+-/**
+- * Extended task key derivation that falls back to a stable synthetic key
+- * for timer/heartbeat wakes. This ensures timer wakes can resume their
+- * previous session via `agentTaskSessions` instead of starting fresh.
+- *
+- * The synthetic key is only used when:
+- * - No explicit task/issue key exists in the context
+- * - The wake source is "timer" (scheduled heartbeat)
+- */
+-export function deriveTaskKeyWithHeartbeatFallback(
+-  contextSnapshot: Record<string, unknown> | null | undefined,
+-  payload: Record<string, unknown> | null | undefined,
+-) {
+-  const explicit = deriveTaskKey(contextSnapshot, payload);
+-  if (explicit) return explicit;
+-
+-  const wakeSource = readNonEmptyString(contextSnapshot?.wakeSource);
+-  if (wakeSource === "timer") return HEARTBEAT_TASK_KEY;
+-
+-  return null;
+-}
+-
+-export function shouldResetTaskSessionForWake(
+-  contextSnapshot: Record<string, unknown> | null | undefined,
+-) {
+-  if (contextSnapshot?.forceFreshSession === true) return true;
+-
+-  const wakeReason = readNonEmptyString(contextSnapshot?.wakeReason);
+-  if (wakeReason === "issue_assigned") return true;
+-  return false;
+-}
+-
+-export function formatRuntimeWorkspaceWarningLog(warning: string) {
+-  return {
+-    stream: "stdout" as const,
+-    chunk: `[paperclip] ${warning}\n`,
+-  };
+-}
+-
+-function describeSessionResetReason(
+-  contextSnapshot: Record<string, unknown> | null | undefined,
+-) {
+-  if (contextSnapshot?.forceFreshSession === true) return "forceFreshSession was requested";
+-
+-  const wakeReason = readNonEmptyString(contextSnapshot?.wakeReason);
+-  if (wakeReason === "issue_assigned") return "wake reason is issue_assigned";
+-  return null;
+-}
+-
+-function deriveCommentId(
+-  contextSnapshot: Record<string, unknown> | null | undefined,
+-  payload: Record<string, unknown> | null | undefined,
+-) {
+-  return (
+-    readNonEmptyString(contextSnapshot?.wakeCommentId) ??
+-    readNonEmptyString(contextSnapshot?.commentId) ??
+-    readNonEmptyString(payload?.commentId) ??
+-    null
+-  );
+-}
+-
+-function enrichWakeContextSnapshot(input: {
+-  contextSnapshot: Record<string, unknown>;
+-  reason: string | null;
+-  source: WakeupOptions["source"];
+-  triggerDetail: WakeupOptions["triggerDetail"] | null;
+-  payload: Record<string, unknown> | null;
+-}) {
+-  const { contextSnapshot, reason, source, triggerDetail, payload } = input;
+-  const issueIdFromPayload = readNonEmptyString(payload?.["issueId"]);
+-  const commentIdFromPayload = readNonEmptyString(payload?.["commentId"]);
+-  const taskKey = deriveTaskKey(contextSnapshot, payload);
+-  const wakeCommentId = deriveCommentId(contextSnapshot, payload);
+-
+-  if (!readNonEmptyString(contextSnapshot["wakeReason"]) && reason) {
+-    contextSnapshot.wakeReason = reason;
+-  }
+-  if (!readNonEmptyString(contextSnapshot["issueId"]) && issueIdFromPayload) {
+-    contextSnapshot.issueId = issueIdFromPayload;
+-  }
+-  if (!readNonEmptyString(contextSnapshot["taskId"]) && issueIdFromPayload) {
+-    contextSnapshot.taskId = issueIdFromPayload;
+-  }
+-  if (!readNonEmptyString(contextSnapshot["taskKey"]) && taskKey) {
+-    contextSnapshot.taskKey = taskKey;
+-  }
+-  if (!readNonEmptyString(contextSnapshot["commentId"]) && commentIdFromPayload) {
+-    contextSnapshot.commentId = commentIdFromPayload;
+-  }
+-  if (!readNonEmptyString(contextSnapshot["wakeCommentId"]) && wakeCommentId) {
+-    contextSnapshot.wakeCommentId = wakeCommentId;
+-  }
+-  if (!readNonEmptyString(contextSnapshot["wakeSource"]) && source) {
+-    contextSnapshot.wakeSource = source;
+-  }
+-  if (!readNonEmptyString(contextSnapshot["wakeTriggerDetail"]) && triggerDetail) {
+-    contextSnapshot.wakeTriggerDetail = triggerDetail;
+-  }
+-
+-  return {
+-    contextSnapshot,
+-    issueIdFromPayload,
+-    commentIdFromPayload,
+-    taskKey,
+-    wakeCommentId,
+-  };
+-}
+-
+-function mergeCoalescedContextSnapshot(
+-  existingRaw: unknown,
+-  incoming: Record<string, unknown>,
+-) {
+-  const existing = parseObject(existingRaw);
+-  const merged: Record<string, unknown> = {
+-    ...existing,
+-    ...incoming,
+-  };
+-  const commentId = deriveCommentId(incoming, null);
+-  if (commentId) {
+-    merged.commentId = commentId;
+-    merged.wakeCommentId = commentId;
+-  }
+-  return merged;
+-}
+-
+-function runTaskKey(run: typeof heartbeatRuns.$inferSelect) {
+-  return deriveTaskKey(run.contextSnapshot as Record<string, unknown> | null, null);
+-}
+-
+-function isSameTaskScope(left: string | null, right: string | null) {
+-  return (left ?? null) === (right ?? null);
+-}
+-
+ function isTrackedLocalChildProcessAdapter(adapterType: string) {
+   return SESSIONED_LOCAL_ADAPTERS.has(adapterType);
+ }
+ 
+ // A positive liveness check means some process currently owns the PID.
+ // On Linux, PIDs can be recycled, so this is a best-effort signal rather
+ // than proof that the original child is still alive.
+ function isProcessAlive(pid: number | null | undefined) {
+   if (typeof pid !== "number" || !Number.isInteger(pid) || pid <= 0) return false;
+   try {
+     process.kill(pid, 0);
+     return true;
+   } catch (error) {
+     const code = (error as NodeJS.ErrnoException | undefined)?.code;
+     if (code === "EPERM") return true;
+     if (code === "ESRCH") return false;
+     return false;
+   }
+ }
+ 
+-function truncateDisplayId(value: string | null | undefined, max = 128) {
+-  if (!value) return null;
+-  return value.length > max ? value.slice(0, max) : value;
+-}
+-
+ function normalizeAgentNameKey(value: string | null | undefined) {
+   if (typeof value !== "string") return null;
+   const normalized = value.trim().toLowerCase();
+   return normalized.length > 0 ? normalized : null;
+ }
+ 
+ const defaultSessionCodec: AdapterSessionCodec = {
+   deserialize(raw: unknown) {
+     const asObj = parseObject(raw);
+     if (Object.keys(asObj).length > 0) return asObj;
+     const sessionId = readNonEmptyString((raw as Record<string, unknown> | null)?.sessionId);
+     if (sessionId) return { sessionId };
+     return null;
+   },
+   serialize(params: Record<string, unknown> | null) {
+     if (!params || Object.keys(params).length === 0) return null;
+     return params;
+   },
+   getDisplayId(params: Record<string, unknown> | null) {
+     return readNonEmptyString(params?.sessionId);
+   },
+ };
+ 
+ function getAdapterSessionCodec(adapterType: string) {
+   const adapter = getServerAdapter(adapterType);
+   return adapter.sessionCodec ?? defaultSessionCodec;
+ }
+ 
+-function normalizeSessionParams(params: Record<string, unknown> | null | undefined) {
+-  if (!params) return null;
+-  return Object.keys(params).length > 0 ? params : null;
+-}
+-
+ function resolveNextSessionState(input: {
+   codec: AdapterSessionCodec;
+   adapterResult: AdapterExecutionResult;
+   previousParams: Record<string, unknown> | null;
+   previousDisplayId: string | null;
+   previousLegacySessionId: string | null;
+ }) {
+   const { codec, adapterResult, previousParams, previousDisplayId, previousLegacySessionId } = input;
+ 
+   if (adapterResult.clearSession) {
+     return {
+       params: null as Record<string, unknown> | null,
+       displayId: null as string | null,
+       legacySessionId: null as string | null,
+     };
+   }
+ 
+   const explicitParams = adapterResult.sessionParams;
+   const hasExplicitParams = adapterResult.sessionParams !== undefined;
+   const hasExplicitSessionId = adapterResult.sessionId !== undefined;
+   const explicitSessionId = readNonEmptyString(adapterResult.sessionId);
+   const hasExplicitDisplay = adapterResult.sessionDisplayId !== undefined;
+   const explicitDisplayId = readNonEmptyString(adapterResult.sessionDisplayId);
+   const shouldUsePrevious = !hasExplicitParams && !hasExplicitSessionId && !hasExplicitDisplay;
+ 
+   const candidateParams =
+     hasExplicitParams
+       ? explicitParams
+       : hasExplicitSessionId
+         ? (explicitSessionId ? { sessionId: explicitSessionId } : null)
+         : previousParams;
+ 
+   const serialized = normalizeSessionParams(codec.serialize(normalizeSessionParams(candidateParams) ?? null));
+   const deserialized = normalizeSessionParams(codec.deserialize(serialized));
+ 
+   const displayId = truncateDisplayId(
+     explicitDisplayId ??
+       (codec.getDisplayId ? codec.getDisplayId(deserialized) : null) ??
+       readNonEmptyString(deserialized?.sessionId) ??
+       (shouldUsePrevious ? previousDisplayId : null) ??
+@@ -1126,81 +680,81 @@ export function heartbeatService(db: Db) {
+         codec.deserialize(existingTaskSession?.sessionParamsJson ?? null),
+       );
+       return truncateDisplayId(
+         existingTaskSession?.sessionDisplayId ??
+           (codec.getDisplayId ? codec.getDisplayId(parsedParams) : null) ??
+           readNonEmptyString(parsedParams?.sessionId),
+       );
+     }
+ 
+     const runtimeForRun = await getRuntimeState(agent.id);
+     return runtimeForRun?.sessionId ?? null;
+   }
+ 
+   async function resolveExplicitResumeSessionOverride(
+     agent: typeof agents.$inferSelect,
+     payload: Record<string, unknown> | null,
+     taskKey: string | null,
+   ) {
+     const resumeFromRunId = readNonEmptyString(payload?.resumeFromRunId);
+     if (!resumeFromRunId) return null;
+ 
+     const resumeRun = await db
+       .select({
+         id: heartbeatRuns.id,
+         contextSnapshot: heartbeatRuns.contextSnapshot,
+         sessionIdBefore: heartbeatRuns.sessionIdBefore,
+         sessionIdAfter: heartbeatRuns.sessionIdAfter,
+       })
+       .from(heartbeatRuns)
+       .where(
+         and(
+           eq(heartbeatRuns.id, resumeFromRunId),
+           eq(heartbeatRuns.companyId, agent.companyId),
+           eq(heartbeatRuns.agentId, agent.id),
+         ),
+       )
+       .then((rows) => rows[0] ?? null);
+     if (!resumeRun) return null;
+ 
+     const resumeContext = parseObject(resumeRun.contextSnapshot);
+-    const resumeTaskKey = deriveTaskKey(resumeContext, null) ?? taskKey;
++    const resumeTaskKey = deriveTaskKeyWithHeartbeatFallback(resumeContext, null) ?? taskKey;
+     const resumeTaskSession = resumeTaskKey
+       ? await getTaskSession(agent.companyId, agent.id, agent.adapterType, resumeTaskKey)
+       : null;
+     const sessionCodec = getAdapterSessionCodec(agent.adapterType);
+     const sessionOverride = buildExplicitResumeSessionOverride({
+       resumeFromRunId,
+       resumeRunSessionIdBefore: resumeRun.sessionIdBefore,
+       resumeRunSessionIdAfter: resumeRun.sessionIdAfter,
+       taskSession: resumeTaskSession,
+       sessionCodec,
+     });
+     if (!sessionOverride) return null;
+ 
+     return {
+       resumeFromRunId,
+       taskKey: resumeTaskKey,
+       issueId: readNonEmptyString(resumeContext.issueId),
+       taskId: readNonEmptyString(resumeContext.taskId) ?? readNonEmptyString(resumeContext.issueId),
+       sessionDisplayId: sessionOverride.sessionDisplayId,
+       sessionParams: sessionOverride.sessionParams,
+     };
+   }
+ 
+   async function resolveWorkspaceForRun(
+     agent: typeof agents.$inferSelect,
+     context: Record<string, unknown>,
+     previousSessionParams: Record<string, unknown> | null,
+     opts?: { useProjectWorkspace?: boolean | null },
+   ): Promise<ResolvedWorkspaceForRun> {
+     const issueId = readNonEmptyString(context.issueId);
+     const contextProjectId = readNonEmptyString(context.projectId);
+     const contextProjectWorkspaceId = readNonEmptyString(context.projectWorkspaceId);
+     const issueProjectRef = issueId
+       ? await db
+           .select({
+             projectId: issues.projectId,
+             projectWorkspaceId: issues.projectWorkspaceId,
+           })
+           .from(issues)
+           .where(and(eq(issues.id, issueId), eq(issues.companyId, agent.companyId)))
+@@ -1692,81 +1246,85 @@ export function heartbeatService(db: Db) {
+           })
+           .where(and(eq(issues.id, issueId), eq(issues.companyId, run.companyId), eq(issues.executionRunId, run.id)));
+       }
+ 
+       return retryRun;
+     });
+ 
+     publishLiveEvent({
+       companyId: queued.companyId,
+       type: "heartbeat.run.queued",
+       payload: {
+         runId: queued.id,
+         agentId: queued.agentId,
+         invocationSource: queued.invocationSource,
+         triggerDetail: queued.triggerDetail,
+         wakeupRequestId: queued.wakeupRequestId,
+       },
+     });
+ 
+     await appendRunEvent(queued, 1, {
+       eventType: "lifecycle",
+       stream: "system",
+       level: "warn",
+       message: "Queued automatic retry after orphaned child process was confirmed dead",
+       payload: {
+         retryOfRunId: run.id,
+       },
+     });
+ 
+     return queued;
+   }
+ 
+   function parseHeartbeatPolicy(agent: typeof agents.$inferSelect) {
+     const runtimeConfig = parseObject(agent.runtimeConfig);
+     const heartbeat = parseObject(runtimeConfig.heartbeat);
+ 
+     return {
+       enabled: asBoolean(heartbeat.enabled, true),
+       intervalSec: Math.max(0, asNumber(heartbeat.intervalSec, 0)),
+       wakeOnDemand: asBoolean(heartbeat.wakeOnDemand ?? heartbeat.wakeOnAssignment ?? heartbeat.wakeOnOnDemand ?? heartbeat.wakeOnAutomation, true),
+-      maxConcurrentRuns: normalizeMaxConcurrentRuns(heartbeat.maxConcurrentRuns),
++      maxConcurrentRuns: normalizeMaxConcurrentRuns(
++        heartbeat.maxConcurrentRuns,
++        HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT,
++        HEARTBEAT_MAX_CONCURRENT_RUNS_MAX,
++      ),
+     };
+   }
+ 
+   async function countRunningRunsForAgent(agentId: string) {
+     const [{ count }] = await db
+       .select({ count: sql<number>`count(*)` })
+       .from(heartbeatRuns)
+       .where(and(eq(heartbeatRuns.agentId, agentId), eq(heartbeatRuns.status, "running")));
+     return Number(count ?? 0);
+   }
+ 
+   async function claimQueuedRun(run: typeof heartbeatRuns.$inferSelect) {
+     if (run.status !== "queued") return run;
+     const agent = await getAgent(run.agentId);
+     if (!agent) {
+       await cancelRunInternal(run.id, "Cancelled because the agent no longer exists");
+       return null;
+     }
+     if (agent.status === "paused" || agent.status === "terminated" || agent.status === "pending_approval") {
+       await cancelRunInternal(run.id, "Cancelled because the agent is not invokable");
+       return null;
+     }
+ 
+     const context = parseObject(run.contextSnapshot);
+     const budgetBlock = await budgets.getInvocationBlock(run.companyId, run.agentId, {
+       issueId: readNonEmptyString(context.issueId),
+       projectId: readNonEmptyString(context.projectId),
+     });
+     if (budgetBlock) {
+       await cancelRunInternal(run.id, budgetBlock.reason);
+       return null;
+     }
+ 
+     const claimedAt = new Date();
+     const claimed = await db
+       .update(heartbeatRuns)
+       .set({
+         status: "running",
+         startedAt: run.startedAt ?? claimedAt,
+         updatedAt: claimedAt,
+@@ -2352,108 +1910,137 @@ export function heartbeatService(db: Db) {
+         issueRef?.executionWorkspacePreference === "reuse_existing" ||
+         requestedExecutionWorkspaceMode === "isolated_workspace" ||
+         requestedExecutionWorkspaceMode === "operator_branch";
+       const nextIssuePatch: Record<string, unknown> = {};
+       if (issueRef?.executionWorkspaceId !== persistedExecutionWorkspace.id) {
+         nextIssuePatch.executionWorkspaceId = persistedExecutionWorkspace.id;
+       }
+       if (resolvedProjectWorkspaceId && issueRef?.projectWorkspaceId !== resolvedProjectWorkspaceId) {
+         nextIssuePatch.projectWorkspaceId = resolvedProjectWorkspaceId;
+       }
+       if (shouldSwitchIssueToExistingWorkspace) {
+         nextIssuePatch.executionWorkspacePreference = "reuse_existing";
+         nextIssuePatch.executionWorkspaceSettings = {
+           ...(issueExecutionWorkspaceSettings ?? {}),
+           mode: nextIssueWorkspaceMode,
+         };
+       }
+       if (Object.keys(nextIssuePatch).length > 0) {
+         await issuesSvc.update(issueId, nextIssuePatch);
+       }
+     }
+     if (persistedExecutionWorkspace) {
+       context.executionWorkspaceId = persistedExecutionWorkspace.id;
+       await db
+         .update(heartbeatRuns)
+         .set({
+           contextSnapshot: context,
+           updatedAt: new Date(),
+         })
+         .where(eq(heartbeatRuns.id, run.id));
+     }
+     const runtimeSessionResolution = resolveRuntimeSessionParamsForWorkspace({
+       agentId: agent.id,
+       previousSessionParams,
+       resolvedWorkspace: {
+         ...resolvedWorkspace,
+         cwd: executionWorkspace.cwd,
+       },
+     });
+     const runtimeSessionParams = runtimeSessionResolution.sessionParams;
++    const resolvedInstructionsConfig = parseObject(resolvedConfig);
++    const instructionsRootPath =
++      readNonEmptyString(resolvedInstructionsConfig.instructionsRootPath)
++      ?? (() => {
++        const filePath = readNonEmptyString(resolvedInstructionsConfig.instructionsFilePath);
++        return filePath ? path.dirname(filePath) : null;
++      })();
++    const instructionsEntryFile =
++      readNonEmptyString(resolvedInstructionsConfig.instructionsEntryFile)
++      ?? (() => {
++        const filePath = readNonEmptyString(resolvedInstructionsConfig.instructionsFilePath);
++        return filePath ? path.basename(filePath) : null;
++      })();
++    const agentHome = await (async () => {
++      const home = resolveDefaultAgentWorkspaceDir(agent.id);
++      await fs.mkdir(home, { recursive: true });
++      return home;
++    })();
++    const instructionsCompatibilityActions = [
++      ...await refreshLegacyManagedInstructionsBundleIfNeeded({
++        agent,
++        instructionsRootPath,
++        instructionsEntryFile,
++      }),
++      ...await ensureLegacyInstructionsCompatibilityFiles({
++        agentHome,
++        instructionsRootPath,
++        instructionsEntryFile,
++      }),
++    ];
+     const runtimeWorkspaceWarnings = [
+       ...resolvedWorkspace.warnings,
+       ...executionWorkspace.warnings,
+       ...(runtimeSessionResolution.warning ? [runtimeSessionResolution.warning] : []),
++      ...instructionsCompatibilityActions.map((action) => action.warning),
+       ...(resetTaskSession && sessionResetReason
+         ? [
+             taskKey
+               ? `Skipping saved session resume for task "${taskKey}" because ${sessionResetReason}.`
+               : `Skipping saved session resume because ${sessionResetReason}.`,
+           ]
+         : []),
+     ];
+     context.paperclipWorkspace = {
+       cwd: executionWorkspace.cwd,
+       source: executionWorkspace.source,
+       mode: effectiveExecutionWorkspaceMode,
+       strategy: executionWorkspace.strategy,
+       projectId: executionWorkspace.projectId,
+       workspaceId: executionWorkspace.workspaceId,
+       repoUrl: executionWorkspace.repoUrl,
+       repoRef: executionWorkspace.repoRef,
+       branchName: executionWorkspace.branchName,
+       worktreePath: executionWorkspace.worktreePath,
+-      agentHome: await (async () => {
+-        const home = resolveDefaultAgentWorkspaceDir(agent.id);
+-        await fs.mkdir(home, { recursive: true });
+-        return home;
+-      })(),
++      instructionsRootPath,
++      instructionsEntryFile,
++      agentHome,
+     };
+     context.paperclipWorkspaces = resolvedWorkspace.workspaceHints;
+     const runtimeServiceIntents = (() => {
+       const runtimeConfig = parseObject(resolvedConfig.workspaceRuntime);
+       return Array.isArray(runtimeConfig.services)
+         ? runtimeConfig.services.filter(
+             (value): value is Record<string, unknown> => typeof value === "object" && value !== null,
+           )
+         : [];
+     })();
+     if (runtimeServiceIntents.length > 0) {
+       context.paperclipRuntimeServiceIntents = runtimeServiceIntents;
+     } else {
+       delete context.paperclipRuntimeServiceIntents;
+     }
+     if (executionWorkspace.projectId && !readNonEmptyString(context.projectId)) {
+       context.projectId = executionWorkspace.projectId;
+     }
+     const runtimeSessionFallback = taskKey || resetTaskSession ? null : runtime.sessionId;
+     let previousSessionDisplayId = truncateDisplayId(
+       explicitResumeSessionDisplayId ??
+         taskSessionForRun?.sessionDisplayId ??
+         (sessionCodec.getDisplayId ? sessionCodec.getDisplayId(runtimeSessionParams) : null) ??
+         readNonEmptyString(runtimeSessionParams?.sessionId) ??
+         runtimeSessionFallback,
+     );
+     let runtimeSessionIdForAdapter =
+       readNonEmptyString(runtimeSessionParams?.sessionId) ?? runtimeSessionFallback;
+     let runtimeSessionParamsForAdapter = runtimeSessionParams;
+ 
+     const sessionCompaction = await evaluateSessionCompaction({
+       agent,
+       sessionId: previousSessionDisplayId ?? runtimeSessionIdForAdapter,
+       issueId,
+     });
+     if (sessionCompaction.rotate) {
+       context.paperclipSessionHandoffMarkdown = sessionCompaction.handoffMarkdown;
+       context.paperclipSessionRotationReason = sessionCompaction.reason;
+       context.paperclipPreviousSessionId = previousSessionDisplayId ?? runtimeSessionIdForAdapter;
+       runtimeSessionIdForAdapter = null;
+@@ -2485,80 +2072,89 @@ export function heartbeatService(db: Db) {
+       const startedAt = run.startedAt ?? new Date();
+       const runningWithSession = await db
+         .update(heartbeatRuns)
+         .set({
+           startedAt,
+           sessionIdBefore: runtimeForAdapter.sessionDisplayId ?? runtimeForAdapter.sessionId,
+           contextSnapshot: context,
+           updatedAt: new Date(),
+         })
+         .where(eq(heartbeatRuns.id, run.id))
+         .returning()
+         .then((rows) => rows[0] ?? null);
+       if (runningWithSession) run = runningWithSession;
+ 
+       const runningAgent = await db
+         .update(agents)
+         .set({ status: "running", updatedAt: new Date() })
+         .where(eq(agents.id, agent.id))
+         .returning()
+         .then((rows) => rows[0] ?? null);
+ 
+       if (runningAgent) {
+         publishLiveEvent({
+           companyId: runningAgent.companyId,
+           type: "agent.status",
+           payload: {
+             agentId: runningAgent.id,
+             status: runningAgent.status,
+             outcome: "running",
+           },
+         });
+       }
+ 
+       const currentRun = run;
+       await appendRunEvent(currentRun, seq++, {
+         eventType: "lifecycle",
+         stream: "system",
+         level: "info",
+         message: "run started",
+       });
++      for (const action of instructionsCompatibilityActions) {
++        await appendRunEvent(currentRun, seq++, {
++          eventType: action.kind === "bundle_refreshed" ? "instructions.refresh" : "instructions.compat",
++          stream: "system",
++          level: "info",
++          message: action.warning,
++          payload: action.payload,
++        });
++      }
+ 
+       handle = await runLogStore.begin({
+         companyId: run.companyId,
+         agentId: run.agentId,
+         runId,
+       });
+ 
+       await db
+         .update(heartbeatRuns)
+         .set({
+           logStore: handle.store,
+           logRef: handle.logRef,
+           updatedAt: new Date(),
+         })
+         .where(eq(heartbeatRuns.id, runId));
+ 
+       const currentUserRedactionOptions = await getCurrentUserRedactionOptions();
+       const onLog = async (stream: "stdout" | "stderr", chunk: string) => {
+         const sanitizedChunk = redactCurrentUserText(chunk, currentUserRedactionOptions);
+         if (stream === "stdout") stdoutExcerpt = appendExcerpt(stdoutExcerpt, sanitizedChunk);
+         if (stream === "stderr") stderrExcerpt = appendExcerpt(stderrExcerpt, sanitizedChunk);
+         const ts = new Date().toISOString();
+ 
+         if (handle) {
+           await runLogStore.append(handle, {
+             stream,
+             chunk: sanitizedChunk,
+             ts,
+           });
+         }
+ 
+         const payloadChunk =
+           sanitizedChunk.length > MAX_LIVE_LOG_CHUNK_BYTES
+             ? sanitizedChunk.slice(sanitizedChunk.length - MAX_LIVE_LOG_CHUNK_BYTES)
+             : sanitizedChunk;
+ 
+         publishLiveEvent({
+           companyId: run.companyId,
+           type: "heartbeat.run.log",
+           payload: {
+diff --git a/skills/paperclip-create-agent/SKILL.md b/skills/paperclip-create-agent/SKILL.md
+index d4f73aea..a2d9c57e 100644
+--- a/skills/paperclip-create-agent/SKILL.md
++++ b/skills/paperclip-create-agent/SKILL.md
+@@ -30,80 +30,104 @@ curl -sS "$PAPERCLIP_API_URL/api/agents/me" \
+ 
+ 2. Discover available adapter configuration docs for this Paperclip instance.
+ 
+ ```sh
+ curl -sS "$PAPERCLIP_API_URL/llms/agent-configuration.txt" \
+   -H "Authorization: Bearer $PAPERCLIP_API_KEY"
+ ```
+ 
+ 3. Read adapter-specific docs (example: `claude_local`).
+ 
+ ```sh
+ curl -sS "$PAPERCLIP_API_URL/llms/agent-configuration/claude_local.txt" \
+   -H "Authorization: Bearer $PAPERCLIP_API_KEY"
+ ```
+ 
+ 4. Compare existing agent configurations in your company.
+ 
+ ```sh
+ curl -sS "$PAPERCLIP_API_URL/api/companies/$PAPERCLIP_COMPANY_ID/agent-configurations" \
+   -H "Authorization: Bearer $PAPERCLIP_API_KEY"
+ ```
+ 
+ 5. Discover allowed agent icons and pick one that matches the role.
+ 
+ ```sh
+ curl -sS "$PAPERCLIP_API_URL/llms/agent-icons.txt" \
+   -H "Authorization: Bearer $PAPERCLIP_API_KEY"
+ ```
+ 
+ 6. Draft the new hire config:
+ - role/title/name
+ - icon (required in practice; use one from `/llms/agent-icons.txt`)
+ - reporting line (`reportsTo`)
+ - adapter type
+ - optional `desiredSkills` from the company skill library when this role needs installed skills on day one
+ - adapter and runtime config aligned to this environment
+ - capabilities
+ - run prompt in adapter config (`promptTemplate` where applicable)
+ - source issue linkage (`sourceIssueId` or `sourceIssueIds`) when this hire came from an issue
+ 
++Allowed system role values:
++
++- `ceo`
++- `cto`
++- `cmo`
++- `cfo`
++- `engineer`
++- `designer`
++- `pm`
++- `qa`
++- `devops`
++- `researcher`
++- `general`
++
++Use `role` for the closest system/governance role.
++Use `title` for the company's real job title.
++
++Examples:
++
++- `role: "pm", title: "Product Manager"`
++- `role: "engineer", title: "Full-Stack Engineer"`
++- `role: "general", title: "Editor"`
++- `role: "general", title: "Story Producer"`
++
+ 7. Submit hire request.
+ 
+ ```sh
+ curl -sS -X POST "$PAPERCLIP_API_URL/api/companies/$PAPERCLIP_COMPANY_ID/agent-hires" \
+   -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+   -H "Content-Type: application/json" \
+   -d '{
+     "name": "CTO",
+     "role": "cto",
+     "title": "Chief Technology Officer",
+     "icon": "crown",
+     "reportsTo": "<ceo-agent-id>",
+     "capabilities": "Owns technical roadmap, architecture, staffing, execution",
+     "desiredSkills": ["vercel-labs/agent-browser/agent-browser"],
+     "adapterType": "codex_local",
+     "adapterConfig": {"cwd": "/abs/path/to/repo", "model": "o4-mini"},
+     "runtimeConfig": {"heartbeat": {"enabled": true, "intervalSec": 300, "wakeOnDemand": true}},
+     "sourceIssueId": "<issue-id>"
+   }'
+ ```
+ 
+ 8. Handle governance state:
+ - if response has `approval`, hire is `pending_approval`
+ - monitor and discuss on approval thread
+ - when the board approves, you will be woken with `PAPERCLIP_APPROVAL_ID`; read linked issues and close/comment follow-up
+ 
+ ```sh
+ curl -sS "$PAPERCLIP_API_URL/api/approvals/<approval-id>" \
+   -H "Authorization: Bearer $PAPERCLIP_API_KEY"
+ 
+ curl -sS -X POST "$PAPERCLIP_API_URL/api/approvals/<approval-id>/comments" \
+   -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+   -H "Content-Type: application/json" \
+   -d '{"body":"## CTO hire request submitted\n\n- Approval: [<approval-id>](/approvals/<approval-id>)\n- Pending agent: [<agent-ref>](/agents/<agent-url-key-or-id>)\n- Source issue: [<issue-ref>](/issues/<issue-identifier-or-id>)\n\nUpdated prompt and adapter config per board feedback."}'
+ ```
+ 
+ If the approval already exists and needs manual linking to the issue:
+ 
+ ```sh
+ curl -sS -X POST "$PAPERCLIP_API_URL/api/issues/<issue-id>/approvals" \

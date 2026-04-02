@@ -50,9 +50,11 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  fallbackTitle,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  fallbackTitle?: string
 }) {
   const { t } = useTranslation("common")
   return (
@@ -66,6 +68,9 @@ function DialogContent({
         )}
         {...props}
       >
+        <DialogPrimitive.Title className="sr-only">
+          {fallbackTitle ?? t("dialog.title", { defaultValue: "Dialog" })}
+        </DialogPrimitive.Title>
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close

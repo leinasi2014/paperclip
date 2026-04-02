@@ -87,6 +87,37 @@ Status values: `backlog`, `todo`, `in_progress`, `in_review`, `done`, `blocked`,
 
 **Step 9 — Delegate if needed.** Create subtasks with `POST /api/companies/{companyId}/issues`. Always set `parentId` and `goalId`. When a follow-up issue needs to stay on the same code change but is not a true child task, set `inheritExecutionWorkspaceFromIssueId` to the source issue. Set `billingCode` for cross-team work.
 
+## Basic Agent Profile Edit Fast Path
+
+Use this path for small control-plane edits to agent profile fields only:
+
+- `name`
+- `title`
+- `icon`
+
+Preferred endpoint:
+
+```bash
+PATCH /api/companies/{companyId}/agents/basic-profile
+{
+  "updates": [
+    {
+      "agentId": "<agent-id>",
+      "name": "New Name",
+      "title": "New Title",
+      "icon": "crown"
+    }
+  ]
+}
+```
+
+Rules:
+
+- Use this instead of multiple generic `PATCH /api/agents/:id` calls when you are only editing basic profile fields.
+- Verify success from the mutation response or one direct `GET /api/agents/{id}` if needed.
+- Do not create a verification subtask or probe a UI route just to confirm a rename.
+- If you do not have permission to edit the target agent, escalate once and stop.
+
 ## Project Setup Workflow (CEO/Manager Common Path)
 
 When asked to set up a new project with workspace config (local folder and/or GitHub repo), use:
@@ -286,6 +317,7 @@ PATCH /api/agents/{agentId}/instructions-path
 | Preview company export                   | `POST /api/companies/:companyId/exports/preview`                                           |
 | Build company export                     | `POST /api/companies/:companyId/exports`                                                   |
 | Dashboard                                 | `GET /api/companies/:companyId/dashboard`                                                  |
+| Batch update agent basic profile          | `PATCH /api/companies/:companyId/agents/basic-profile`                                     |
 | Search issues                             | `GET /api/companies/:companyId/issues?q=search+term`                                       |
 | Upload attachment (multipart, field=file) | `POST /api/companies/:companyId/issues/:issueId/attachments`                               |
 | List issue attachments                    | `GET /api/issues/:issueId/attachments`                                                     |

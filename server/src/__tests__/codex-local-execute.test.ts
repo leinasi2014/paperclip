@@ -14,6 +14,8 @@ const payload = {
   argv: process.argv.slice(2),
   prompt: fs.readFileSync(0, "utf8"),
   codexHome: process.env.CODEX_HOME || null,
+  instructionsRoot: process.env.PAPERCLIP_INSTRUCTIONS_ROOT || null,
+  instructionsEntryFile: process.env.PAPERCLIP_INSTRUCTIONS_ENTRY_FILE || null,
   paperclipEnvKeys: Object.keys(process.env)
     .filter((key) => key.startsWith("PAPERCLIP_"))
     .sort(),
@@ -33,6 +35,8 @@ type CapturePayload = {
   argv: string[];
   prompt: string;
   codexHome: string | null;
+  instructionsRoot: string | null;
+  instructionsEntryFile: string | null;
   paperclipEnvKeys: string[];
 };
 
@@ -188,6 +192,69 @@ describe("codex execute", () => {
       expect(commandNotes).toContain(
         "Codex exec automatically applies repo-scoped AGENTS.md instructions from the current workspace; Paperclip does not currently suppress that discovery.",
       );
+    } finally {
+      if (previousHome === undefined) delete process.env.HOME;
+      else process.env.HOME = previousHome;
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("passes the instructions bundle location through runtime environment variables", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-codex-execute-instructions-"));
+    const workspace = path.join(root, "workspace");
+    const commandPath = path.join(root, "codex");
+    const capturePath = path.join(root, "capture.json");
+    const instructionsRoot = path.join(root, "instructions");
+    await fs.mkdir(workspace, { recursive: true });
+    await fs.mkdir(instructionsRoot, { recursive: true });
+    await writeFakeCodexCommand(commandPath);
+
+    const previousHome = process.env.HOME;
+    process.env.HOME = root;
+
+    try {
+      const result = await execute({
+        runId: "run-instructions",
+        agent: {
+          id: "agent-1",
+          companyId: "company-1",
+          name: "Codex Coder",
+          adapterType: "codex_local",
+          adapterConfig: {},
+        },
+        runtime: {
+          sessionId: null,
+          sessionParams: null,
+          sessionDisplayId: null,
+          taskKey: null,
+        },
+        config: {
+          command: commandPath,
+          cwd: workspace,
+          env: {
+            PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+          },
+          promptTemplate: "Follow the paperclip heartbeat.",
+        },
+        context: {
+          paperclipWorkspace: {
+            cwd: workspace,
+            instructionsRootPath: instructionsRoot,
+            instructionsEntryFile: "AGENTS.md",
+          },
+        },
+        authToken: "run-jwt-token",
+        onLog: async () => {},
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.errorMessage).toBeNull();
+
+      const capture = JSON.parse(await fs.readFile(capturePath, "utf8")) as CapturePayload;
+      expect(capture.instructionsRoot).toBe(instructionsRoot);
+      expect(capture.instructionsEntryFile).toBe("AGENTS.md");
+      expect(capture.paperclipEnvKeys).toContain("PAPERCLIP_INSTRUCTIONS_ROOT");
+      expect(capture.paperclipEnvKeys).toContain("PAPERCLIP_INSTRUCTIONS_ENTRY_FILE");
     } finally {
       if (previousHome === undefined) delete process.env.HOME;
       else process.env.HOME = previousHome;

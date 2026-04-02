@@ -25,8 +25,19 @@ function parseNumber(value: string | undefined, fallback: number) {
   return Math.floor(parsed);
 }
 
+function firstNonEmpty(...values: Array<string | undefined>) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) return value.trim();
+  }
+  return null;
+}
+
 function jwtConfig() {
-  const secret = process.env.PAPERCLIP_AGENT_JWT_SECRET;
+  const secret = firstNonEmpty(
+    process.env.PAPERCLIP_AGENT_JWT_SECRET,
+    process.env.BETTER_AUTH_SECRET,
+    "paperclip-dev-secret",
+  );
   if (!secret) return null;
 
   return {

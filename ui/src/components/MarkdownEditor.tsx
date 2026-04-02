@@ -204,10 +204,18 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const dragDepthRef = useRef(0);
+  const mountedRef = useRef(false);
 
   // Stable ref for imageUploadHandler so plugins don't recreate on every render
   const imageUploadHandlerRef = useRef(imageUploadHandler);
   imageUploadHandlerRef.current = imageUploadHandler;
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // Mention state (ref kept in sync so callbacks always see the latest value)
   const [mentionState, setMentionState] = useState<MentionState | null>(null);
@@ -251,10 +259,13 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
           if (!handler) throw new Error("No image upload handler");
           try {
             const src = await handler(file);
-            setUploadError(null);
+            if (mountedRef.current) {
+              setUploadError(null);
+            }
             // After MDXEditor inserts the image, ensure two newlines follow it
             // so the cursor isn't stuck right next to the image.
             setTimeout(() => {
+              if (!mountedRef.current) return;
               const current = latestValueRef.current;
               const escapedSrc = escapeRegExp(src);
               const updated = current.replace(
@@ -266,6 +277,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
                 ref.current?.setMarkdown(updated);
                 onChange(updated);
                 requestAnimationFrame(() => {
+                  if (!mountedRef.current) return;
                   ref.current?.focus(undefined, { defaultSelection: "rootEnd" });
                 });
               }
@@ -273,7 +285,9 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
             return src;
           } catch (err) {
             const message = err instanceof Error ? err.message : "Image upload failed";
-            setUploadError(message);
+            if (mountedRef.current) {
+              setUploadError(message);
+            }
             throw err;
           }
         }
@@ -548,6 +562,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
         placeholder={placeholder}
         onChange={(next) => {
           latestValueRef.current = next;
+          if (!mountedRef.current) return;
           onChange(next);
         }}
         onBlur={() => onBlur?.()}

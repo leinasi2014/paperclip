@@ -66,6 +66,7 @@ function redactConnectionString(raw: string): string {
 }
 
 function resolveAgentJwtSecretStatus(
+  deploymentMode: DeploymentMode,
   envFilePath: string,
 ): {
   status: "pass" | "warn";
@@ -90,6 +91,13 @@ function resolveAgentJwtSecretStatus(
     }
   }
 
+  if (deploymentMode === "local_trusted") {
+    return {
+      status: "pass",
+      message: "implicit local_trusted fallback",
+    };
+  }
+
   return {
     status: "warn",
     message: "missing (run `pnpm paperclipai onboard`)",
@@ -103,7 +111,7 @@ export function printStartupBanner(opts: StartupBannerOptions): void {
   const uiUrl = opts.uiMode === "none" ? "disabled" : baseUrl;
   const configPath = resolvePaperclipConfigPath();
   const envFilePath = resolvePaperclipEnvPath();
-  const agentJwtSecret = resolveAgentJwtSecretStatus(envFilePath);
+  const agentJwtSecret = resolveAgentJwtSecretStatus(opts.deploymentMode, envFilePath);
 
   const dbMode =
     opts.db.mode === "embedded-postgres"

@@ -1,10 +1,12 @@
 export type NormalizedAgentPermissions = Record<string, unknown> & {
   canCreateAgents: boolean;
+  canUpdateDirectReportProfiles: boolean;
 };
 
 export function defaultPermissionsForRole(role: string): NormalizedAgentPermissions {
   return {
     canCreateAgents: role === "ceo",
+    canUpdateDirectReportProfiles: false,
   };
 }
 
@@ -23,5 +25,9 @@ export function normalizeAgentPermissions(
       typeof record.canCreateAgents === "boolean"
         ? record.canCreateAgents
         : defaults.canCreateAgents,
+    canUpdateDirectReportProfiles:
+      typeof record.canUpdateDirectReportProfiles === "boolean"
+        ? record.canUpdateDirectReportProfiles
+        : defaults.canUpdateDirectReportProfiles,
   };
 }

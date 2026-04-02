@@ -4,7 +4,7 @@ import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
 import { and, asc, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import type { BillingType, ExecutionWorkspace, ExecutionWorkspaceConfig } from "@paperclipai/shared";
+import type { ExecutionWorkspaceConfig } from "@paperclipai/shared";
 import {
   agents,
   agentRuntimeState,
@@ -21,14 +21,17 @@ import { logger } from "../middleware/logger.js";
 import { publishLiveEvent } from "./live-events.js";
 import { getRunLogStore, type RunLogHandle } from "./run-log-store.js";
 import { getServerAdapter, runningProcesses } from "../adapters/index.js";
-import type { AdapterExecutionResult, AdapterInvocationMeta, AdapterSessionCodec, UsageSummary } from "../adapters/index.js";
+import type { AdapterExecutionResult, AdapterInvocationMeta, AdapterSessionCodec } from "../adapters/index.js";
 import { createLocalAgentJwt } from "../agent-auth-jwt.js";
-import { parseObject, asBoolean, asNumber, appendWithCap, MAX_EXCERPT_BYTES } from "../adapters/utils.js";
+import { parseObject, asBoolean, asNumber } from "../adapters/utils.js";
 import { costService } from "./costs.js";
 import { companySkillService } from "./company-skills.js";
 import { budgetService, type BudgetEnforcementScope } from "./budgets.js";
 import { secretService } from "./secrets.js";
-import { resolveDefaultAgentWorkspaceDir, resolveManagedProjectWorkspaceDir } from "../home-paths.js";
+import {
+  resolveDefaultAgentWorkspaceDir,
+  resolveManagedProjectWorkspaceDir,
+} from "../home-paths.js";
 import { summarizeHeartbeatRunResultJson } from "./heartbeat-run-summary.js";
 import {
   buildWorkspaceReadyComment,
@@ -38,7 +41,6 @@ import {
   realizeExecutionWorkspace,
   releaseRuntimeServicesForRun,
   type ExecutionWorkspaceInput,
-  type RealizedExecutionWorkspace,
   sanitizeRuntimeServiceBaseEnv,
 } from "./workspace-runtime.js";
 import { issueService } from "./issues.js";
@@ -56,9 +58,71 @@ import { instanceSettingsService } from "./instance-settings.js";
 import { redactCurrentUserText, redactCurrentUserValue } from "../log-redaction.js";
 import {
   hasSessionCompactionThresholds,
-  resolveSessionCompactionPolicy,
   type SessionCompactionPolicy,
 } from "@paperclipai/adapter-utils";
+import {
+  type InstructionsCompatibilityAction,
+  ensureLegacyInstructionsCompatibilityFiles,
+  refreshLegacyManagedInstructionsBundleIfNeeded,
+} from "./heartbeat/instructions-compat.js";
+import {
+  deriveCommentId,
+  deriveTaskKeyWithHeartbeatFallback,
+  describeSessionResetReason,
+  enrichWakeContextSnapshot,
+  isSameTaskScope,
+  mergeCoalescedContextSnapshot,
+  runTaskKey,
+  shouldResetTaskSessionForWake,
+} from "./heartbeat/context.js";
+import {
+  appendExcerpt,
+  formatCount,
+  normalizeMaxConcurrentRuns,
+  normalizeSessionParams,
+  readNonEmptyString,
+  truncateDisplayId,
+} from "./heartbeat/shared.js";
+import {
+  applyPersistedExecutionWorkspaceConfig,
+  buildRealizedExecutionWorkspaceFromPersisted,
+  formatRuntimeWorkspaceWarningLog,
+  prioritizeProjectWorkspaceCandidatesForRun,
+  stripWorkspaceRuntimeFromExecutionRunConfig,
+  type ResolvedWorkspaceForRun,
+} from "./heartbeat/workspace.js";
+import {
+  buildExplicitResumeSessionOverride,
+  parseSessionCompactionPolicy,
+  resolveRuntimeSessionParamsForWorkspace,
+} from "./heartbeat/session.js";
+import {
+  deriveNormalizedUsageDelta,
+  normalizeBilledCostCents,
+  normalizeLedgerBillingType,
+  normalizeUsageTotals,
+  readRawUsageTotals,
+  resolveLedgerBiller,
+  resolveLedgerScopeForRun,
+} from "./heartbeat/usage.js";
+
+export {
+  deriveTaskKeyWithHeartbeatFallback,
+  shouldResetTaskSessionForWake,
+} from "./heartbeat/context.js";
+export {
+  applyPersistedExecutionWorkspaceConfig,
+  buildRealizedExecutionWorkspaceFromPersisted,
+  formatRuntimeWorkspaceWarningLog,
+  prioritizeProjectWorkspaceCandidatesForRun,
+  stripWorkspaceRuntimeFromExecutionRunConfig,
+} from "./heartbeat/workspace.js";
+export {
+  buildExplicitResumeSessionOverride,
+  parseSessionCompactionPolicy,
+  resolveRuntimeSessionParamsForWorkspace,
+} from "./heartbeat/session.js";
+export type { ResolvedWorkspaceForRun } from "./heartbeat/workspace.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -77,65 +141,6 @@ const SESSIONED_LOCAL_ADAPTERS = new Set([
   "opencode_local",
   "pi_local",
 ]);
-
-export function applyPersistedExecutionWorkspaceConfig(input: {
-  config: Record<string, unknown>;
-  workspaceConfig: ExecutionWorkspaceConfig | null;
-  mode: ReturnType<typeof resolveExecutionWorkspaceMode>;
-}) {
-  const nextConfig = { ...input.config };
-
-  if (input.mode !== "agent_default") {
-    if (input.workspaceConfig?.workspaceRuntime === null) {
-      delete nextConfig.workspaceRuntime;
-    } else if (input.workspaceConfig?.workspaceRuntime) {
-      nextConfig.workspaceRuntime = { ...input.workspaceConfig.workspaceRuntime };
-    }
-  }
-
-  if (input.workspaceConfig && input.mode === "isolated_workspace") {
-    const nextStrategy = parseObject(nextConfig.workspaceStrategy);
-    if (input.workspaceConfig.provisionCommand === null) delete nextStrategy.provisionCommand;
-    else nextStrategy.provisionCommand = input.workspaceConfig.provisionCommand;
-    if (input.workspaceConfig.teardownCommand === null) delete nextStrategy.teardownCommand;
-    else nextStrategy.teardownCommand = input.workspaceConfig.teardownCommand;
-    nextConfig.workspaceStrategy = nextStrategy;
-  }
-
-  return nextConfig;
-}
-
-export function stripWorkspaceRuntimeFromExecutionRunConfig(config: Record<string, unknown>) {
-  const nextConfig = { ...config };
-  delete nextConfig.workspaceRuntime;
-  return nextConfig;
-}
-
-export function buildRealizedExecutionWorkspaceFromPersisted(input: {
-  base: ExecutionWorkspaceInput;
-  workspace: ExecutionWorkspace;
-}): RealizedExecutionWorkspace | null {
-  const cwd = readNonEmptyString(input.workspace.cwd) ?? readNonEmptyString(input.workspace.providerRef);
-  if (!cwd) {
-    return null;
-  }
-
-  const strategy = input.workspace.strategyType === "git_worktree" ? "git_worktree" : "project_primary";
-  return {
-    baseCwd: input.base.baseCwd,
-    source: input.workspace.mode === "shared_workspace" ? "project_primary" : "task_session",
-    projectId: input.workspace.projectId ?? input.base.projectId,
-    workspaceId: input.workspace.projectWorkspaceId ?? input.base.workspaceId,
-    repoUrl: input.workspace.repoUrl ?? input.base.repoUrl,
-    repoRef: input.workspace.baseRef ?? input.base.repoRef,
-    strategy,
-    cwd,
-    branchName: input.workspace.branchName ?? null,
-    worktreePath: strategy === "git_worktree" ? (readNonEmptyString(input.workspace.providerRef) ?? cwd) : null,
-    warnings: [],
-    created: false,
-  };
-}
 
 function buildExecutionWorkspaceConfigSnapshot(config: Record<string, unknown>): Partial<ExecutionWorkspaceConfig> | null {
   const strategy = parseObject(config.workspaceStrategy);
@@ -258,16 +263,6 @@ const heartbeatRunListColumns = {
   updatedAt: heartbeatRuns.updatedAt,
 } as const;
 
-function appendExcerpt(prev: string, chunk: string) {
-  return appendWithCap(prev, chunk, MAX_EXCERPT_BYTES);
-}
-
-function normalizeMaxConcurrentRuns(value: unknown) {
-  const parsed = Math.floor(asNumber(value, HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT));
-  if (!Number.isFinite(parsed)) return HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT;
-  return Math.max(HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT, Math.min(HEARTBEAT_MAX_CONCURRENT_RUNS_MAX, parsed));
-}
-
 async function withAgentStartLock<T>(agentId: string, fn: () => Promise<T>) {
   const previous = startLocksByAgent.get(agentId) ?? Promise.resolve();
   const run = previous.then(fn);
@@ -314,281 +309,6 @@ interface ParsedIssueAssigneeAdapterOverrides {
   useProjectWorkspace: boolean | null;
 }
 
-export type ResolvedWorkspaceForRun = {
-  cwd: string;
-  source: "project_primary" | "task_session" | "agent_home";
-  projectId: string | null;
-  workspaceId: string | null;
-  repoUrl: string | null;
-  repoRef: string | null;
-  workspaceHints: Array<{
-    workspaceId: string;
-    cwd: string | null;
-    repoUrl: string | null;
-    repoRef: string | null;
-  }>;
-  warnings: string[];
-};
-
-type ProjectWorkspaceCandidate = {
-  id: string;
-};
-
-export function prioritizeProjectWorkspaceCandidatesForRun<T extends ProjectWorkspaceCandidate>(
-  rows: T[],
-  preferredWorkspaceId: string | null | undefined,
-): T[] {
-  if (!preferredWorkspaceId) return rows;
-  const preferredIndex = rows.findIndex((row) => row.id === preferredWorkspaceId);
-  if (preferredIndex <= 0) return rows;
-  return [rows[preferredIndex]!, ...rows.slice(0, preferredIndex), ...rows.slice(preferredIndex + 1)];
-}
-
-function readNonEmptyString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
-function normalizeLedgerBillingType(value: unknown): BillingType {
-  const raw = readNonEmptyString(value);
-  switch (raw) {
-    case "api":
-    case "metered_api":
-      return "metered_api";
-    case "subscription":
-    case "subscription_included":
-      return "subscription_included";
-    case "subscription_overage":
-      return "subscription_overage";
-    case "credits":
-      return "credits";
-    case "fixed":
-      return "fixed";
-    default:
-      return "unknown";
-  }
-}
-
-function resolveLedgerBiller(result: AdapterExecutionResult): string {
-  return readNonEmptyString(result.biller) ?? readNonEmptyString(result.provider) ?? "unknown";
-}
-
-function normalizeBilledCostCents(costUsd: number | null | undefined, billingType: BillingType): number {
-  if (billingType === "subscription_included") return 0;
-  if (typeof costUsd !== "number" || !Number.isFinite(costUsd)) return 0;
-  return Math.max(0, Math.round(costUsd * 100));
-}
-
-async function resolveLedgerScopeForRun(
-  db: Db,
-  companyId: string,
-  run: typeof heartbeatRuns.$inferSelect,
-) {
-  const context = parseObject(run.contextSnapshot);
-  const contextIssueId = readNonEmptyString(context.issueId);
-  const contextProjectId = readNonEmptyString(context.projectId);
-
-  if (!contextIssueId) {
-    return {
-      issueId: null,
-      projectId: contextProjectId,
-    };
-  }
-
-  const issue = await db
-    .select({
-      id: issues.id,
-      projectId: issues.projectId,
-    })
-    .from(issues)
-    .where(and(eq(issues.id, contextIssueId), eq(issues.companyId, companyId)))
-    .then((rows) => rows[0] ?? null);
-
-  return {
-    issueId: issue?.id ?? null,
-    projectId: issue?.projectId ?? contextProjectId,
-  };
-}
-
-type ResumeSessionRow = {
-  sessionParamsJson: Record<string, unknown> | null;
-  sessionDisplayId: string | null;
-  lastRunId: string | null;
-};
-
-export function buildExplicitResumeSessionOverride(input: {
-  resumeFromRunId: string;
-  resumeRunSessionIdBefore: string | null;
-  resumeRunSessionIdAfter: string | null;
-  taskSession: ResumeSessionRow | null;
-  sessionCodec: AdapterSessionCodec;
-}) {
-  const desiredDisplayId = truncateDisplayId(
-    input.resumeRunSessionIdAfter ?? input.resumeRunSessionIdBefore,
-  );
-  const taskSessionParams = normalizeSessionParams(
-    input.sessionCodec.deserialize(input.taskSession?.sessionParamsJson ?? null),
-  );
-  const taskSessionDisplayId = truncateDisplayId(
-    input.taskSession?.sessionDisplayId ??
-      (input.sessionCodec.getDisplayId ? input.sessionCodec.getDisplayId(taskSessionParams) : null) ??
-      readNonEmptyString(taskSessionParams?.sessionId),
-  );
-  const canReuseTaskSessionParams =
-    input.taskSession != null &&
-    (
-      input.taskSession.lastRunId === input.resumeFromRunId ||
-      (!!desiredDisplayId && taskSessionDisplayId === desiredDisplayId)
-    );
-  const sessionParams =
-    canReuseTaskSessionParams
-      ? taskSessionParams
-      : desiredDisplayId
-        ? { sessionId: desiredDisplayId }
-        : null;
-  const sessionDisplayId = desiredDisplayId ?? (canReuseTaskSessionParams ? taskSessionDisplayId : null);
-
-  if (!sessionDisplayId && !sessionParams) return null;
-  return {
-    sessionDisplayId,
-    sessionParams,
-  };
-}
-
-function normalizeUsageTotals(usage: UsageSummary | null | undefined): UsageTotals | null {
-  if (!usage) return null;
-  return {
-    inputTokens: Math.max(0, Math.floor(asNumber(usage.inputTokens, 0))),
-    cachedInputTokens: Math.max(0, Math.floor(asNumber(usage.cachedInputTokens, 0))),
-    outputTokens: Math.max(0, Math.floor(asNumber(usage.outputTokens, 0))),
-  };
-}
-
-function readRawUsageTotals(usageJson: unknown): UsageTotals | null {
-  const parsed = parseObject(usageJson);
-  if (Object.keys(parsed).length === 0) return null;
-
-  const inputTokens = Math.max(
-    0,
-    Math.floor(asNumber(parsed.rawInputTokens, asNumber(parsed.inputTokens, 0))),
-  );
-  const cachedInputTokens = Math.max(
-    0,
-    Math.floor(asNumber(parsed.rawCachedInputTokens, asNumber(parsed.cachedInputTokens, 0))),
-  );
-  const outputTokens = Math.max(
-    0,
-    Math.floor(asNumber(parsed.rawOutputTokens, asNumber(parsed.outputTokens, 0))),
-  );
-
-  if (inputTokens <= 0 && cachedInputTokens <= 0 && outputTokens <= 0) {
-    return null;
-  }
-
-  return {
-    inputTokens,
-    cachedInputTokens,
-    outputTokens,
-  };
-}
-
-function deriveNormalizedUsageDelta(current: UsageTotals | null, previous: UsageTotals | null): UsageTotals | null {
-  if (!current) return null;
-  if (!previous) return { ...current };
-
-  const inputTokens = current.inputTokens >= previous.inputTokens
-    ? current.inputTokens - previous.inputTokens
-    : current.inputTokens;
-  const cachedInputTokens = current.cachedInputTokens >= previous.cachedInputTokens
-    ? current.cachedInputTokens - previous.cachedInputTokens
-    : current.cachedInputTokens;
-  const outputTokens = current.outputTokens >= previous.outputTokens
-    ? current.outputTokens - previous.outputTokens
-    : current.outputTokens;
-
-  return {
-    inputTokens: Math.max(0, inputTokens),
-    cachedInputTokens: Math.max(0, cachedInputTokens),
-    outputTokens: Math.max(0, outputTokens),
-  };
-}
-
-function formatCount(value: number | null | undefined) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "0";
-  return value.toLocaleString("en-US");
-}
-
-export function parseSessionCompactionPolicy(agent: typeof agents.$inferSelect): SessionCompactionPolicy {
-  return resolveSessionCompactionPolicy(agent.adapterType, agent.runtimeConfig).policy;
-}
-
-export function resolveRuntimeSessionParamsForWorkspace(input: {
-  agentId: string;
-  previousSessionParams: Record<string, unknown> | null;
-  resolvedWorkspace: ResolvedWorkspaceForRun;
-}) {
-  const { agentId, previousSessionParams, resolvedWorkspace } = input;
-  const previousSessionId = readNonEmptyString(previousSessionParams?.sessionId);
-  const previousCwd = readNonEmptyString(previousSessionParams?.cwd);
-  if (!previousSessionId || !previousCwd) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  if (resolvedWorkspace.source !== "project_primary") {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  const projectCwd = readNonEmptyString(resolvedWorkspace.cwd);
-  if (!projectCwd) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  const fallbackAgentHomeCwd = resolveDefaultAgentWorkspaceDir(agentId);
-  if (path.resolve(previousCwd) !== path.resolve(fallbackAgentHomeCwd)) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  if (path.resolve(projectCwd) === path.resolve(previousCwd)) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  const previousWorkspaceId = readNonEmptyString(previousSessionParams?.workspaceId);
-  if (
-    previousWorkspaceId &&
-    resolvedWorkspace.workspaceId &&
-    previousWorkspaceId !== resolvedWorkspace.workspaceId
-  ) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-
-  const migratedSessionParams: Record<string, unknown> = {
-    ...(previousSessionParams ?? {}),
-    cwd: projectCwd,
-  };
-  if (resolvedWorkspace.workspaceId) migratedSessionParams.workspaceId = resolvedWorkspace.workspaceId;
-  if (resolvedWorkspace.repoUrl) migratedSessionParams.repoUrl = resolvedWorkspace.repoUrl;
-  if (resolvedWorkspace.repoRef) migratedSessionParams.repoRef = resolvedWorkspace.repoRef;
-
-  return {
-    sessionParams: migratedSessionParams,
-    warning:
-      `Project workspace "${projectCwd}" is now available. ` +
-      `Attempting to resume session "${previousSessionId}" that was previously saved in fallback workspace "${previousCwd}".`,
-  };
-}
-
 function parseIssueAssigneeAdapterOverrides(
   raw: unknown,
 ): ParsedIssueAssigneeAdapterOverrides | null {
@@ -605,162 +325,6 @@ function parseIssueAssigneeAdapterOverrides(
     adapterConfig,
     useProjectWorkspace,
   };
-}
-
-/**
- * Synthetic task key for timer/heartbeat wakes that have no issue context.
- * This allows timer wakes to participate in the `agentTaskSessions` system
- * and benefit from robust session resume, instead of relying solely on the
- * simpler `agentRuntimeState.sessionId` fallback.
- */
-const HEARTBEAT_TASK_KEY = "__heartbeat__";
-
-function deriveTaskKey(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-  payload: Record<string, unknown> | null | undefined,
-) {
-  return (
-    readNonEmptyString(contextSnapshot?.taskKey) ??
-    readNonEmptyString(contextSnapshot?.taskId) ??
-    readNonEmptyString(contextSnapshot?.issueId) ??
-    readNonEmptyString(payload?.taskKey) ??
-    readNonEmptyString(payload?.taskId) ??
-    readNonEmptyString(payload?.issueId) ??
-    null
-  );
-}
-
-/**
- * Extended task key derivation that falls back to a stable synthetic key
- * for timer/heartbeat wakes. This ensures timer wakes can resume their
- * previous session via `agentTaskSessions` instead of starting fresh.
- *
- * The synthetic key is only used when:
- * - No explicit task/issue key exists in the context
- * - The wake source is "timer" (scheduled heartbeat)
- */
-export function deriveTaskKeyWithHeartbeatFallback(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-  payload: Record<string, unknown> | null | undefined,
-) {
-  const explicit = deriveTaskKey(contextSnapshot, payload);
-  if (explicit) return explicit;
-
-  const wakeSource = readNonEmptyString(contextSnapshot?.wakeSource);
-  if (wakeSource === "timer") return HEARTBEAT_TASK_KEY;
-
-  return null;
-}
-
-export function shouldResetTaskSessionForWake(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-) {
-  if (contextSnapshot?.forceFreshSession === true) return true;
-
-  const wakeReason = readNonEmptyString(contextSnapshot?.wakeReason);
-  if (wakeReason === "issue_assigned") return true;
-  return false;
-}
-
-export function formatRuntimeWorkspaceWarningLog(warning: string) {
-  return {
-    stream: "stdout" as const,
-    chunk: `[paperclip] ${warning}\n`,
-  };
-}
-
-function describeSessionResetReason(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-) {
-  if (contextSnapshot?.forceFreshSession === true) return "forceFreshSession was requested";
-
-  const wakeReason = readNonEmptyString(contextSnapshot?.wakeReason);
-  if (wakeReason === "issue_assigned") return "wake reason is issue_assigned";
-  return null;
-}
-
-function deriveCommentId(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-  payload: Record<string, unknown> | null | undefined,
-) {
-  return (
-    readNonEmptyString(contextSnapshot?.wakeCommentId) ??
-    readNonEmptyString(contextSnapshot?.commentId) ??
-    readNonEmptyString(payload?.commentId) ??
-    null
-  );
-}
-
-function enrichWakeContextSnapshot(input: {
-  contextSnapshot: Record<string, unknown>;
-  reason: string | null;
-  source: WakeupOptions["source"];
-  triggerDetail: WakeupOptions["triggerDetail"] | null;
-  payload: Record<string, unknown> | null;
-}) {
-  const { contextSnapshot, reason, source, triggerDetail, payload } = input;
-  const issueIdFromPayload = readNonEmptyString(payload?.["issueId"]);
-  const commentIdFromPayload = readNonEmptyString(payload?.["commentId"]);
-  const taskKey = deriveTaskKey(contextSnapshot, payload);
-  const wakeCommentId = deriveCommentId(contextSnapshot, payload);
-
-  if (!readNonEmptyString(contextSnapshot["wakeReason"]) && reason) {
-    contextSnapshot.wakeReason = reason;
-  }
-  if (!readNonEmptyString(contextSnapshot["issueId"]) && issueIdFromPayload) {
-    contextSnapshot.issueId = issueIdFromPayload;
-  }
-  if (!readNonEmptyString(contextSnapshot["taskId"]) && issueIdFromPayload) {
-    contextSnapshot.taskId = issueIdFromPayload;
-  }
-  if (!readNonEmptyString(contextSnapshot["taskKey"]) && taskKey) {
-    contextSnapshot.taskKey = taskKey;
-  }
-  if (!readNonEmptyString(contextSnapshot["commentId"]) && commentIdFromPayload) {
-    contextSnapshot.commentId = commentIdFromPayload;
-  }
-  if (!readNonEmptyString(contextSnapshot["wakeCommentId"]) && wakeCommentId) {
-    contextSnapshot.wakeCommentId = wakeCommentId;
-  }
-  if (!readNonEmptyString(contextSnapshot["wakeSource"]) && source) {
-    contextSnapshot.wakeSource = source;
-  }
-  if (!readNonEmptyString(contextSnapshot["wakeTriggerDetail"]) && triggerDetail) {
-    contextSnapshot.wakeTriggerDetail = triggerDetail;
-  }
-
-  return {
-    contextSnapshot,
-    issueIdFromPayload,
-    commentIdFromPayload,
-    taskKey,
-    wakeCommentId,
-  };
-}
-
-function mergeCoalescedContextSnapshot(
-  existingRaw: unknown,
-  incoming: Record<string, unknown>,
-) {
-  const existing = parseObject(existingRaw);
-  const merged: Record<string, unknown> = {
-    ...existing,
-    ...incoming,
-  };
-  const commentId = deriveCommentId(incoming, null);
-  if (commentId) {
-    merged.commentId = commentId;
-    merged.wakeCommentId = commentId;
-  }
-  return merged;
-}
-
-function runTaskKey(run: typeof heartbeatRuns.$inferSelect) {
-  return deriveTaskKey(run.contextSnapshot as Record<string, unknown> | null, null);
-}
-
-function isSameTaskScope(left: string | null, right: string | null) {
-  return (left ?? null) === (right ?? null);
 }
 
 function isTrackedLocalChildProcessAdapter(adapterType: string) {
@@ -781,11 +345,6 @@ function isProcessAlive(pid: number | null | undefined) {
     if (code === "ESRCH") return false;
     return false;
   }
-}
-
-function truncateDisplayId(value: string | null | undefined, max = 128) {
-  if (!value) return null;
-  return value.length > max ? value.slice(0, max) : value;
 }
 
 function normalizeAgentNameKey(value: string | null | undefined) {
@@ -814,11 +373,6 @@ const defaultSessionCodec: AdapterSessionCodec = {
 function getAdapterSessionCodec(adapterType: string) {
   const adapter = getServerAdapter(adapterType);
   return adapter.sessionCodec ?? defaultSessionCodec;
-}
-
-function normalizeSessionParams(params: Record<string, unknown> | null | undefined) {
-  if (!params) return null;
-  return Object.keys(params).length > 0 ? params : null;
 }
 
 function resolveNextSessionState(input: {
@@ -1163,7 +717,7 @@ export function heartbeatService(db: Db) {
     if (!resumeRun) return null;
 
     const resumeContext = parseObject(resumeRun.contextSnapshot);
-    const resumeTaskKey = deriveTaskKey(resumeContext, null) ?? taskKey;
+    const resumeTaskKey = deriveTaskKeyWithHeartbeatFallback(resumeContext, null) ?? taskKey;
     const resumeTaskSession = resumeTaskKey
       ? await getTaskSession(agent.companyId, agent.id, agent.adapterType, resumeTaskKey)
       : null;
@@ -1729,7 +1283,11 @@ export function heartbeatService(db: Db) {
       enabled: asBoolean(heartbeat.enabled, true),
       intervalSec: Math.max(0, asNumber(heartbeat.intervalSec, 0)),
       wakeOnDemand: asBoolean(heartbeat.wakeOnDemand ?? heartbeat.wakeOnAssignment ?? heartbeat.wakeOnOnDemand ?? heartbeat.wakeOnAutomation, true),
-      maxConcurrentRuns: normalizeMaxConcurrentRuns(heartbeat.maxConcurrentRuns),
+      maxConcurrentRuns: normalizeMaxConcurrentRuns(
+        heartbeat.maxConcurrentRuns,
+        HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT,
+        HEARTBEAT_MAX_CONCURRENT_RUNS_MAX,
+      ),
     };
   }
 
@@ -2389,10 +1947,41 @@ export function heartbeatService(db: Db) {
       },
     });
     const runtimeSessionParams = runtimeSessionResolution.sessionParams;
+    const resolvedInstructionsConfig = parseObject(resolvedConfig);
+    const instructionsRootPath =
+      readNonEmptyString(resolvedInstructionsConfig.instructionsRootPath)
+      ?? (() => {
+        const filePath = readNonEmptyString(resolvedInstructionsConfig.instructionsFilePath);
+        return filePath ? path.dirname(filePath) : null;
+      })();
+    const instructionsEntryFile =
+      readNonEmptyString(resolvedInstructionsConfig.instructionsEntryFile)
+      ?? (() => {
+        const filePath = readNonEmptyString(resolvedInstructionsConfig.instructionsFilePath);
+        return filePath ? path.basename(filePath) : null;
+      })();
+    const agentHome = await (async () => {
+      const home = resolveDefaultAgentWorkspaceDir(agent.id);
+      await fs.mkdir(home, { recursive: true });
+      return home;
+    })();
+    const instructionsCompatibilityActions = [
+      ...await refreshLegacyManagedInstructionsBundleIfNeeded({
+        agent,
+        instructionsRootPath,
+        instructionsEntryFile,
+      }),
+      ...await ensureLegacyInstructionsCompatibilityFiles({
+        agentHome,
+        instructionsRootPath,
+        instructionsEntryFile,
+      }),
+    ];
     const runtimeWorkspaceWarnings = [
       ...resolvedWorkspace.warnings,
       ...executionWorkspace.warnings,
       ...(runtimeSessionResolution.warning ? [runtimeSessionResolution.warning] : []),
+      ...instructionsCompatibilityActions.map((action) => action.warning),
       ...(resetTaskSession && sessionResetReason
         ? [
             taskKey
@@ -2412,11 +2001,9 @@ export function heartbeatService(db: Db) {
       repoRef: executionWorkspace.repoRef,
       branchName: executionWorkspace.branchName,
       worktreePath: executionWorkspace.worktreePath,
-      agentHome: await (async () => {
-        const home = resolveDefaultAgentWorkspaceDir(agent.id);
-        await fs.mkdir(home, { recursive: true });
-        return home;
-      })(),
+      instructionsRootPath,
+      instructionsEntryFile,
+      agentHome,
     };
     context.paperclipWorkspaces = resolvedWorkspace.workspaceHints;
     const runtimeServiceIntents = (() => {
@@ -2522,6 +2109,15 @@ export function heartbeatService(db: Db) {
         level: "info",
         message: "run started",
       });
+      for (const action of instructionsCompatibilityActions) {
+        await appendRunEvent(currentRun, seq++, {
+          eventType: action.kind === "bundle_refreshed" ? "instructions.refresh" : "instructions.compat",
+          stream: "system",
+          level: "info",
+          message: action.warning,
+          payload: action.payload,
+        });
+      }
 
       handle = await runLogStore.begin({
         companyId: run.companyId,
