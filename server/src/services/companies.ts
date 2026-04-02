@@ -1,30 +1,55 @@
 import { and, count, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
-  companies,
-  companyLogos,
-  assets,
-  agents,
+  activityLog,
   agentApiKeys,
+  agentConfigRevisions,
+  agents,
   agentRuntimeState,
   agentTaskSessions,
   agentWakeupRequests,
-  issues,
-  issueComments,
-  projects,
-  goals,
-  heartbeatRuns,
-  heartbeatRunEvents,
-  costEvents,
-  financeEvents,
   approvalComments,
   approvals,
-  activityLog,
-  companySecrets,
-  joinRequests,
-  invites,
-  principalPermissionGrants,
+  assets,
+  budgetIncidents,
+  budgetPolicies,
+  companies,
+  companyLogos,
   companyMemberships,
+  companySecrets,
+  companySkills,
+  costEvents,
+  documents,
+  documentRevisions,
+  executionWorkspaces,
+  financeEvents,
+  goals,
+  heartbeatRunEvents,
+  heartbeatRuns,
+  invites,
+  issueApprovals,
+  issueAttachments,
+  issueComments,
+  issueDocuments,
+  issueInboxArchives,
+  issueLabels,
+  issueReadStates,
+  issues,
+  issueWorkProducts,
+  joinRequests,
+  labels,
+  pluginCompanySettings,
+  pluginEntities,
+  pluginState,
+  principalPermissionGrants,
+  projectGoals,
+  projects,
+  projectWorkspaces,
+  routines,
+  routineRuns,
+  routineTriggers,
+  workspaceOperations,
+  workspaceRuntimeServices,
 } from "@paperclipai/db";
 import { notFound, unprocessable } from "../errors.js";
 
@@ -253,30 +278,122 @@ export function companyService(db: Db) {
 
     remove: (id: string) =>
       db.transaction(async (tx) => {
-        // Delete from child tables in dependency order
+        const existing = await tx
+          .select({ id: companies.id })
+          .from(companies)
+          .where(eq(companies.id, id))
+          .then((rows) => rows[0] ?? null);
+        if (!existing) return null;
+
+        const [
+          agentIds,
+          projectIds,
+          goalIds,
+          issueIds,
+          projectWorkspaceIds,
+          heartbeatRunIds,
+        ] = await Promise.all([
+          tx
+            .select({ id: agents.id })
+            .from(agents)
+            .where(eq(agents.companyId, id))
+            .then((rows) => rows.map((row) => row.id)),
+          tx
+            .select({ id: projects.id })
+            .from(projects)
+            .where(eq(projects.companyId, id))
+            .then((rows) => rows.map((row) => row.id)),
+          tx
+            .select({ id: goals.id })
+            .from(goals)
+            .where(eq(goals.companyId, id))
+            .then((rows) => rows.map((row) => row.id)),
+          tx
+            .select({ id: issues.id })
+            .from(issues)
+            .where(eq(issues.companyId, id))
+            .then((rows) => rows.map((row) => row.id)),
+          tx
+            .select({ id: projectWorkspaces.id })
+            .from(projectWorkspaces)
+            .where(eq(projectWorkspaces.companyId, id))
+            .then((rows) => rows.map((row) => row.id)),
+          tx
+            .select({ id: heartbeatRuns.id })
+            .from(heartbeatRuns)
+            .where(eq(heartbeatRuns.companyId, id))
+            .then((rows) => rows.map((row) => row.id)),
+        ]);
+
+        await tx.delete(pluginState).where(and(eq(pluginState.scopeKind, "company"), eq(pluginState.scopeId, id)));
+        await tx.delete(pluginEntities).where(and(eq(pluginEntities.scopeKind, "company"), eq(pluginEntities.scopeId, id)));
+
+        const scopeDeletes: Array<Promise<unknown>> = [];
+        const queueScopeDelete = (scopeKind: typeof pluginState.$inferSelect.scopeKind, ids: string[]) => {
+          if (ids.length === 0) return;
+          scopeDeletes.push(
+            tx.delete(pluginState).where(and(eq(pluginState.scopeKind, scopeKind), inArray(pluginState.scopeId, ids))),
+            tx.delete(pluginEntities).where(and(eq(pluginEntities.scopeKind, scopeKind), inArray(pluginEntities.scopeId, ids))),
+          );
+        };
+
+        queueScopeDelete("agent", agentIds);
+        queueScopeDelete("project", projectIds);
+        queueScopeDelete("goal", goalIds);
+        queueScopeDelete("issue", issueIds);
+        queueScopeDelete("project_workspace", projectWorkspaceIds);
+        queueScopeDelete("run", heartbeatRunIds);
+
+        if (scopeDeletes.length > 0) {
+          await Promise.all(scopeDeletes);
+        }
+
         await tx.delete(heartbeatRunEvents).where(eq(heartbeatRunEvents.companyId, id));
+        await tx.delete(workspaceOperations).where(eq(workspaceOperations.companyId, id));
+        await tx.delete(issueWorkProducts).where(eq(issueWorkProducts.companyId, id));
         await tx.delete(agentTaskSessions).where(eq(agentTaskSessions.companyId, id));
+        await tx.delete(issueApprovals).where(eq(issueApprovals.companyId, id));
+        await tx.delete(issueLabels).where(eq(issueLabels.companyId, id));
+        await tx.delete(issueInboxArchives).where(eq(issueInboxArchives.companyId, id));
+        await tx.delete(issueReadStates).where(eq(issueReadStates.companyId, id));
+        await tx.delete(issueComments).where(eq(issueComments.companyId, id));
+        await tx.delete(issueDocuments).where(eq(issueDocuments.companyId, id));
+        await tx.delete(issueAttachments).where(eq(issueAttachments.companyId, id));
+        await tx.delete(documentRevisions).where(eq(documentRevisions.companyId, id));
+        await tx.delete(approvalComments).where(eq(approvalComments.companyId, id));
+        await tx.delete(routineRuns).where(eq(routineRuns.companyId, id));
+        await tx.delete(routineTriggers).where(eq(routineTriggers.companyId, id));
+        await tx.delete(workspaceRuntimeServices).where(eq(workspaceRuntimeServices.companyId, id));
+        await tx.delete(budgetIncidents).where(eq(budgetIncidents.companyId, id));
+        await tx.delete(financeEvents).where(eq(financeEvents.companyId, id));
+        await tx.delete(costEvents).where(eq(costEvents.companyId, id));
+        await tx.delete(pluginCompanySettings).where(eq(pluginCompanySettings.companyId, id));
+        await tx.delete(companySkills).where(eq(companySkills.companyId, id));
+        await tx.delete(projectGoals).where(eq(projectGoals.companyId, id));
+        await tx.delete(companyLogos).where(eq(companyLogos.companyId, id));
+        await tx.delete(labels).where(eq(labels.companyId, id));
+        await tx.delete(documents).where(eq(documents.companyId, id));
+        await tx.delete(assets).where(eq(assets.companyId, id));
+        await tx.delete(routines).where(eq(routines.companyId, id));
+        await tx.delete(approvals).where(eq(approvals.companyId, id));
+        await tx.delete(issues).where(eq(issues.companyId, id));
+        await tx.delete(executionWorkspaces).where(eq(executionWorkspaces.companyId, id));
+        await tx.delete(projectWorkspaces).where(eq(projectWorkspaces.companyId, id));
+        await tx.delete(budgetPolicies).where(eq(budgetPolicies.companyId, id));
+        await tx.delete(companySecrets).where(eq(companySecrets.companyId, id));
+        await tx.delete(agentConfigRevisions).where(eq(agentConfigRevisions.companyId, id));
+        await tx.delete(activityLog).where(eq(activityLog.companyId, id));
         await tx.delete(heartbeatRuns).where(eq(heartbeatRuns.companyId, id));
         await tx.delete(agentWakeupRequests).where(eq(agentWakeupRequests.companyId, id));
         await tx.delete(agentApiKeys).where(eq(agentApiKeys.companyId, id));
         await tx.delete(agentRuntimeState).where(eq(agentRuntimeState.companyId, id));
-        await tx.delete(issueComments).where(eq(issueComments.companyId, id));
-        await tx.delete(costEvents).where(eq(costEvents.companyId, id));
-        await tx.delete(financeEvents).where(eq(financeEvents.companyId, id));
-        await tx.delete(approvalComments).where(eq(approvalComments.companyId, id));
-        await tx.delete(approvals).where(eq(approvals.companyId, id));
-        await tx.delete(companySecrets).where(eq(companySecrets.companyId, id));
+        await tx.delete(projects).where(eq(projects.companyId, id));
+        await tx.delete(goals).where(eq(goals.companyId, id));
         await tx.delete(joinRequests).where(eq(joinRequests.companyId, id));
         await tx.delete(invites).where(eq(invites.companyId, id));
         await tx.delete(principalPermissionGrants).where(eq(principalPermissionGrants.companyId, id));
         await tx.delete(companyMemberships).where(eq(companyMemberships.companyId, id));
-        await tx.delete(issues).where(eq(issues.companyId, id));
-        await tx.delete(companyLogos).where(eq(companyLogos.companyId, id));
-        await tx.delete(assets).where(eq(assets.companyId, id));
-        await tx.delete(goals).where(eq(goals.companyId, id));
-        await tx.delete(projects).where(eq(projects.companyId, id));
         await tx.delete(agents).where(eq(agents.companyId, id));
-        await tx.delete(activityLog).where(eq(activityLog.companyId, id));
         const rows = await tx
           .delete(companies)
           .where(eq(companies.id, id))

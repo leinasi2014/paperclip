@@ -75,11 +75,23 @@
       "import": "导入"
     },
     "dangerZone": {
-      "description": "归档这家公司后，它会从侧边栏隐藏，但数据仍会保留在数据库中。",
+      "description": "归档这家公司后，它会从侧边栏隐藏。删除则会永久清空公司及其全部关联数据。",
       "archive": "归档公司",
       "archiving": "归档中...",
+      "delete": "删除公司",
+      "deleting": "删除中...",
       "alreadyArchived": "已归档",
-      "confirm": "要归档公司“{{name}}”吗？它会从侧边栏隐藏。"
+      "actions": {
+        "cancel": "取消",
+        "archive": "归档公司",
+        "delete": "删除公司"
+      },
+      "dialog": {
+        "archiveTitle": "要归档公司“{{name}}”吗？",
+        "archiveDescription": "归档后，这家公司会从侧边栏隐藏，但数据仍会保留在数据库中，后续仍可恢复。",
+        "deleteTitle": "要删除公司“{{name}}”吗？",
+        "deleteDescription": "此操作会永久删除该公司及其全部关联数据，包括代理、项目、议题、目标、工作区、预算、插件状态和活动历史，且无法撤销。"
+      }
     },
     "actions": {
       "removeLogo": "移除 Logo",
@@ -96,7 +108,8 @@
       "createInvite": "创建邀请失败",
       "logoUploadFailed": "Logo 上传失败",
       "failedToSave": "保存失败",
-      "failedToArchive": "归档公司失败"
+      "failedToArchive": "归档公司失败",
+      "failedToDelete": "删除公司失败"
     }
   },
   "import": {

@@ -75,11 +75,23 @@
       "import": "Import"
     },
     "dangerZone": {
-      "description": "Archive this company to hide it from the sidebar. This persists in the database.",
+      "description": "Archive this company to hide it from the sidebar. Delete it to permanently remove the company and all related data.",
       "archive": "Archive company",
       "archiving": "Archiving...",
+      "delete": "Delete company",
+      "deleting": "Deleting...",
       "alreadyArchived": "Already archived",
-      "confirm": "Archive company \"{{name}}\"? It will be hidden from the sidebar."
+      "actions": {
+        "cancel": "Cancel",
+        "archive": "Archive company",
+        "delete": "Delete company"
+      },
+      "dialog": {
+        "archiveTitle": "Archive company \"{{name}}\"?",
+        "archiveDescription": "Archived companies are hidden from the sidebar but remain in the database and can still be restored later.",
+        "deleteTitle": "Delete company \"{{name}}\"?",
+        "deleteDescription": "This permanently deletes the company and all related data, including agents, projects, issues, goals, workspaces, budgets, plugin state, and activity history."
+      }
     },
     "actions": {
       "removeLogo": "Remove logo",
@@ -96,7 +108,8 @@
       "createInvite": "Failed to create invite",
       "logoUploadFailed": "Logo upload failed",
       "failedToSave": "Failed to save",
-      "failedToArchive": "Failed to archive company"
+      "failedToArchive": "Failed to archive company",
+      "failedToDelete": "Failed to delete company"
     }
   },
   "import": {

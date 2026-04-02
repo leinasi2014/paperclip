@@ -312,7 +312,7 @@ describe("agent skill routes", () => {
     );
   });
 
-  it("materializes a managed AGENTS.md for directly created local agents", async () => {
+  it("materializes the bundled default instruction set and appends promptTemplate to AGENTS.md", async () => {
     const res = await request(createApp())
       .post("/api/companies/company-1/agents")
       .send({
@@ -328,9 +328,17 @@ describe("agent skill routes", () => {
     expect(mockAgentInstructionsService.materializeManagedBundle).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "11111111-1111-4111-8111-111111111111",
+        role: "engineer",
         adapterType: "claude_local",
       }),
-      { "AGENTS.md": "You are QA." },
+      expect.objectContaining({
+        "AGENTS.md": expect.stringMatching(
+          /Keep the work moving until it's done\.[\s\S]*## Role-Specific Instructions[\s\S]*You are QA\./,
+        ),
+        "HEARTBEAT.md": expect.stringContaining("Worker Heartbeat Checklist"),
+        "SOUL.md": expect.stringContaining("Worker Persona"),
+        "TOOLS.md": expect.stringContaining("Use the Paperclip skill for coordination work"),
+      }),
       { entryFile: "AGENTS.md", replaceExisting: false },
     );
     expect(mockAgentService.update).toHaveBeenCalledWith(
@@ -396,9 +404,29 @@ describe("agent skill routes", () => {
       }),
       expect.objectContaining({
         "AGENTS.md": expect.stringContaining("Keep the work moving until it's done."),
+        "HEARTBEAT.md": expect.stringContaining("Worker Heartbeat Checklist"),
+        "SOUL.md": expect.stringContaining("Worker Persona"),
+        "TOOLS.md": expect.stringContaining("Use the Paperclip skill for coordination work"),
       }),
       { entryFile: "AGENTS.md", replaceExisting: false },
     );
+  });
+
+  it("skips default bundle materialization when instructions bundle config is explicitly provided", async () => {
+    const res = await request(createApp())
+      .post("/api/companies/company-1/agents")
+      .send({
+        name: "Engineer",
+        role: "engineer",
+        adapterType: "claude_local",
+        adapterConfig: {
+          instructionsBundleMode: "external",
+          instructionsFilePath: "/tmp/external/AGENTS.md",
+        },
+      });
+
+    expect(res.status, JSON.stringify(res.body)).toBe(201);
+    expect(mockAgentInstructionsService.materializeManagedBundle).not.toHaveBeenCalled();
   });
 
   it("includes canonical desired skills in hire approvals", async () => {
@@ -442,6 +470,22 @@ describe("agent skill routes", () => {
       });
 
     expect(res.status, JSON.stringify(res.body)).toBe(201);
+    expect(mockAgentInstructionsService.materializeManagedBundle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "11111111-1111-4111-8111-111111111111",
+        role: "engineer",
+        adapterType: "claude_local",
+      }),
+      expect.objectContaining({
+        "AGENTS.md": expect.stringMatching(
+          /Keep the work moving until it's done\.[\s\S]*## Role-Specific Instructions[\s\S]*You are QA\./,
+        ),
+        "HEARTBEAT.md": expect.stringContaining("Worker Heartbeat Checklist"),
+        "SOUL.md": expect.stringContaining("Worker Persona"),
+        "TOOLS.md": expect.stringContaining("Use the Paperclip skill for coordination work"),
+      }),
+      { entryFile: "AGENTS.md", replaceExisting: false },
+    );
     expect(mockApprovalService.create).toHaveBeenCalledWith(
       "company-1",
       expect.objectContaining({

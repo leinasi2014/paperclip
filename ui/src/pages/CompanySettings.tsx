@@ -1,16 +1,24 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate as useRawNavigate } from "react-router-dom";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
-import { useToast } from "../context/ToastContext";
 import { companiesApi } from "../api/companies";
 import { accessApi } from "../api/access";
 import { assetsApi } from "../api/assets";
 import { queryKeys } from "../lib/queryKeys";
 import { Button } from "@/components/ui/button";
-import { Settings, Check, Download, Upload } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Settings, Check, Download, Upload, Archive, Loader2, Trash2 } from "lucide-react";
 import { CompanyPatternIcon } from "../components/CompanyPatternIcon";
 import {
   Field,
@@ -32,8 +40,8 @@ export function CompanySettings() {
     setSelectedCompanyId
   } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
-  const { pushToast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useRawNavigate();
   const { t } = useTranslation("company");
   // General settings local state
   const [companyName, setCompanyName] = useState("");
@@ -55,6 +63,7 @@ export function CompanySettings() {
   const [inviteSnippet, setInviteSnippet] = useState<string | null>(null);
   const [snippetCopied, setSnippetCopied] = useState(false);
   const [snippetCopyDelightId, setSnippetCopyDelightId] = useState(0);
+  const [dialogMode, setDialogMode] = useState<"archive" | "delete" | null>(null);
 
   const generalDirty =
     !!selectedCompany &&
@@ -188,6 +197,7 @@ export function CompanySettings() {
       nextCompanyId: string | null;
     }) => companiesApi.archive(companyId).then(() => ({ nextCompanyId })),
     onSuccess: async ({ nextCompanyId }) => {
+      setDialogMode(null);
       if (nextCompanyId) {
         setSelectedCompanyId(nextCompanyId);
       }
@@ -197,6 +207,27 @@ export function CompanySettings() {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.companies.stats
       });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: ({
+      companyId,
+      nextCompanyId,
+    }: {
+      companyId: string;
+      nextCompanyId: string | null;
+    }) => companiesApi.remove(companyId).then(() => ({ nextCompanyId })),
+    onSuccess: async ({ nextCompanyId }) => {
+      setDialogMode(null);
+      setSelectedCompanyId(nextCompanyId);
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.companies.all
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.companies.stats
+      });
+      navigate("/companies", { replace: true });
     }
   });
 
@@ -225,6 +256,16 @@ export function CompanySettings() {
       brandColor: brandColor || null
     });
   }
+
+  const nextCompanyId =
+    companies.find(
+      (company) =>
+        company.id !== selectedCompanyId &&
+        company.status !== "archived"
+    )?.id ??
+    companies.find((company) => company.id !== selectedCompanyId)?.id ??
+    null;
+  const pending = archiveMutation.isPending || deleteMutation.isPending;
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -530,37 +571,47 @@ export function CompanySettings() {
           <p className="text-sm text-muted-foreground">
             {t("settings.dangerZone.description")}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
               variant="destructive"
               disabled={
-                archiveMutation.isPending ||
+                pending ||
                 selectedCompany.status === "archived"
               }
-              onClick={() => {
-                if (!selectedCompanyId) return;
-                const confirmed = window.confirm(
-                  t("settings.dangerZone.confirm", { name: selectedCompany.name })
-                );
-                if (!confirmed) return;
-                const nextCompanyId =
-                  companies.find(
-                    (company) =>
-                      company.id !== selectedCompanyId &&
-                      company.status !== "archived"
-                  )?.id ?? null;
-                archiveMutation.mutate({
-                  companyId: selectedCompanyId,
-                  nextCompanyId
-                });
-              }}
+              onClick={() => setDialogMode("archive")}
             >
-              {archiveMutation.isPending
-                ? t("settings.dangerZone.archiving")
-                : selectedCompany.status === "archived"
-                ? t("settings.dangerZone.alreadyArchived")
-                : t("settings.dangerZone.archive")}
+              {archiveMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  {t("settings.dangerZone.archiving")}
+                </>
+              ) : (
+                <>
+                  <Archive className="mr-1 h-3 w-3" />
+                  {selectedCompany.status === "archived"
+                    ? t("settings.dangerZone.alreadyArchived")
+                    : t("settings.dangerZone.archive")}
+                </>
+              )}
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={pending}
+              onClick={() => setDialogMode("delete")}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  {t("settings.dangerZone.deleting")}
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-1 h-3 w-3" />
+                  {t("settings.dangerZone.delete")}
+                </>
+              )}
             </Button>
             {archiveMutation.isError && (
               <span className="text-xs text-destructive">
@@ -569,9 +620,77 @@ export function CompanySettings() {
                   : t("settings.errors.failedToArchive")}
               </span>
             )}
+            {deleteMutation.isError && (
+              <span className="text-xs text-destructive">
+                {deleteMutation.error instanceof Error
+                  ? deleteMutation.error.message
+                  : t("settings.errors.failedToDelete")}
+              </span>
+            )}
           </div>
         </div>
       </div>
+
+      <Dialog open={dialogMode !== null} onOpenChange={(open) => {
+        if (!open && !pending) {
+          setDialogMode(null);
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {dialogMode === "delete"
+                ? t("settings.dangerZone.dialog.deleteTitle", { name: selectedCompany.name })
+                : t("settings.dangerZone.dialog.archiveTitle", { name: selectedCompany.name })}
+            </DialogTitle>
+            <DialogDescription>
+              {dialogMode === "delete"
+                ? t("settings.dangerZone.dialog.deleteDescription", { name: selectedCompany.name })
+                : t("settings.dangerZone.dialog.archiveDescription", { name: selectedCompany.name })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDialogMode(null)}
+              disabled={pending}
+            >
+              {t("settings.dangerZone.actions.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={pending}
+              onClick={() => {
+                if (!selectedCompanyId) return;
+                if (dialogMode === "delete") {
+                  deleteMutation.mutate({
+                    companyId: selectedCompanyId,
+                    nextCompanyId,
+                  });
+                  return;
+                }
+                archiveMutation.mutate({
+                  companyId: selectedCompanyId,
+                  nextCompanyId,
+                });
+              }}
+            >
+              {pending ? (
+                <>
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  {dialogMode === "delete"
+                    ? t("settings.dangerZone.deleting")
+                    : t("settings.dangerZone.archiving")}
+                </>
+              ) : dialogMode === "delete" ? (
+                t("settings.dangerZone.actions.delete")
+              ) : (
+                t("settings.dangerZone.actions.archive")
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

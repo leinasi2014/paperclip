@@ -469,9 +469,20 @@ export function agentRoutes(db: Db) {
     const promptTemplate = typeof adapterConfig.promptTemplate === "string"
       ? adapterConfig.promptTemplate
       : "";
-    const files = promptTemplate.trim().length === 0
-      ? await loadDefaultAgentInstructionsBundle(resolveDefaultAgentInstructionsBundleRole(agent.role))
-      : { "AGENTS.md": promptTemplate };
+    const files = await loadDefaultAgentInstructionsBundle(
+      resolveDefaultAgentInstructionsBundleRole(agent.role),
+    );
+    if (promptTemplate.trim().length > 0) {
+      const baseAgentsInstructions = files["AGENTS.md"] ?? "";
+      files["AGENTS.md"] = [
+        baseAgentsInstructions.trimEnd(),
+        "## Role-Specific Instructions",
+        "",
+        promptTemplate.trim(),
+      ]
+        .filter((part) => part.length > 0)
+        .join("\n\n");
+    }
     const materialized = await instructions.materializeManagedBundle(
       agent,
       files,

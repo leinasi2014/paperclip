@@ -22,7 +22,7 @@ interface CompanyContextValue {
   selectionSource: CompanySelectionSource;
   loading: boolean;
   error: Error | null;
-  setSelectedCompanyId: (companyId: string, options?: CompanySelectionOptions) => void;
+  setSelectedCompanyId: (companyId: string | null, options?: CompanySelectionOptions) => void;
   reloadCompanies: () => Promise<void>;
   createCompany: (data: {
     name: string;
@@ -61,7 +61,11 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 
   // Auto-select first company when list loads
   useEffect(() => {
-    if (companies.length === 0) return;
+    if (companies.length === 0) {
+      setSelectedCompanyIdState(null);
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
 
     const selectableCompanies = sidebarCompanies.length > 0 ? sidebarCompanies : companies;
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -74,10 +78,14 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, next);
   }, [companies, selectedCompanyId, sidebarCompanies]);
 
-  const setSelectedCompanyId = useCallback((companyId: string, options?: CompanySelectionOptions) => {
+  const setSelectedCompanyId = useCallback((companyId: string | null, options?: CompanySelectionOptions) => {
     setSelectedCompanyIdState(companyId);
     setSelectionSource(options?.source ?? "manual");
-    localStorage.setItem(STORAGE_KEY, companyId);
+    if (companyId) {
+      localStorage.setItem(STORAGE_KEY, companyId);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
   }, []);
 
   const reloadCompanies = useCallback(async () => {
