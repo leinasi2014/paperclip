@@ -77,6 +77,412 @@
         "fit": "适应屏幕",
         "fitShort": "适应"
       }
+    },
+    "org": {
+      "empty": "组织中还没有代理。创建代理以构建组织图。"
+    },
+    "activity": {
+      "breadcrumb": "活动",
+      "filters": {
+        "placeholder": "按类型筛选",
+        "allTypes": "全部类型"
+      },
+      "entityTypes": {
+        "agent": "代理",
+        "approval": "审批",
+        "goal": "目标",
+        "heartbeat": "心跳",
+        "issue": "议题",
+        "project": "项目"
+      },
+      "empty": {
+        "selectCompany": "选择公司以查看活动。",
+        "noActivity": "暂无活动。"
+      }
+    },
+    "newAgent": {
+      "breadcrumb": "新建代理",
+      "title": "新建代理",
+      "subtitle": "高级代理配置",
+      "dialog": {
+        "header": "添加新代理",
+        "recommendation": "建议让你的 CEO 负责代理创建。他更了解组织结构，也能正确配置汇报关系、权限和适配器。",
+        "askCeo": "让 CEO 创建一个新代理",
+        "advancedLink": "我要自己做高级配置",
+        "back": "返回",
+        "advancedDescription": "选择用于高级配置的适配器类型。",
+        "recommended": "推荐",
+        "adapterDescriptions": {
+          "claude_local": "本地 Claude 代理",
+          "codex_local": "本地 Codex 代理",
+          "gemini_local": "本地 Gemini 代理",
+          "opencode_local": "本地多提供方代理",
+          "hermes_local": "本地多提供方代理",
+          "pi_local": "本地 Pi 代理",
+          "cursor": "本地 Cursor 代理",
+          "openclaw_gateway": "通过网关协议调用 OpenClaw"
+        },
+        "issueTemplate": {
+          "title": "创建一个新代理",
+          "description": "（在这里输入你想创建什么样的代理）"
+        }
+      },
+      "fields": {
+        "namePlaceholder": "代理名称",
+        "titlePlaceholder": "头衔（例如：工程副总裁）"
+      },
+      "skills": {
+        "title": "公司技能",
+        "description": "来自公司技能库的可选技能。内置 Paperclip 运行时技能会自动添加。",
+        "empty": "当前没有安装可选公司技能。"
+      },
+      "hints": {
+        "firstAgentCeo": "该代理将作为 CEO"
+      },
+      "actions": {
+        "cancel": "取消",
+        "creating": "创建中...",
+        "create": "创建代理"
+      },
+      "errors": {
+        "createFailed": "创建代理失败",
+        "openCodeModelRequired": "OpenCode 需要显式填写 provider/model 格式的模型。",
+        "failedToLoadOpenCodeModels": "加载 OpenCode 模型失败。",
+        "openCodeModelsLoading": "OpenCode 模型仍在加载，请稍后重试。",
+        "noOpenCodeModels": "未发现 OpenCode 模型。请运行 `opencode models` 并完成 provider 认证。",
+        "configuredOpenCodeModelUnavailable": "配置的 OpenCode 模型不可用：{{model}}"
+      }
+    },
+    "agentDetail": {
+      "fallbackTitle": "代理",
+      "runLabel": "运行 {{id}}",
+      "live": "实时",
+      "pendingApproval": "该代理正在等待董事会审批，暂时无法触发运行。",
+      "tabs": {
+        "dashboard": "概览",
+        "instructions": "指令",
+        "skills": "技能",
+        "configuration": "配置",
+        "runs": "运行记录",
+        "budget": "预算"
+      },
+      "actions": {
+        "assignTask": "分配任务",
+        "runHeartbeat": "执行心跳",
+        "copyAgentId": "复制代理 ID",
+        "resetSessions": "重置会话",
+        "terminate": "终止",
+        "cancel": "取消",
+        "save": "保存",
+        "saving": "保存中..."
+      },
+      "latestRun": {
+        "liveRun": "实时运行",
+        "latestRun": "最近运行",
+        "viewDetails": "查看详情"
+      },
+      "overview": {
+        "costs": "成本",
+        "charts": {
+          "last14Days": "最近 14 天",
+          "runActivity": { "title": "运行活跃度" },
+          "issuesByPriority": { "title": "议题优先级分布" },
+          "issuesByStatus": { "title": "议题状态分布" },
+          "successRate": { "title": "成功率" }
+        },
+        "recentIssues": {
+          "title": "最近议题",
+          "seeAll": "查看全部",
+          "empty": "暂无最近议题。",
+          "more": "另有 {{count}} 个议题"
+        }
+      },
+      "costs": {
+        "metrics": {
+          "inputTokens": "输入令牌",
+          "outputTokens": "输出令牌",
+          "cachedTokens": "缓存令牌",
+          "totalCost": "总成本"
+        },
+        "table": {
+          "date": "日期",
+          "run": "运行",
+          "input": "输入",
+          "output": "输出",
+          "cost": "成本"
+        }
+      },
+      "runs": {
+        "sources": {
+          "timer": "定时",
+          "assignment": "任务分配",
+          "on_demand": "按需",
+          "automation": "自动化"
+        },
+        "empty": "暂无运行记录。",
+        "backToRuns": "返回运行列表",
+        "runDetail": {
+          "actions": {
+            "cancel": "取消",
+            "cancelling": "取消中...",
+            "resume": "恢复",
+            "resuming": "恢复中...",
+            "retry": "重试",
+            "retrying": "重试中...",
+            "runningClaudeLogin": "正在执行 claude login...",
+            "loginToClaudeCode": "登录 Claude Code"
+          },
+          "duration": "耗时：{{value}}",
+          "loginUrl": "登录链接：",
+          "exitCode": "退出码 {{code}}",
+          "signal": "（信号：{{signal}}）",
+          "issuesTouched": "触达议题（{{count}}）",
+          "stderr": "stderr",
+          "stdout": "stdout",
+          "metrics": {
+            "input": "输入",
+            "output": "输出",
+            "cached": "缓存",
+            "cost": "成本"
+          },
+          "session": {
+            "title": "会话",
+            "changed": "（已变化）",
+            "before": "之前",
+            "id": "ID",
+            "after": "之后",
+            "confirmClearForIssues": "清除此运行触达的 {{count}} 个议题会话吗？",
+            "confirmClearForIssues_one": "清除此运行触达的 {{count}} 个议题会话吗？",
+            "confirmClearForIssues_other": "清除此运行触达的 {{count}} 个议题会话吗？",
+            "clearing": "正在清理会话...",
+            "clearForIssues": "清理这些议题的会话"
+          },
+          "errors": {
+            "resumeFailed": "恢复运行失败",
+            "retryFailed": "重试运行失败",
+            "claudeLoginFailed": "执行 Claude 登录失败",
+            "clearSessionsFailed": "清理会话失败",
+            "resumeSkippedNotInvokable": "跳过恢复请求：当前代理不可调用。",
+            "retrySkippedNotInvokable": "跳过重试请求：当前代理不可调用。"
+          }
+        }
+      },
+      "keys": {
+        "title": "API 密钥",
+        "defaultName": "默认",
+        "banner": {
+          "created": "API 密钥已创建，请立即复制，之后将不再显示。"
+        },
+        "create": {
+          "title": "创建 API 密钥",
+          "description": "API 密钥用于让该代理对 Paperclip 服务端进行鉴权调用。",
+          "placeholder": "密钥名称（例如 production）"
+        },
+        "actions": {
+          "hide": "隐藏",
+          "show": "显示",
+          "copy": "复制",
+          "dismiss": "关闭",
+          "create": "创建",
+          "revoke": "吊销"
+        },
+        "copied": "已复制！",
+        "loading": "正在加载密钥...",
+        "empty": "暂无有效 API 密钥。",
+        "activeTitle": "有效密钥",
+        "revokedTitle": "已吊销密钥",
+        "createdAt": "创建于 {{date}}",
+        "revokedAt": "吊销于 {{date}}"
+      },
+      "workspace": {
+        "title": "工作区（{{count}}）",
+        "timeRange": "{{from}} 到 {{to}}",
+        "createdByRun": "由本次运行创建",
+        "reusedExistingWorkspace": "复用已有工作区",
+        "stderrExcerpt": "stderr 摘录",
+        "stdoutExcerpt": "stdout 摘录",
+        "phases": {
+          "worktreePrepare": "Worktree 初始化",
+          "workspaceProvision": "工作区配置",
+          "workspaceTeardown": "工作区拆除",
+          "worktreeCleanup": "Worktree 清理"
+        },
+        "statuses": {
+          "succeeded": "成功",
+          "failed": "失败",
+          "running": "运行中",
+          "skipped": "已跳过"
+        },
+        "fields": {
+          "command": "命令：",
+          "workingDir": "工作目录：",
+          "branch": "分支：",
+          "baseRef": "基准引用：",
+          "worktree": "Worktree：",
+          "repoRoot": "仓库根目录：",
+          "cleanup": "清理："
+        },
+        "logs": {
+          "show": "显示完整日志",
+          "hide": "隐藏完整日志",
+          "loading": "日志加载中...",
+          "loadFailed": "加载工作区操作日志失败",
+          "empty": "没有持久化日志行。"
+        }
+      },
+      "logs": {
+        "loadingRunLogs": "运行日志加载中...",
+        "noLogEvents": "暂无日志事件。",
+        "jumpToLive": "跳到实时位置",
+        "errors": {
+          "loadRunLogFailed": "加载运行日志失败"
+        },
+        "invocation": {
+          "title": "调用信息",
+          "adapter": "适配器：",
+          "workingDir": "工作目录：",
+          "command": "命令：",
+          "commandNotes": "命令备注",
+          "prompt": "Prompt",
+          "context": "Context",
+          "environment": "环境变量"
+        },
+        "transcript": {
+          "title": "转录（{{count}}）",
+          "waiting": "等待转录中...",
+          "noPersisted": "该运行暂无持久化转录。",
+          "modes": {
+            "nice": "友好",
+            "raw": "原始"
+          }
+        },
+        "failureDetails": {
+          "title": "失败详情",
+          "error": "错误：",
+          "stderrExcerpt": "stderr 摘录",
+          "stdoutExcerpt": "stdout 摘录",
+          "adapterResultJson": "适配器结果 JSON"
+        },
+        "events": {
+          "title": "事件（{{count}}）"
+        }
+      },
+      "skills": {
+        "viewCompanyLibrary": "查看公司技能库",
+        "empty": "请先将技能导入公司技能库，再在此附加。",
+        "requiredByPaperclip": "Paperclip 必需",
+        "locationLabel": "位置：{{location}}",
+        "saveStatus": {
+          "savingChanges": "正在保存变更...",
+          "savingSoon": "即将保存..."
+        },
+        "application": {
+          "keptInWorkspace": "保留在工作区中",
+          "appliedWhenRuns": "运行时应用",
+          "trackedOnly": "仅追踪",
+          "unknown": "未知"
+        },
+        "unsupported": {
+          "openclaw": "此处无法由 Paperclip 管理 OpenClaw 技能。请前往你的 OpenClaw 实例管理该代理技能。",
+          "default": "Paperclip 暂不支持管理此适配器的技能。请在适配器侧直接管理。",
+          "manageInAdapter": "请在适配器侧直接管理技能。"
+        },
+        "actions": {
+          "view": "查看"
+        },
+        "unmanaged": {
+          "title": "（{{count}}）用户安装技能（非 Paperclip 管理）"
+        },
+        "missingRequested": {
+          "title": "请求的技能在公司技能库中不存在"
+        },
+        "summary": {
+          "adapter": "适配器",
+          "skillsApplied": "已应用技能",
+          "selectedSkills": "已选技能"
+        },
+        "errors": {
+          "updateFailed": "更新技能失败"
+        }
+      },
+      "prompts": {
+        "localOnly": "仅本地适配器支持指令包。",
+        "advanced": "高级设置",
+        "mode": {
+          "label": "模式",
+          "help": "Managed：由 Paperclip 存储并提供指令包。External：你提供磁盘上的指令路径。",
+          "managed": "Managed",
+          "external": "External"
+        },
+        "rootPath": {
+          "label": "根路径",
+          "help": "指令包所在磁盘绝对目录。Managed 模式下由 Paperclip 自动设置。",
+          "managed": "（managed）",
+          "placeholder": "/absolute/path/to/agent/prompts"
+        },
+        "entryFile": {
+          "label": "入口文件",
+          "help": "代理加载指令时首先读取的主文件。默认是 AGENTS.md。"
+        },
+        "files": {
+          "title": "文件",
+          "virtualFile": "虚拟文件",
+          "virtualFileHelp": "旧版内联提示词。该已弃用虚拟文件用于保留历史 promptTemplate 内容。",
+          "entry": "入口",
+          "deprecatedVirtualFile": "已弃用虚拟文件",
+          "languageFile": "{{language}} 文件",
+          "textLanguage": "文本",
+          "newFileInBundle": "该指令包中的新文件"
+        },
+        "actions": {
+          "create": "创建",
+          "cancel": "取消",
+          "delete": "删除"
+        },
+        "editor": {
+          "markdownPlaceholder": "# 代理指令",
+          "fileContentsPlaceholder": "文件内容"
+        },
+        "confirm": {
+          "deleteFile": "删除 {{file}}？"
+        },
+        "errors": {
+          "selectCompanyToUploadImages": "请选择公司后再上传图片"
+        }
+      },
+      "configurationRevisions": {
+        "title": "配置修订",
+        "empty": "还没有配置修订记录。",
+        "restore": "恢复",
+        "changed": "变更：",
+        "noTrackedChanges": "无可追踪变更"
+      },
+      "permissions": {
+        "title": "权限",
+        "canCreateAgents": {
+          "title": "允许创建新代理",
+          "description": "允许该代理创建或招聘代理，并隐式获得分配任务权限。"
+        },
+        "canAssignTasks": {
+          "title": "允许分配任务"
+        },
+        "taskAssignHint": {
+          "ceoRole": "CEO 代理会自动启用。",
+          "agentCreator": "当该代理具备创建代理权限时会自动启用。",
+          "explicitGrant": "已通过公司显式授权启用。",
+          "disabled": "未显式授权时保持禁用。"
+        }
+      },
+      "toasts": {
+        "saveFailed": "保存失败"
+      },
+      "errors": {
+        "actionFailed": "操作失败",
+        "resetSessionFailed": "重置会话失败",
+        "updatePermissionsFailed": "更新权限失败",
+        "couldNotSaveAgent": "无法保存代理",
+        "noAgentReference": "缺少代理引用"
+      }
     }
   },
   "config": {
@@ -118,6 +524,110 @@
       "maxConcurrentRuns": "这个代理允许同时执行的最大心跳运行数。",
       "budgetMonthlyCents": "每月支出上限（美分）。0 表示不设上限。"
     },
+    "form": {
+      "sections": {
+        "unsavedChanges": "有未保存的更改",
+        "identity": "身份信息",
+        "adapter": "适配器",
+        "permissionsAndConfiguration": "权限与配置",
+        "runPolicy": "运行策略",
+        "advancedRunPolicy": "高级运行策略"
+      },
+      "fields": {
+        "name": "名称",
+        "title": "头衔",
+        "reportsTo": "汇报对象",
+        "capabilities": "能力",
+        "promptTemplate": "提示模板",
+        "adapterType": "适配器类型",
+        "workingDirectoryDeprecated": "工作目录（已弃用）",
+        "command": "命令",
+        "bootstrapPromptLegacy": "引导提示（旧版）",
+        "extraArgs": "额外参数（逗号分隔）",
+        "environmentVariables": "环境变量",
+        "timeoutSec": "超时（秒）",
+        "graceSec": "中断宽限期（秒）",
+        "heartbeatOnInterval": "按间隔执行心跳",
+        "wakeOnDemand": "按需唤醒",
+        "cooldownSec": "冷却时间（秒）",
+        "maxConcurrentRuns": "最大并发运行数",
+        "secretName": "Secret 名称",
+        "model": "模型",
+        "thinkingEffort": "思考强度"
+      },
+      "placeholders": {
+        "agentName": "代理名称",
+        "agentTitle": "例如：工程副总裁",
+        "capabilities": "描述这个代理能做什么...",
+        "promptTemplate": "You are agent {{ agent.name }}. Your role is {{ agent.role }}...",
+        "workingDirectory": "/path/to/project",
+        "bootstrapPrompt": "可选的首轮初始化提示",
+        "extraArgs": "例如：--verbose, --foo=bar",
+        "envKey": "KEY",
+        "envValue": "value",
+        "selectSecret": "选择 Secret...",
+        "defaultModel": "默认",
+        "selectModelRequired": "选择模型（必填）",
+        "selectModel": "选择模型",
+        "searchModels": "搜索模型...",
+        "searchModelsCreatable": "搜索模型...（输入可创建）"
+      },
+      "actions": {
+        "chooseManager": "选择上级…",
+        "testing": "测试中...",
+        "testEnvironment": "测试环境",
+        "detectFromHermesConfig": "从 Hermes 配置检测",
+        "detectFromConfig": "从配置检测",
+        "detecting": "检测中...",
+        "useManualModel": "使用手动模型",
+        "new": "新建",
+        "seal": "封存",
+        "createSecretFromPlainValue": "用当前明文值创建 Secret",
+        "storeValueAsSecret": "将该值存为 Secret 并替换为引用"
+      },
+      "labels": {
+        "secondsShort": "秒",
+        "runHeartbeatEvery": "每隔多久执行一次心跳",
+        "hintPrefix": "提示：",
+        "comingSoon": "即将支持",
+        "plain": "明文",
+        "secret": "Secret",
+        "current": "当前",
+        "detected": "已检测"
+      },
+      "optionLabels": {
+        "auto": "自动",
+        "minimal": "最小",
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "max": "最大",
+        "plan": "规划",
+        "ask": "询问"
+      },
+      "status": {
+        "passed": "通过",
+        "warnings": "警告",
+        "failed": "失败"
+      },
+      "notices": {
+        "promptTemplateReplay": "提示模板会在每次心跳时重复发送。请保持精简和动态，避免持续消耗 token 并增加缓存抖动。",
+        "promptTemplateCreateReplay": "提示模板会在每次心跳时重复发送。这里更适合放简短的任务上下文，以及像 {{context}} 或 {{run}} 这样的变量；不要在这里重复稳定说明。",
+        "codexSearchMinimal": "开启搜索时，Codex 可能会拒绝 `minimal` 思考强度。",
+        "bootstrapPromptLegacy": "引导提示属于旧版能力，后续版本会移除。建议把这部分内容迁移到代理的提示模板或指令文件中。",
+        "envVarNote": "运行时会自动注入 PAPERCLIP_* 变量。"
+      },
+      "errors": {
+        "selectCompanyToCreateSecrets": "请先选择公司再创建 Secret",
+        "selectCompanyToDetectHermesModel": "请先选择公司再检测 Hermes 模型",
+        "selectCompanyToTestEnvironment": "请先创建或选择公司再测试适配器环境",
+        "environmentTestFailed": "环境测试失败",
+        "failedToLoadAdapterModels": "加载适配器模型失败。",
+        "failedToCreateSecret": "创建 Secret 失败",
+        "noHermesModelDetected": "尚未检测到 Hermes 模型。请先配置 Hermes，或手动输入 provider/model。",
+        "noModelsFound": "未找到可用模型。"
+      }
+    },
     "choosePathDialog": {
       "choose": "选择",
       "title": "手动填写路径",
@@ -152,5 +662,15 @@
       },
       "ok": "确定"
     }
+  },
+  "reportsToPicker": {
+    "disabledEmptyLabel": "汇报对象：不适用（CEO）",
+    "chooseLabel": "选择汇报对象...",
+    "unknownManager": "未知上级（旧 ID）",
+    "reportsTo": "汇报给 {{name}}",
+    "reportsToTerminated": "汇报给 {{name}}（已终止）",
+    "noManager": "无上级",
+    "currentTerminated": "当前：{{name}}（已终止）",
+    "missingSavedManager": "已保存的上级已不在当前公司中。请选择新的上级或清空。"
   }
 }

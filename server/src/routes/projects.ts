@@ -8,7 +8,9 @@ import {
   updateProjectWorkspaceSchema,
 } from "@paperclipai/shared";
 import { validate } from "../middleware/validate.js";
-import { projectService, logActivity, workspaceOperationService } from "../services/index.js";
+import { issueService, projectService, logActivity, workspaceOperationService } from "../services/index.js";
+import { getStorageService } from "../storage/index.js";
+import { logger } from "../middleware/logger.js";
 import { conflict } from "../errors.js";
 import { assertCompanyAccess, getActorInfo } from "./authz.js";
 import { startRuntimeServicesForWorkspaceControl, stopRuntimeServicesForProjectWorkspace } from "../services/workspace-runtime.js";
@@ -16,7 +18,9 @@ import { startRuntimeServicesForWorkspaceControl, stopRuntimeServicesForProjectW
 export function projectRoutes(db: Db) {
   const router = Router();
   const svc = projectService(db);
+  const issuesSvc = issueService(db);
   const workspaceOperations = workspaceOperationService(db);
+  const storage = getStorageService();
 
   async function resolveCompanyIdForProjectReference(req: Request) {
     const companyIdQuery = req.query.companyId;
@@ -411,24 +415,48 @@ export function projectRoutes(db: Db) {
       return;
     }
     assertCompanyAccess(req, existing.companyId);
-    const project = await svc.remove(id);
-    if (!project) {
+
+    const projectIssues = await issuesSvc.list(existing.companyId, { projectId: id });
+    const attachments = (
+      await Promise.all(projectIssues.map((issue) => issuesSvc.listAttachments(issue.id)))
+    ).flat();
+
+    const removed = await svc.removeCascade(id);
+    if (!removed) {
       res.status(404).json({ error: "Project not found" });
       return;
     }
 
+    for (const attachment of attachments) {
+      try {
+        await storage.deleteObject(attachment.companyId, attachment.objectKey);
+      } catch (err) {
+        logger.warn(
+          { err, projectId: id, attachmentId: attachment.id },
+          "failed to delete attachment object during project delete",
+        );
+      }
+    }
+
     const actor = getActorInfo(req);
     await logActivity(db, {
-      companyId: project.companyId,
+      companyId: removed.project.companyId,
       actorType: actor.actorType,
       actorId: actor.actorId,
       agentId: actor.agentId,
       action: "project.deleted",
       entityType: "project",
-      entityId: project.id,
+      entityId: removed.project.id,
+      details: {
+        issueCount: removed.summary.issueIds.length,
+        deletedGoalCount: removed.summary.deletedGoalIds.length,
+        preservedGoalCount: removed.summary.preservedGoalIds.length,
+        workspaceCount: removed.summary.projectWorkspaceIds.length,
+        executionWorkspaceCount: removed.summary.executionWorkspaceIds.length,
+      },
     });
 
-    res.json(project);
+    res.json(removed.project);
   });
 
   return router;

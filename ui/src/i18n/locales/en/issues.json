@@ -5,6 +5,13 @@
   "empty": {
     "selectCompany": "Select a company to view issues."
   },
+  "myIssues": {
+    "breadcrumb": "My Issues",
+    "empty": {
+      "selectCompany": "Select a company to view your issues.",
+      "noneAssigned": "No issues assigned to you."
+    }
+  },
   "row": {
     "actions": {
       "markAsRead": "Mark as read",
@@ -23,6 +30,74 @@
     "medium": "medium",
     "low": "low"
   },
+  "status": {
+    "backlog": "Backlog",
+    "todo": "Todo",
+    "in_progress": "In Progress",
+    "in_review": "In Review",
+    "blocked": "Blocked",
+    "done": "Done",
+    "cancelled": "Cancelled",
+    "planned": "Planned",
+    "active": "Active",
+    "achieved": "Achieved"
+  },
+  "list": {
+    "search": {
+      "placeholder": "Search issues...",
+      "ariaLabel": "Search issues",
+      "assigneesPlaceholder": "Search assignees..."
+    },
+    "actions": {
+      "newIssue": "New Issue",
+      "listView": "List view",
+      "boardView": "Board view",
+      "filter": "Filter",
+      "filtersCount": "Filters: {{count}}",
+      "clear": "Clear",
+      "sort": "Sort",
+      "group": "Group",
+      "createIssue": "Create Issue"
+    },
+    "sections": {
+      "filters": "Filters",
+      "quickFilters": "Quick filters",
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "labels": "Labels",
+      "project": "Project"
+    },
+    "presets": {
+      "all": "All",
+      "active": "Active",
+      "backlog": "Backlog",
+      "done": "Done"
+    },
+    "sortOptions": {
+      "status": "Status",
+      "priority": "Priority",
+      "title": "Title",
+      "created": "Created",
+      "updated": "Updated"
+    },
+    "groupOptions": {
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "none": "None"
+    },
+    "empty": {
+      "noMatches": "No issues match the current filters or search."
+    },
+    "assignee": {
+      "unassigned": "No assignee",
+      "placeholder": "Assignee"
+    },
+    "groups": {
+      "user": "User"
+    }
+  },
   "toasts": {
     "commentFailed": {
       "title": "Comment failed",
@@ -35,6 +110,10 @@
     "interruptFailed": {
       "title": "Interrupt failed",
       "body": "Unable to interrupt the active run"
+    },
+    "deleteFailed": {
+      "title": "Delete failed",
+      "body": "Unable to delete issue"
     },
     "copiedToClipboard": {
       "title": "Copied to clipboard"
@@ -53,15 +132,136 @@
   "project": {
     "none": "No project"
   },
+  "properties": {
+    "user": "User",
+    "fields": {
+      "status": "Status",
+      "priority": "Priority",
+      "labels": "Labels",
+      "assignee": "Assignee",
+      "project": "Project",
+      "parent": "Parent",
+      "depth": "Depth",
+      "createdBy": "Created by",
+      "started": "Started",
+      "completed": "Completed",
+      "created": "Created",
+      "updated": "Updated"
+    },
+    "labels": {
+      "none": "No labels",
+      "search": "Search labels...",
+      "delete": "Delete {{name}}",
+      "new": "New label",
+      "creating": "Creating…",
+      "create": "Create label"
+    },
+    "assignee": {
+      "unassigned": "Unassigned",
+      "search": "Search assignees...",
+      "noAssignee": "No assignee",
+      "assignToMe": "Assign to me",
+      "assignToUser": "Assign to {{name}}",
+      "assignToRequester": "Assign to requester"
+    },
+    "project": {
+      "search": "Search projects..."
+    }
+  },
   "actions": {
     "copyAsMarkdown": "Copy issue as markdown",
     "properties": "Properties",
     "showProperties": "Show properties",
-    "hideIssue": "Hide this Issue"
+    "hideIssue": "Hide this Issue",
+    "deleteIssue": "Delete issue"
+  },
+  "confirmations": {
+    "deleteIssue": "Delete this issue? This cannot be undone."
   },
   "fields": {
     "description": {
       "placeholder": "Add a description..."
+    }
+  },
+  "newIssueDialog": {
+    "title": "New issue",
+    "labels": {
+      "for": "For",
+      "in": "in",
+      "labels": "Labels"
+    },
+    "fields": {
+      "titlePlaceholder": "Issue title",
+      "assigneePlaceholder": "Assignee",
+      "noAssignee": "No assignee",
+      "searchAssignees": "Search assignees...",
+      "noAssigneesFound": "No assignees found.",
+      "projectPlaceholder": "Project",
+      "searchProjects": "Search projects...",
+      "noProjectsFound": "No projects found."
+    },
+    "status": {
+      "backlog": "Backlog",
+      "todo": "Todo",
+      "in_progress": "In Progress",
+      "in_review": "In Review",
+      "done": "Done"
+    },
+    "priority": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "executionWorkspace": {
+      "title": "Execution workspace",
+      "description": "Control whether this issue runs in the shared workspace, a new isolated workspace, or an existing one.",
+      "chooseExisting": "Choose an existing workspace",
+      "existingWorkspace": "existing execution workspace",
+      "reusing": "Reusing {{name}} from {{source}}.",
+      "modes": {
+        "shared_workspace": "Project default",
+        "isolated_workspace": "New isolated workspace",
+        "reuse_existing": "Reuse existing workspace"
+      }
+    },
+    "assigneeOptions": {
+      "claudeOptions": "Claude options",
+      "codexOptions": "Codex options",
+      "openCodeOptions": "OpenCode options",
+      "agentOptions": "Agent options",
+      "model": "Model",
+      "defaultModel": "Default model",
+      "searchModels": "Search models...",
+      "noModelsFound": "No models found.",
+      "thinkingEffort": "Thinking effort",
+      "enableChrome": "Enable Chrome (--chrome)"
+    },
+    "thinkingEffort": {
+      "default": "Default",
+      "minimal": "Minimal",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "max": "Max"
+    },
+    "attachments": {
+      "documents": "Documents",
+      "removeDocument": "Remove document",
+      "removeAttachment": "Remove attachment"
+    },
+    "dates": {
+      "startDate": "Start date",
+      "dueDate": "Due date"
+    },
+    "actions": {
+      "discardDraft": "Discard Draft",
+      "creatingIssue": "Creating issue...",
+      "creating": "Creating...",
+      "createIssue": "Create Issue"
+    },
+    "errors": {
+      "createFailed": "Failed to create issue. Try again."
     }
   },
   "attachments": {

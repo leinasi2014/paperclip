@@ -24,15 +24,135 @@
     "settings": "Settings"
   },
   "actions": {
+    "add": "Add",
     "save": "Save",
     "cancel": "Cancel",
+    "close": "Close",
+    "more": "More",
+    "remove": "Remove",
+    "pause": "Pause",
+    "resume": "Resume",
+    "runNow": "Run now",
+    "choose": "Choose",
     "newIssue": "New Issue",
     "newCompany": "New Company"
+  },
+  "dialogs": {
+    "commandPalette": {
+      "title": "Command Palette",
+      "description": "Search for a command to run..."
+    }
+  },
+  "agentIconPicker": {
+    "searchPlaceholder": "Search icons...",
+    "empty": "No icons match"
+  },
+  "schemaForm": {
+    "selectOption": "Select an option",
+    "secretDescription": "This secret is stored securely via the Paperclip secret provider.",
+    "showSecret": "Show secret",
+    "hideSecret": "Hide secret",
+    "addItem": "Add item",
+    "itemLabel": "Item {{index}}",
+    "removeItem": "Remove item",
+    "emptyArray": "No items added yet."
+  },
+  "commentThread": {
+    "copyAsMarkdown": "Copy as markdown",
+    "you": "You",
+    "queued": "Queued",
+    "queueing": "Queueing...",
+    "sending": "Sending...",
+    "emptyTimeline": "No comments or runs yet.",
+    "run": "Run",
+    "title": "Comments & Runs ({{count}})",
+    "queuedTitle": "Queued Comments ({{count}})",
+    "interrupting": "Interrupting...",
+    "interrupt": "Interrupt",
+    "placeholder": "Leave a comment...",
+    "attachImage": "Attach image",
+    "reopen": "Re-open",
+    "assigneePlaceholder": "Assignee",
+    "noAssignee": "No assignee",
+    "searchAssignees": "Search assignees...",
+    "noAssigneesFound": "No assignees found.",
+    "posting": "Posting...",
+    "comment": "Comment"
+  },
+  "pathInstructions": {
+    "title": "How to get a full path",
+    "descriptionPrefix": "Paste the absolute path (e.g.",
+    "descriptionSuffix": ") into the input field.",
+    "instructions": {
+      "mac": {
+        "steps": [
+          "Open Finder and navigate to the folder.",
+          "Right-click (or Control-click) the folder.",
+          "Hold the Option (⌥) key. \"Copy\" changes to \"Copy as Pathname\".",
+          "Click \"Copy as Pathname\", then paste here."
+        ],
+        "tip": "You can also open Terminal, type cd, drag the folder into the terminal window, and press Enter. Then type pwd to see the full path."
+      },
+      "windows": {
+        "steps": [
+          "Open File Explorer and navigate to the folder.",
+          "Click in the address bar at the top. The full path will appear.",
+          "Copy the path, then paste here."
+        ],
+        "tip": "Alternatively, hold Shift and right-click the folder, then select \"Copy as path\"."
+      },
+      "linux": {
+        "steps": [
+          "Open a terminal and navigate to the directory with cd.",
+          "Run pwd to print the full path.",
+          "Copy the output and paste here."
+        ],
+        "tip": "In most file managers, Ctrl+L reveals the full path in the address bar."
+      }
+    }
+  },
+  "scheduleEditor": {
+    "chooseFrequency": "Choose frequency...",
+    "cronHelp": "Five fields: minute hour day-of-month month day-of-week",
+    "at": "at",
+    "atMinute": "at minute",
+    "on": "on",
+    "onDay": "on day",
+    "presets": {
+      "every_minute": "Every minute",
+      "every_hour": "Every hour",
+      "every_day": "Every day",
+      "weekdays": "Weekdays",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "custom": "Custom (cron)"
+    },
+    "days": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    }
   },
   "company": {
     "selectCompany": "Select company",
     "createFirstTitle": "Create your first company",
     "createFirstDescription": "Get started by creating a company."
+  },
+  "companySwitcher": {
+    "companies": "Companies",
+    "noCompanies": "No companies",
+    "settings": "Company Settings",
+    "manage": "Manage Companies"
+  },
+  "companyRail": {
+    "addCompany": "Add company"
+  },
+  "propertiesPanel": {
+    "title": "Properties"
   },
   "bootstrap": {
     "title": "Instance setup required",

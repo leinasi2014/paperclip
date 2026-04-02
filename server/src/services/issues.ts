@@ -6,10 +6,12 @@ import {
   assets,
   companies,
   companyMemberships,
+  costEvents,
   documents,
   goals,
   heartbeatRuns,
   executionWorkspaces,
+  financeEvents,
   issueAttachments,
   issueInboxArchives,
   issueLabels,
@@ -1164,6 +1166,17 @@ export function issueService(db: Db) {
 
     remove: (id: string) =>
       db.transaction(async (tx) => {
+        const existingIssue = await tx
+          .select({
+            id: issues.id,
+            companyId: issues.companyId,
+          })
+          .from(issues)
+          .where(eq(issues.id, id))
+          .then((rows) => rows[0] ?? null);
+        if (!existingIssue) return null;
+
+        const now = new Date();
         const attachmentAssetIds = await tx
           .select({ assetId: issueAttachments.assetId })
           .from(issueAttachments)
@@ -1172,6 +1185,31 @@ export function issueService(db: Db) {
           .select({ documentId: issueDocuments.documentId })
           .from(issueDocuments)
           .where(eq(issueDocuments.issueId, id));
+
+        await tx
+          .delete(issueComments)
+          .where(eq(issueComments.issueId, id));
+        await tx
+          .delete(issueReadStates)
+          .where(eq(issueReadStates.issueId, id));
+        await tx
+          .delete(issueInboxArchives)
+          .where(eq(issueInboxArchives.issueId, id));
+        await tx
+          .update(issues)
+          .set({
+            parentId: null,
+            updatedAt: now,
+          })
+          .where(and(eq(issues.companyId, existingIssue.companyId), eq(issues.parentId, id)));
+        await tx
+          .update(costEvents)
+          .set({ issueId: null })
+          .where(eq(costEvents.issueId, id));
+        await tx
+          .update(financeEvents)
+          .set({ issueId: null })
+          .where(eq(financeEvents.issueId, id));
 
         const removedIssue = await tx
           .delete(issues)

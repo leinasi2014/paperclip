@@ -13,7 +13,7 @@ void i18n
     fallbackLng: "en",
     supportedLngs: [...supportedLanguages],
     defaultNS: "common",
-    ns: ["common", "company", "workspaces", "settings"],
+    ns: Object.keys(resources.en),
     interpolation: {
       escapeValue: false,
     },

@@ -77,6 +77,412 @@
         "fit": "Fit to screen",
         "fitShort": "Fit"
       }
+    },
+    "org": {
+      "empty": "No agents in the organization. Create agents to build your org chart."
+    },
+    "activity": {
+      "breadcrumb": "Activity",
+      "filters": {
+        "placeholder": "Filter by type",
+        "allTypes": "All types"
+      },
+      "entityTypes": {
+        "agent": "Agent",
+        "approval": "Approval",
+        "goal": "Goal",
+        "heartbeat": "Heartbeat",
+        "issue": "Issue",
+        "project": "Project"
+      },
+      "empty": {
+        "selectCompany": "Select a company to view activity.",
+        "noActivity": "No activity yet."
+      }
+    },
+    "newAgent": {
+      "breadcrumb": "New Agent",
+      "title": "New Agent",
+      "subtitle": "Advanced agent configuration",
+      "dialog": {
+        "header": "Add a new agent",
+        "recommendation": "We recommend letting your CEO handle agent setup. They know the org structure and can configure reporting, permissions, and adapters.",
+        "askCeo": "Ask the CEO to create a new agent",
+        "advancedLink": "I want advanced configuration myself",
+        "back": "Back",
+        "advancedDescription": "Choose your adapter type for advanced setup.",
+        "recommended": "Recommended",
+        "adapterDescriptions": {
+          "claude_local": "Local Claude agent",
+          "codex_local": "Local Codex agent",
+          "gemini_local": "Local Gemini agent",
+          "opencode_local": "Local multi-provider agent",
+          "hermes_local": "Local multi-provider agent",
+          "pi_local": "Local Pi agent",
+          "cursor": "Local Cursor agent",
+          "openclaw_gateway": "Invoke OpenClaw via gateway protocol"
+        },
+        "issueTemplate": {
+          "title": "Create a new agent",
+          "description": "(type in what kind of agent you want here)"
+        }
+      },
+      "fields": {
+        "namePlaceholder": "Agent name",
+        "titlePlaceholder": "Title (e.g. VP of Engineering)"
+      },
+      "skills": {
+        "title": "Company skills",
+        "description": "Optional skills from the company library. Built-in Paperclip runtime skills are added automatically.",
+        "empty": "No optional company skills installed yet."
+      },
+      "hints": {
+        "firstAgentCeo": "This will be the CEO"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "create": "Create agent"
+      },
+      "errors": {
+        "createFailed": "Failed to create agent",
+        "openCodeModelRequired": "OpenCode requires an explicit model in provider/model format.",
+        "failedToLoadOpenCodeModels": "Failed to load OpenCode models.",
+        "openCodeModelsLoading": "OpenCode models are still loading. Please wait and try again.",
+        "noOpenCodeModels": "No OpenCode models discovered. Run `opencode models` and authenticate providers.",
+        "configuredOpenCodeModelUnavailable": "Configured OpenCode model is unavailable: {{model}}"
+      }
+    },
+    "agentDetail": {
+      "fallbackTitle": "Agent",
+      "runLabel": "Run {{id}}",
+      "live": "Live",
+      "pendingApproval": "This agent is pending board approval and cannot be invoked yet.",
+      "tabs": {
+        "dashboard": "Dashboard",
+        "instructions": "Instructions",
+        "skills": "Skills",
+        "configuration": "Configuration",
+        "runs": "Runs",
+        "budget": "Budget"
+      },
+      "actions": {
+        "assignTask": "Assign Task",
+        "runHeartbeat": "Run Heartbeat",
+        "copyAgentId": "Copy Agent ID",
+        "resetSessions": "Reset Sessions",
+        "terminate": "Terminate",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving..."
+      },
+      "latestRun": {
+        "liveRun": "Live Run",
+        "latestRun": "Latest Run",
+        "viewDetails": "View details"
+      },
+      "overview": {
+        "costs": "Costs",
+        "charts": {
+          "last14Days": "Last 14 days",
+          "runActivity": { "title": "Run Activity" },
+          "issuesByPriority": { "title": "Issues by Priority" },
+          "issuesByStatus": { "title": "Issues by Status" },
+          "successRate": { "title": "Success Rate" }
+        },
+        "recentIssues": {
+          "title": "Recent Issues",
+          "seeAll": "See All",
+          "empty": "No recent issues.",
+          "more": "+{{count}} more issues"
+        }
+      },
+      "costs": {
+        "metrics": {
+          "inputTokens": "Input tokens",
+          "outputTokens": "Output tokens",
+          "cachedTokens": "Cached tokens",
+          "totalCost": "Total cost"
+        },
+        "table": {
+          "date": "Date",
+          "run": "Run",
+          "input": "Input",
+          "output": "Output",
+          "cost": "Cost"
+        }
+      },
+      "runs": {
+        "sources": {
+          "timer": "Timer",
+          "assignment": "Assignment",
+          "on_demand": "On-demand",
+          "automation": "Automation"
+        },
+        "empty": "No runs yet.",
+        "backToRuns": "Back to runs",
+        "runDetail": {
+          "actions": {
+            "cancel": "Cancel",
+            "cancelling": "Cancelling...",
+            "resume": "Resume",
+            "resuming": "Resuming...",
+            "retry": "Retry",
+            "retrying": "Retrying...",
+            "runningClaudeLogin": "Running claude login...",
+            "loginToClaudeCode": "Login to Claude Code"
+          },
+          "duration": "Duration: {{value}}",
+          "loginUrl": "Login URL:",
+          "exitCode": "Exit code {{code}}",
+          "signal": "(signal: {{signal}})",
+          "issuesTouched": "Issues Touched ({{count}})",
+          "stderr": "stderr",
+          "stdout": "stdout",
+          "metrics": {
+            "input": "Input",
+            "output": "Output",
+            "cached": "Cached",
+            "cost": "Cost"
+          },
+          "session": {
+            "title": "Session",
+            "changed": "(changed)",
+            "before": "Before",
+            "id": "ID",
+            "after": "After",
+            "confirmClearForIssues": "Clear session for {{count}} issues touched by this run?",
+            "confirmClearForIssues_one": "Clear session for {{count}} issue touched by this run?",
+            "confirmClearForIssues_other": "Clear session for {{count}} issues touched by this run?",
+            "clearing": "clearing session...",
+            "clearForIssues": "clear session for these issues"
+          },
+          "errors": {
+            "resumeFailed": "Failed to resume run",
+            "retryFailed": "Failed to retry run",
+            "claudeLoginFailed": "Failed to run Claude login",
+            "clearSessionsFailed": "Failed to clear sessions",
+            "resumeSkippedNotInvokable": "Resume request was skipped because the agent is not currently invokable.",
+            "retrySkippedNotInvokable": "Retry was skipped because the agent is not currently invokable."
+          }
+        }
+      },
+      "keys": {
+        "title": "API Keys",
+        "defaultName": "Default",
+        "banner": {
+          "created": "API key created — copy it now, it will not be shown again."
+        },
+        "create": {
+          "title": "Create API Key",
+          "description": "API keys allow this agent to authenticate calls to the Paperclip server.",
+          "placeholder": "Key name (e.g. production)"
+        },
+        "actions": {
+          "hide": "Hide",
+          "show": "Show",
+          "copy": "Copy",
+          "dismiss": "Dismiss",
+          "create": "Create",
+          "revoke": "Revoke"
+        },
+        "copied": "Copied!",
+        "loading": "Loading keys...",
+        "empty": "No active API keys.",
+        "activeTitle": "Active Keys",
+        "revokedTitle": "Revoked Keys",
+        "createdAt": "Created {{date}}",
+        "revokedAt": "Revoked {{date}}"
+      },
+      "workspace": {
+        "title": "Workspace ({{count}})",
+        "timeRange": "{{from}} to {{to}}",
+        "createdByRun": "Created by this run",
+        "reusedExistingWorkspace": "Reused existing workspace",
+        "stderrExcerpt": "stderr excerpt",
+        "stdoutExcerpt": "stdout excerpt",
+        "phases": {
+          "worktreePrepare": "Worktree setup",
+          "workspaceProvision": "Provision",
+          "workspaceTeardown": "Teardown",
+          "worktreeCleanup": "Worktree cleanup"
+        },
+        "statuses": {
+          "succeeded": "succeeded",
+          "failed": "failed",
+          "running": "running",
+          "skipped": "skipped"
+        },
+        "fields": {
+          "command": "Command: ",
+          "workingDir": "Working dir: ",
+          "branch": "Branch: ",
+          "baseRef": "Base ref: ",
+          "worktree": "Worktree: ",
+          "repoRoot": "Repo root: ",
+          "cleanup": "Cleanup: "
+        },
+        "logs": {
+          "show": "Show full log",
+          "hide": "Hide full log",
+          "loading": "Loading log...",
+          "loadFailed": "Failed to load workspace operation log",
+          "empty": "No persisted log lines."
+        }
+      },
+      "logs": {
+        "loadingRunLogs": "Loading run logs...",
+        "noLogEvents": "No log events.",
+        "jumpToLive": "Jump to live",
+        "errors": {
+          "loadRunLogFailed": "Failed to load run log"
+        },
+        "invocation": {
+          "title": "Invocation",
+          "adapter": "Adapter: ",
+          "workingDir": "Working dir: ",
+          "command": "Command: ",
+          "commandNotes": "Command notes",
+          "prompt": "Prompt",
+          "context": "Context",
+          "environment": "Environment"
+        },
+        "transcript": {
+          "title": "Transcript ({{count}})",
+          "waiting": "Waiting for transcript...",
+          "noPersisted": "No persisted transcript for this run.",
+          "modes": {
+            "nice": "nice",
+            "raw": "raw"
+          }
+        },
+        "failureDetails": {
+          "title": "Failure details",
+          "error": "Error: ",
+          "stderrExcerpt": "stderr excerpt",
+          "stdoutExcerpt": "stdout excerpt",
+          "adapterResultJson": "adapter result JSON"
+        },
+        "events": {
+          "title": "Events ({{count}})"
+        }
+      },
+      "skills": {
+        "viewCompanyLibrary": "View company skills library",
+        "empty": "Import skills into the company library first, then attach them here.",
+        "requiredByPaperclip": "Required by Paperclip",
+        "locationLabel": "Location: {{location}}",
+        "saveStatus": {
+          "savingChanges": "Saving changes...",
+          "savingSoon": "Saving soon..."
+        },
+        "application": {
+          "keptInWorkspace": "Kept in the workspace",
+          "appliedWhenRuns": "Applied when the agent runs",
+          "trackedOnly": "Tracked only",
+          "unknown": "Unknown"
+        },
+        "unsupported": {
+          "openclaw": "Paperclip cannot manage OpenClaw skills here. Visit your OpenClaw instance to manage this agent's skills.",
+          "default": "Paperclip cannot manage skills for this adapter yet. Manage them in the adapter directly.",
+          "manageInAdapter": "Manage skills in the adapter directly."
+        },
+        "actions": {
+          "view": "View"
+        },
+        "unmanaged": {
+          "title": "({{count}}) User-installed skills, not managed by Paperclip"
+        },
+        "missingRequested": {
+          "title": "Requested skills missing from the company library"
+        },
+        "summary": {
+          "adapter": "Adapter",
+          "skillsApplied": "Skills applied",
+          "selectedSkills": "Selected skills"
+        },
+        "errors": {
+          "updateFailed": "Failed to update skills"
+        }
+      },
+      "prompts": {
+        "localOnly": "Instructions bundles are only available for local adapters.",
+        "advanced": "Advanced",
+        "mode": {
+          "label": "Mode",
+          "help": "Managed: Paperclip stores and serves the instructions bundle. External: you provide a path on disk where the instructions live.",
+          "managed": "Managed",
+          "external": "External"
+        },
+        "rootPath": {
+          "label": "Root path",
+          "help": "The absolute directory on disk where the instructions bundle lives. In managed mode this is set by Paperclip automatically.",
+          "managed": "(managed)",
+          "placeholder": "/absolute/path/to/agent/prompts"
+        },
+        "entryFile": {
+          "label": "Entry file",
+          "help": "The main file the agent reads first when loading instructions. Defaults to AGENTS.md."
+        },
+        "files": {
+          "title": "Files",
+          "virtualFile": "virtual file",
+          "virtualFileHelp": "Legacy inline prompt — this deprecated virtual file preserves the old promptTemplate content",
+          "entry": "entry",
+          "deprecatedVirtualFile": "Deprecated virtual file",
+          "languageFile": "{{language}} file",
+          "textLanguage": "text",
+          "newFileInBundle": "New file in this bundle"
+        },
+        "actions": {
+          "create": "Create",
+          "cancel": "Cancel",
+          "delete": "Delete"
+        },
+        "editor": {
+          "markdownPlaceholder": "# Agent instructions",
+          "fileContentsPlaceholder": "File contents"
+        },
+        "confirm": {
+          "deleteFile": "Delete {{file}}?"
+        },
+        "errors": {
+          "selectCompanyToUploadImages": "Select a company to upload images"
+        }
+      },
+      "configurationRevisions": {
+        "title": "Configuration Revisions",
+        "empty": "No configuration revisions yet.",
+        "restore": "Restore",
+        "changed": "Changed:",
+        "noTrackedChanges": "no tracked changes"
+      },
+      "permissions": {
+        "title": "Permissions",
+        "canCreateAgents": {
+          "title": "Can create new agents",
+          "description": "Lets this agent create or hire agents and implicitly assign tasks."
+        },
+        "canAssignTasks": {
+          "title": "Can assign tasks"
+        },
+        "taskAssignHint": {
+          "ceoRole": "Enabled automatically for CEO agents.",
+          "agentCreator": "Enabled automatically while this agent can create new agents.",
+          "explicitGrant": "Enabled via explicit company permission grant.",
+          "disabled": "Disabled unless explicitly granted."
+        }
+      },
+      "toasts": {
+        "saveFailed": "Save failed"
+      },
+      "errors": {
+        "actionFailed": "Action failed",
+        "resetSessionFailed": "Failed to reset session",
+        "updatePermissionsFailed": "Failed to update permissions",
+        "couldNotSaveAgent": "Could not save agent",
+        "noAgentReference": "No agent reference"
+      }
     }
   },
   "config": {
@@ -118,6 +524,110 @@
       "maxConcurrentRuns": "Maximum number of heartbeat runs that can execute simultaneously for this agent.",
       "budgetMonthlyCents": "Monthly spending limit in cents. 0 means no limit."
     },
+    "form": {
+      "sections": {
+        "unsavedChanges": "Unsaved changes",
+        "identity": "Identity",
+        "adapter": "Adapter",
+        "permissionsAndConfiguration": "Permissions & Configuration",
+        "runPolicy": "Run Policy",
+        "advancedRunPolicy": "Advanced Run Policy"
+      },
+      "fields": {
+        "name": "Name",
+        "title": "Title",
+        "reportsTo": "Reports to",
+        "capabilities": "Capabilities",
+        "promptTemplate": "Prompt Template",
+        "adapterType": "Adapter type",
+        "workingDirectoryDeprecated": "Working directory (deprecated)",
+        "command": "Command",
+        "bootstrapPromptLegacy": "Bootstrap prompt (legacy)",
+        "extraArgs": "Extra args (comma-separated)",
+        "environmentVariables": "Environment variables",
+        "timeoutSec": "Timeout (sec)",
+        "graceSec": "Interrupt grace period (sec)",
+        "heartbeatOnInterval": "Heartbeat on interval",
+        "wakeOnDemand": "Wake on demand",
+        "cooldownSec": "Cooldown (sec)",
+        "maxConcurrentRuns": "Max concurrent runs",
+        "secretName": "Secret name",
+        "model": "Model",
+        "thinkingEffort": "Thinking effort"
+      },
+      "placeholders": {
+        "agentName": "Agent name",
+        "agentTitle": "e.g. VP of Engineering",
+        "capabilities": "Describe what this agent can do...",
+        "promptTemplate": "You are agent {{ agent.name }}. Your role is {{ agent.role }}...",
+        "workingDirectory": "/path/to/project",
+        "bootstrapPrompt": "Optional initial setup prompt for the first run",
+        "extraArgs": "e.g. --verbose, --foo=bar",
+        "envKey": "KEY",
+        "envValue": "value",
+        "selectSecret": "Select secret...",
+        "defaultModel": "Default",
+        "selectModelRequired": "Select model (required)",
+        "selectModel": "Select model",
+        "searchModels": "Search models...",
+        "searchModelsCreatable": "Search models... (type to create)"
+      },
+      "actions": {
+        "chooseManager": "Choose manager…",
+        "testing": "Testing...",
+        "testEnvironment": "Test environment",
+        "detectFromHermesConfig": "Detect from Hermes config",
+        "detectFromConfig": "Detect from config",
+        "detecting": "Detecting...",
+        "useManualModel": "Use manual model",
+        "new": "New",
+        "seal": "Seal",
+        "createSecretFromPlainValue": "Create secret from current plain value",
+        "storeValueAsSecret": "Store value as secret and replace with reference"
+      },
+      "labels": {
+        "secondsShort": "sec",
+        "runHeartbeatEvery": "Run heartbeat every",
+        "hintPrefix": "Hint:",
+        "comingSoon": "Coming soon",
+        "plain": "Plain",
+        "secret": "Secret",
+        "current": "current",
+        "detected": "detected"
+      },
+      "optionLabels": {
+        "auto": "Auto",
+        "minimal": "Minimal",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "max": "Max",
+        "plan": "Plan",
+        "ask": "Ask"
+      },
+      "status": {
+        "passed": "Passed",
+        "warnings": "Warnings",
+        "failed": "Failed"
+      },
+      "notices": {
+        "promptTemplateReplay": "Prompt template is replayed on every heartbeat. Keep it compact and dynamic to avoid recurring token cost and cache churn.",
+        "promptTemplateCreateReplay": "Prompt template is replayed on every heartbeat. Prefer small task framing and variables like {{context}} or {{run}}; avoid repeating stable instructions here.",
+        "codexSearchMinimal": "Codex may reject `minimal` thinking when search is enabled.",
+        "bootstrapPromptLegacy": "Bootstrap prompt is legacy and will be removed in a future release. Consider moving this content into the agent's prompt template or instructions file instead.",
+        "envVarNote": "PAPERCLIP_* variables are injected automatically at runtime."
+      },
+      "errors": {
+        "selectCompanyToCreateSecrets": "Select a company to create secrets",
+        "selectCompanyToDetectHermesModel": "Select a company to detect the Hermes model",
+        "selectCompanyToTestEnvironment": "Select a company to test adapter environment",
+        "environmentTestFailed": "Environment test failed",
+        "failedToLoadAdapterModels": "Failed to load adapter models.",
+        "failedToCreateSecret": "Failed to create secret",
+        "noHermesModelDetected": "No Hermes model detected yet. Configure Hermes or enter a provider/model manually.",
+        "noModelsFound": "No models found."
+      }
+    },
     "choosePathDialog": {
       "choose": "Choose",
       "title": "Specify path manually",
@@ -152,5 +662,15 @@
       },
       "ok": "OK"
     }
+  },
+  "reportsToPicker": {
+    "disabledEmptyLabel": "Reports to: N/A (CEO)",
+    "chooseLabel": "Reports to...",
+    "unknownManager": "Unknown manager (stale ID)",
+    "reportsTo": "Reports to {{name}}",
+    "reportsToTerminated": "Reports to {{name}} (terminated)",
+    "noManager": "No manager",
+    "currentTerminated": "Current: {{name}} (terminated)",
+    "missingSavedManager": "Saved manager is missing from this company. Choose a new manager or clear."
   }
 }

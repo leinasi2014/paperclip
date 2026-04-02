@@ -7,9 +7,11 @@ import enDashboard from "./locales/en/dashboard.json";
 import enGoals from "./locales/en/goals.json";
 import enInbox from "./locales/en/inbox.json";
 import enIssues from "./locales/en/issues.json";
+import enLabs from "./locales/en/labs.json";
 import enNotFound from "./locales/en/notFound.json";
 import enPlugins from "./locales/en/plugins.json";
 import enProjects from "./locales/en/projects.json";
+import enRoutines from "./locales/en/routines.json";
 import enSettings from "./locales/en/settings.json";
 import enCompany from "./locales/en/company.json";
 import enWorkspaces from "./locales/en/workspaces.json";
@@ -22,9 +24,11 @@ import zhCnDashboard from "./locales/zh-CN/dashboard.json";
 import zhCnGoals from "./locales/zh-CN/goals.json";
 import zhCnInbox from "./locales/zh-CN/inbox.json";
 import zhCnIssues from "./locales/zh-CN/issues.json";
+import zhCnLabs from "./locales/zh-CN/labs.json";
 import zhCnNotFound from "./locales/zh-CN/notFound.json";
 import zhCnPlugins from "./locales/zh-CN/plugins.json";
 import zhCnProjects from "./locales/zh-CN/projects.json";
+import zhCnRoutines from "./locales/zh-CN/routines.json";
 import zhCnSettings from "./locales/zh-CN/settings.json";
 import zhCnCompany from "./locales/zh-CN/company.json";
 import zhCnWorkspaces from "./locales/zh-CN/workspaces.json";
@@ -40,9 +44,11 @@ export const resources = {
     goals: enGoals,
     inbox: enInbox,
     issues: enIssues,
+    labs: enLabs,
     notFound: enNotFound,
     plugins: enPlugins,
     projects: enProjects,
+    routines: enRoutines,
     settings: enSettings,
     company: enCompany,
     workspaces: enWorkspaces,
@@ -57,9 +63,11 @@ export const resources = {
     goals: zhCnGoals,
     inbox: zhCnInbox,
     issues: zhCnIssues,
+    labs: zhCnLabs,
     notFound: zhCnNotFound,
     plugins: zhCnPlugins,
     projects: zhCnProjects,
+    routines: zhCnRoutines,
     settings: zhCnSettings,
     company: zhCnCompany,
     workspaces: zhCnWorkspaces,

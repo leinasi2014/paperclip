@@ -86,11 +86,15 @@ describeEmbeddedPostgres("goalService.remove", () => {
         id: parentGoalId,
         companyId,
         title: "Parent goal",
+        level: "company",
+        status: "active",
       },
       {
         id: childGoalId,
         companyId,
         title: "Child goal",
+        level: "task",
+        status: "planned",
         parentId: parentGoalId,
       },
     ]);

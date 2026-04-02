@@ -6,11 +6,79 @@
   },
   "errors": {
     "approve": "Failed to approve",
-    "reject": "Failed to reject"
+    "reject": "Failed to reject",
+    "revision": "Failed to request revision",
+    "resubmit": "Failed to mark as resubmitted",
+    "comment": "Failed to post comment",
+    "deleteAgent": "Failed to delete agent"
   },
   "empty": {
     "selectCompany": "Select a company first.",
     "pending": "No pending approvals.",
     "all": "No approvals yet."
+  },
+  "card": {
+    "requestedBy": "requested by",
+    "notePrefix": "Note:",
+    "viewDetails": "View details"
+  },
+  "types": {
+    "hire_agent": "Hire Agent",
+    "approve_ceo_strategy": "CEO Strategy",
+    "budget_override_required": "Budget Override"
+  },
+  "detail": {
+    "fallbackTitle": "Approval",
+    "notFound": "Approval not found.",
+    "banner": {
+      "title": "Approval confirmed",
+      "description": "Requesting agent was notified to review this approval and linked issues.",
+      "reviewLinkedIssues": "Review linked issues",
+      "reviewLinkedIssue": "Review linked issue",
+      "openHiredAgent": "Open hired agent",
+      "backToApprovals": "Back to approvals"
+    },
+    "requestedBy": "Requested by",
+    "seeFullRequest": "See full request",
+    "decisionNote": "Decision note: {{note}}",
+    "linkedIssues": {
+      "title": "Linked issues",
+      "description": "Linked issues remain open until the requesting agent follows up and closes them."
+    },
+    "budgetNotice": {
+      "prefix": "Resolve this budget stop from the budget controls on",
+      "suffix": "."
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "requestRevision": "Request revision",
+      "markResubmitted": "Mark resubmitted",
+      "deleteDisapprovedAgent": "Delete disapproved agent"
+    },
+    "confirmDeleteDisapprovedAgent": "Delete this disapproved agent? This cannot be undone.",
+    "comments": {
+      "title": "Comments ({{count}})",
+      "placeholder": "Add a comment...",
+      "posting": "Posting...",
+      "post": "Post comment"
+    }
+  },
+  "payload": {
+    "fields": {
+      "name": "Name",
+      "role": "Role",
+      "title": "Title",
+      "icon": "Icon",
+      "capabilities": "Capabilities",
+      "adapter": "Adapter",
+      "skills": "Skills",
+      "scope": "Scope",
+      "window": "Window",
+      "metric": "Metric"
+    },
+    "budgetOverride": {
+      "limitObserved": "Limit {{limit}} · Observed {{observed}}"
+    }
   }
 }

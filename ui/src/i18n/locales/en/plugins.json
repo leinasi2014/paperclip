@@ -79,5 +79,94 @@
   },
   "labels": {
     "plugin": "Plugin"
+  },
+  "page": {
+    "selectCompany": "Select a company to view this page.",
+    "loading": "Loading...",
+    "routeConflict": "Multiple plugins declare the route {{routePath}}. Use the plugin-id route until the conflict is resolved.",
+    "actions": {
+      "back": "Back"
+    }
+  },
+  "settingsPage": {
+    "detailsTitle": "Plugin Details",
+    "loading": "Loading plugin details...",
+    "tabs": {
+      "configuration": "Configuration",
+      "status": "Status"
+    },
+    "configuration": {
+      "about": {
+        "title": "About",
+        "descriptionLabel": "Description",
+        "authorLabel": "Author",
+        "categoriesLabel": "Categories",
+        "none": "None"
+      },
+      "settings": {
+        "title": "Settings",
+        "noSettings": "This plugin does not require any settings."
+      },
+      "form": {
+        "loading": "Loading configuration...",
+        "actions": {
+          "save": "Save Configuration",
+          "saving": "Saving...",
+          "test": "Test Configuration",
+          "testing": "Testing..."
+        },
+        "messages": {
+          "saved": "Configuration saved.",
+          "saveFailed": "Failed to save configuration.",
+          "testPassed": "Configuration test passed.",
+          "testFailed": "Configuration test failed."
+        }
+      }
+    },
+    "status": {
+      "runtime": {
+        "title": "Runtime Dashboard",
+        "description": "Worker process, scheduled jobs, and webhook deliveries",
+        "workerProcess": "Worker Process",
+        "noWorker": "No worker process registered.",
+        "recentJobRuns": "Recent Job Runs",
+        "noJobRuns": "No job runs recorded yet.",
+        "recentWebhookDeliveries": "Recent Webhook Deliveries",
+        "noWebhookDeliveries": "No webhook deliveries recorded yet.",
+        "lastChecked": "Last checked: {{time}}",
+        "unavailable": "Runtime diagnostics are unavailable right now."
+      },
+      "labels": {
+        "status": "Status",
+        "pid": "PID",
+        "uptime": "Uptime",
+        "pendingRpcs": "Pending RPCs",
+        "crashes": "Crashes",
+        "crashSummary": "{{consecutive}} consecutive / {{total}} total",
+        "lastCrash": "Last Crash"
+      },
+      "logs": {
+        "title": "Recent Logs",
+        "count": "Last {{count}} log entries"
+      },
+      "health": {
+        "title": "Health Status",
+        "checking": "Checking health...",
+        "overall": "Overall",
+        "lifecycle": "Lifecycle",
+        "lifecycleHint": "Health checks run once the plugin is ready."
+      }
+    },
+    "details": {
+      "title": "Details",
+      "pluginId": "Plugin ID",
+      "pluginKey": "Plugin Key",
+      "npmPackage": "NPM Package",
+      "version": "Version"
+    },
+    "permissions": {
+      "title": "Permissions",
+      "none": "No special permissions requested."
+    }
   }
 }

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { cloneElement, isValidElement, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
   BookOpen,
   Bot,
@@ -128,23 +129,98 @@ import { Identity } from "@/components/Identity";
 /*  Section wrapper                                                    */
 /* ------------------------------------------------------------------ */
 
+function labsPhraseKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function translateLabsPhrase(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  value: string,
+): string {
+  if (!value.trim()) {
+    return value;
+  }
+  return t(`designGuide.phrases.${labsPhraseKey(value)}`, { defaultValue: value });
+}
+
+const TRANSLATABLE_PROPS = new Set([
+  "placeholder",
+  "title",
+  "subtitle",
+  "aria-label",
+  "label",
+  "message",
+  "action",
+  "heading",
+  "description",
+]);
+
+function translateTree(node: ReactNode, tp: (value: string) => string): ReactNode {
+  if (typeof node === "string") {
+    return tp(node);
+  }
+
+  if (Array.isArray(node)) {
+    return node.map((child, index) => {
+      const translated = translateTree(child, tp);
+      return typeof translated === "string" || isValidElement(translated) ? translated : child;
+    });
+  }
+
+  if (!isValidElement(node)) {
+    return node;
+  }
+
+  const props = node.props as Record<string, unknown>;
+  let hasChanges = false;
+  const nextProps: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(props)) {
+    if (key === "children") {
+      const translatedChildren = translateTree(value as ReactNode, tp);
+      if (translatedChildren !== value) {
+        hasChanges = true;
+        nextProps.children = translatedChildren;
+      }
+      continue;
+    }
+
+    if (typeof value === "string" && TRANSLATABLE_PROPS.has(key)) {
+      const translatedValue = tp(value);
+      if (translatedValue !== value) {
+        hasChanges = true;
+        nextProps[key] = translatedValue;
+      }
+    }
+  }
+
+  return hasChanges ? cloneElement(node, nextProps) : node;
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const { t } = useTranslation("labs");
+  const tp = (value: string) => translateLabsPhrase(t, value);
   return (
     <section className="space-y-4">
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-        {title}
+        {translateLabsPhrase(t, title)}
       </h3>
       <Separator />
-      {children}
+      {translateTree(children, tp)}
     </section>
   );
 }
 
 function SubSection({ title, children }: { title: string; children: React.ReactNode }) {
+  const { t } = useTranslation("labs");
+  const tp = (value: string) => translateLabsPhrase(t, value);
   return (
     <div className="space-y-3">
-      <h4 className="text-sm font-medium">{title}</h4>
-      {children}
+      <h4 className="text-sm font-medium">{translateLabsPhrase(t, title)}</h4>
+      {translateTree(children, tp)}
     </div>
   );
 }
@@ -154,6 +230,7 @@ function SubSection({ title, children }: { title: string; children: React.ReactN
 /* ------------------------------------------------------------------ */
 
 function Swatch({ name, cssVar }: { name: string; cssVar: string }) {
+  const { t } = useTranslation("labs");
   return (
     <div className="flex items-center gap-3">
       <div
@@ -162,7 +239,7 @@ function Swatch({ name, cssVar }: { name: string; cssVar: string }) {
       />
       <div>
         <p className="text-xs font-mono">{cssVar}</p>
-        <p className="text-xs text-muted-foreground">{name}</p>
+        <p className="text-xs text-muted-foreground">{translateLabsPhrase(t, name)}</p>
       </div>
     </div>
   );
@@ -173,28 +250,30 @@ function Swatch({ name, cssVar }: { name: string; cssVar: string }) {
 /* ------------------------------------------------------------------ */
 
 export function DesignGuide() {
+  const { t } = useTranslation("labs");
+  const tp = (value: string) => translateLabsPhrase(t, value);
   const [status, setStatus] = useState("todo");
   const [priority, setPriority] = useState("medium");
   const [selectValue, setSelectValue] = useState("in_progress");
   const [menuChecked, setMenuChecked] = useState(true);
   const [collapsibleOpen, setCollapsibleOpen] = useState(false);
-  const [inlineText, setInlineText] = useState("Click to edit this text");
-  const [inlineTitle, setInlineTitle] = useState("Editable Title");
+  const [inlineText, setInlineText] = useState(tp("Click to edit this text"));
+  const [inlineTitle, setInlineTitle] = useState(tp("Editable Title"));
   const [inlineDesc, setInlineDesc] = useState(
-    "This is an editable description. Click to edit it — the textarea auto-sizes to fit the content without layout shift."
+    tp("This is an editable description. Click to edit it — the textarea auto-sizes to fit the content without layout shift.")
   );
   const [filters, setFilters] = useState<FilterValue[]>([
-    { key: "status", label: "Status", value: "Active" },
-    { key: "priority", label: "Priority", value: "High" },
+    { key: "status", label: tp("Status"), value: tp("Active") },
+    { key: "priority", label: tp("Priority"), value: tp("High") },
   ]);
 
   return (
     <div className="space-y-10 max-w-4xl">
       {/* Page header */}
       <div>
-        <h2 className="text-xl font-bold">Design Guide</h2>
+        <h2 className="text-xl font-bold">{t("designGuide.header.title")}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Every component, style, and pattern used across Paperclip.
+          {t("designGuide.header.description")}
         </p>
       </div>
 
@@ -203,7 +282,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       <Section title="Component Coverage">
         <p className="text-sm text-muted-foreground">
-          This page should be updated when new UI primitives or app-level patterns ship.
+          {t("designGuide.coverage.description")}
         </p>
         <div className="grid gap-6 md:grid-cols-2">
           <SubSection title="UI primitives">
@@ -420,7 +499,7 @@ export function DesignGuide() {
           </div>
           <div className="flex items-center gap-2 mt-2">
             <StatusIcon status={status} onChange={setStatus} />
-            <span className="text-sm">Click the icon to change status (current: {status})</span>
+            <span className="text-sm">{t("designGuide.status.clickToChangeStatus", { status })}</span>
           </div>
         </SubSection>
 
@@ -435,7 +514,7 @@ export function DesignGuide() {
           </div>
           <div className="flex items-center gap-2 mt-2">
             <PriorityIcon priority={priority} onChange={setPriority} />
-            <span className="text-sm">Click the icon to change (current: {priority})</span>
+            <span className="text-sm">{t("designGuide.status.clickToChangePriority", { priority })}</span>
           </div>
         </SubSection>
 
@@ -474,12 +553,12 @@ export function DesignGuide() {
       <Section title="Form Elements">
         <div className="grid gap-6 md:grid-cols-2">
           <SubSection title="Input">
-            <Input placeholder="Default input" />
-            <Input placeholder="Disabled input" disabled className="mt-2" />
+            <Input placeholder={tp("Default input")} />
+            <Input placeholder={tp("Disabled input")} disabled className="mt-2" />
           </SubSection>
 
           <SubSection title="Textarea">
-            <Textarea placeholder="Write something..." />
+            <Textarea placeholder={tp("Write something...")} />
           </SubSection>
 
           <SubSection title="Checkbox & Label">
@@ -502,7 +581,7 @@ export function DesignGuide() {
           <SubSection title="Inline Editor">
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Title (single-line)</p>
+                <p className="text-xs text-muted-foreground mb-1">{tp("Title (single-line)")}</p>
                 <InlineEditor
                   value={inlineTitle}
                   onSave={setInlineTitle}
@@ -511,7 +590,7 @@ export function DesignGuide() {
                 />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Body text (single-line)</p>
+                <p className="text-xs text-muted-foreground mb-1">{tp("Body text (single-line)")}</p>
                 <InlineEditor
                   value={inlineText}
                   onSave={setInlineText}
@@ -520,13 +599,13 @@ export function DesignGuide() {
                 />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Description (multiline, auto-sizing)</p>
+                <p className="text-xs text-muted-foreground mb-1">{tp("Description (multiline, auto-sizing)")}</p>
                 <InlineEditor
                   value={inlineDesc}
                   onSave={setInlineDesc}
                   as="p"
                   className="text-sm text-muted-foreground"
-                  placeholder="Add a description..."
+                  placeholder={tp("Add a description...")}
                   multiline
                 />
               </div>
@@ -543,7 +622,7 @@ export function DesignGuide() {
           <SubSection title="Default size">
             <Select value={selectValue} onValueChange={setSelectValue}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder={tp("Select status")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="backlog">Backlog</SelectItem>
@@ -553,7 +632,7 @@ export function DesignGuide() {
                 <SelectItem value="done">Done</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">Current value: {selectValue}</p>
+            <p className="text-xs text-muted-foreground">{t("designGuide.select.currentValue", { value: selectValue })}</p>
           </SubSection>
           <SubSection title="Small trigger">
             <Select defaultValue="high">
@@ -578,7 +657,7 @@ export function DesignGuide() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
-              Quick Actions
+              {tp("Quick Actions")}
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -590,7 +669,7 @@ export function DesignGuide() {
             </DropdownMenuItem>
             <DropdownMenuItem>
               <BookOpen className="h-4 w-4" />
-              Open docs
+              {tp("Open docs")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
@@ -601,7 +680,7 @@ export function DesignGuide() {
             </DropdownMenuCheckboxItem>
             <DropdownMenuItem variant="destructive">
               <Trash2 className="h-4 w-4" />
-              Delete issue
+              {tp("Delete issue")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -613,14 +692,14 @@ export function DesignGuide() {
       <Section title="Popover">
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">Open Popover</Button>
+            <Button variant="outline" size="sm">{tp("Open Popover")}</Button>
           </PopoverTrigger>
           <PopoverContent className="space-y-2">
-            <p className="text-sm font-medium">Agent heartbeat</p>
+            <p className="text-sm font-medium">{tp("Agent heartbeat")}</p>
             <p className="text-xs text-muted-foreground">
-              Last run succeeded 24s ago. Next timer run in 9m.
+              {tp("Last run succeeded 24s ago. Next timer run in 9m.")}
             </p>
-            <Button size="xs">Wake now</Button>
+            <Button size="xs">{tp("Wake now")}</Button>
           </PopoverContent>
         </Popover>
       </Section>
@@ -632,13 +711,13 @@ export function DesignGuide() {
         <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className="space-y-2">
           <CollapsibleTrigger asChild>
             <Button variant="outline" size="sm">
-              {collapsibleOpen ? "Hide" : "Show"} advanced filters
+              {collapsibleOpen ? tp("Hide") : tp("Show")} {tp("advanced filters")}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="rounded-md border border-border p-3">
             <div className="space-y-2">
-              <Label htmlFor="owner-filter">Owner</Label>
-              <Input id="owner-filter" placeholder="Filter by agent name" />
+              <Label htmlFor="owner-filter">{tp("Owner")}</Label>
+              <Input id="owner-filter" placeholder={tp("Filter by agent name")} />
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -650,12 +729,12 @@ export function DesignGuide() {
       <Section title="Sheet">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm">Open Side Panel</Button>
+            <Button variant="outline" size="sm">{tp("Open Side Panel")}</Button>
           </SheetTrigger>
           <SheetContent side="right">
             <SheetHeader>
-              <SheetTitle>Issue Properties</SheetTitle>
-              <SheetDescription>Edit metadata without leaving the current page.</SheetDescription>
+              <SheetTitle>{tp("Issue Properties")}</SheetTitle>
+              <SheetDescription>{tp("Edit metadata without leaving the current page.")}</SheetDescription>
             </SheetHeader>
             <div className="space-y-4 px-4">
               <div className="space-y-1">
@@ -668,8 +747,8 @@ export function DesignGuide() {
               </div>
             </div>
             <SheetFooter>
-              <Button variant="outline">Cancel</Button>
-              <Button>Save</Button>
+              <Button variant="outline">{tp("Cancel")}</Button>
+              <Button>{tp("Save")}</Button>
             </SheetFooter>
           </SheetContent>
         </Sheet>
@@ -683,7 +762,7 @@ export function DesignGuide() {
           <div className="space-y-2 p-3">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="rounded-md border border-border p-2 text-sm">
-                Heartbeat run #{i + 1}: completed successfully
+                {t("designGuide.scrollArea.heartbeatRun", { index: i + 1 })}
               </div>
             ))}
           </div>
@@ -696,28 +775,28 @@ export function DesignGuide() {
       <Section title="Command (CMDK)">
         <div className="rounded-md border border-border">
           <Command>
-            <CommandInput placeholder="Type a command or search..." />
+            <CommandInput placeholder={tp("Type a command or search...")} />
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup heading="Pages">
+              <CommandEmpty>{tp("No results found.")}</CommandEmpty>
+              <CommandGroup heading={tp("Pages")}>
                 <CommandItem>
                   <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
+                  {tp("Dashboard")}
                 </CommandItem>
                 <CommandItem>
                   <CircleDot className="h-4 w-4" />
-                  Issues
+                  {tp("Issues")}
                 </CommandItem>
               </CommandGroup>
               <CommandSeparator />
-              <CommandGroup heading="Actions">
+              <CommandGroup heading={tp("Actions")}>
                 <CommandItem>
                   <CommandIcon className="h-4 w-4" />
-                  Open command palette
+                  {tp("Open command palette")}
                 </CommandItem>
                 <CommandItem>
                   <Plus className="h-4 w-4" />
-                  Create new issue
+                  {tp("Create new issue")}
                 </CommandItem>
               </CommandGroup>
             </CommandList>
@@ -768,10 +847,10 @@ export function DesignGuide() {
 
         <SubSection title="Metric Cards">
           <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <MetricCard icon={Bot} value={12} label="Active Agents" description="+3 this week" />
-            <MetricCard icon={CircleDot} value={48} label="Open Issues" />
-            <MetricCard icon={DollarSign} value="$1,234" label="Monthly Cost" description="Under budget" />
-            <MetricCard icon={Zap} value="99.9%" label="Uptime" />
+            <MetricCard icon={Bot} value={12} label={tp("Active Agents")} description={tp("+3 this week")} />
+            <MetricCard icon={CircleDot} value={48} label={tp("Open Issues")} />
+            <MetricCard icon={DollarSign} value="$1,234" label={tp("Monthly Cost")} description={tp("Under budget")} />
+            <MetricCard icon={Zap} value="99.9%" label={tp("Uptime")} />
           </div>
         </SubSection>
       </Section>
@@ -897,12 +976,12 @@ export function DesignGuide() {
             size="sm"
             onClick={() =>
               setFilters([
-                { key: "status", label: "Status", value: "Active" },
-                { key: "priority", label: "Priority", value: "High" },
+                { key: "status", label: tp("Status"), value: tp("Active") },
+                { key: "priority", label: tp("Priority"), value: tp("High") },
               ])
             }
           >
-            Reset filters
+            {tp("Reset filters")}
           </Button>
         )}
       </Section>
@@ -961,9 +1040,9 @@ export function DesignGuide() {
         <div className="flex items-center gap-4">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="sm">Hover me</Button>
+              <Button variant="outline" size="sm">{tp("Hover me")}</Button>
             </TooltipTrigger>
-            <TooltipContent>This is a tooltip</TooltipContent>
+            <TooltipContent>{tp("This is a tooltip")}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -980,28 +1059,28 @@ export function DesignGuide() {
       <Section title="Dialog">
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline">Open Dialog</Button>
+            <Button variant="outline">{tp("Open Dialog")}</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Dialog Title</DialogTitle>
+              <DialogTitle>{tp("Dialog Title")}</DialogTitle>
               <DialogDescription>
-                This is a sample dialog showing the standard layout with header, content, and footer.
+                {tp("This is a sample dialog showing the standard layout with header, content, and footer.")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <Label>Name</Label>
-                <Input placeholder="Enter a name" className="mt-1.5" />
+                <Label>{tp("Name")}</Label>
+                <Input placeholder={tp("Enter a name")} className="mt-1.5" />
               </div>
               <div>
-                <Label>Description</Label>
-                <Textarea placeholder="Describe..." className="mt-1.5" />
+                <Label>{tp("Description")}</Label>
+                <Textarea placeholder={tp("Describe...")} className="mt-1.5" />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline">Cancel</Button>
-              <Button>Save</Button>
+              <Button variant="outline">{tp("Cancel")}</Button>
+              <Button>{tp("Save")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -1014,8 +1093,8 @@ export function DesignGuide() {
         <div className="border border-border rounded-md">
           <EmptyState
             icon={Inbox}
-            message="No items to show. Create your first one to get started."
-            action="Create Item"
+            message={tp("No items to show. Create your first one to get started.")}
+            action={tp("Create Item")}
             onAction={() => {}}
           />
         </div>
@@ -1027,9 +1106,9 @@ export function DesignGuide() {
       <Section title="Progress Bars (Budget)">
         <div className="space-y-3">
           {[
-            { label: "Under budget (40%)", pct: 40, color: "bg-green-400" },
-            { label: "Warning (75%)", pct: 75, color: "bg-yellow-400" },
-            { label: "Over budget (95%)", pct: 95, color: "bg-red-400" },
+            { label: tp("Under budget (40%)"), pct: 40, color: "bg-green-400" },
+            { label: tp("Warning (75%)"), pct: 75, color: "bg-yellow-400" },
+            { label: tp("Over budget (95%)"), pct: 95, color: "bg-red-400" },
           ].map(({ label, pct, color }) => (
             <div key={label} className="space-y-1">
               <div className="flex items-center justify-between">
@@ -1145,7 +1224,7 @@ export function DesignGuide() {
         <div>
           <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-t-md">
             <StatusIcon status="in_progress" />
-            <span className="text-sm font-medium">In Progress</span>
+            <span className="text-sm font-medium">{tp("In Progress")}</span>
             <span className="text-xs text-muted-foreground ml-1">2</span>
           </div>
           <div className="border border-border rounded-b-md">
@@ -1170,7 +1249,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       <Section title="Comment Thread Pattern">
         <div className="space-y-3 max-w-2xl">
-          <h3 className="text-sm font-semibold">Comments (2)</h3>
+          <h3 className="text-sm font-semibold">{tp("Comments (2)")}</h3>
           <div className="space-y-3">
             <div className="rounded-md border border-border p-3">
               <div className="flex items-center justify-between mb-1">
@@ -1188,8 +1267,8 @@ export function DesignGuide() {
             </div>
           </div>
           <div className="space-y-2">
-            <Textarea placeholder="Leave a comment..." rows={3} />
-            <Button size="sm">Comment</Button>
+            <Textarea placeholder={tp("Leave a comment...")} rows={3} />
+            <Button size="sm">{tp("Comment")}</Button>
           </div>
         </div>
       </Section>
@@ -1309,12 +1388,12 @@ export function DesignGuide() {
       <Section title="Keyboard Shortcuts">
         <div className="border border-border rounded-md divide-y divide-border text-sm">
           {[
-            ["Cmd+K / Ctrl+K", "Open Command Palette"],
-            ["C", "New Issue (outside inputs)"],
-            ["[", "Toggle Sidebar"],
-            ["]", "Toggle Properties Panel"],
+            ["Cmd+K / Ctrl+K", tp("Open Command Palette")],
+            ["C", tp("New Issue (outside inputs)")],
+            ["[", tp("Toggle Sidebar")],
+            ["]", tp("Toggle Properties Panel")],
 
-            ["Cmd+Enter / Ctrl+Enter", "Submit markdown comment"],
+            ["Cmd+Enter / Ctrl+Enter", tp("Submit markdown comment")],
           ].map(([key, desc]) => (
             <div key={key} className="flex items-center justify-between px-4 py-2">
               <span className="text-muted-foreground">{desc}</span>

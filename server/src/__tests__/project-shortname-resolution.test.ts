@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { resolveProjectNameForUniqueShortname } from "../services/projects.ts";
+import { createDb } from "@paperclipai/db";
+import { projectService, resolveProjectNameForUniqueShortname } from "../services/projects.ts";
 
 describe("resolveProjectNameForUniqueShortname", () => {
   it("keeps name when shortname is not used", () => {
@@ -41,5 +42,10 @@ describe("resolveProjectNameForUniqueShortname", () => {
       { id: "p1", name: "growth" },
     ]);
     expect(resolved).toBe("!!!");
+  });
+
+  it("returns null for non-uuid identifiers", async () => {
+    const svc = projectService(createDb("postgres://paperclip:paperclip@localhost:5432/paperclip"));
+    await expect(svc.getById("onboarding")).resolves.toBeNull();
   });
 });

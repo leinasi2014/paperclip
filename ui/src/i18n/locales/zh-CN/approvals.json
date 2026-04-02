@@ -6,11 +6,79 @@
   },
   "errors": {
     "approve": "批准失败",
-    "reject": "拒绝失败"
+    "reject": "拒绝失败",
+    "revision": "请求修改失败",
+    "resubmit": "标记为已重新提交失败",
+    "comment": "发布评论失败",
+    "deleteAgent": "删除代理失败"
   },
   "empty": {
     "selectCompany": "请先选择一家公司。",
     "pending": "当前没有待处理审批。",
     "all": "还没有审批记录。"
+  },
+  "card": {
+    "requestedBy": "请求发起者",
+    "notePrefix": "备注：",
+    "viewDetails": "查看详情"
+  },
+  "types": {
+    "hire_agent": "招聘代理",
+    "approve_ceo_strategy": "CEO 战略",
+    "budget_override_required": "预算覆盖"
+  },
+  "detail": {
+    "fallbackTitle": "审批",
+    "notFound": "未找到审批。",
+    "banner": {
+      "title": "审批已确认",
+      "description": "已通知发起请求的代理审阅该审批及关联议题。",
+      "reviewLinkedIssues": "查看关联议题",
+      "reviewLinkedIssue": "查看关联议题",
+      "openHiredAgent": "打开已招聘代理",
+      "backToApprovals": "返回审批列表"
+    },
+    "requestedBy": "请求发起者",
+    "seeFullRequest": "查看完整请求",
+    "decisionNote": "决策说明：{{note}}",
+    "linkedIssues": {
+      "title": "关联议题",
+      "description": "关联议题会保持打开状态，直到发起请求的代理跟进并关闭。"
+    },
+    "budgetNotice": {
+      "prefix": "请在",
+      "suffix": "的预算控制中处理此预算阻塞。"
+    },
+    "actions": {
+      "approve": "批准",
+      "reject": "拒绝",
+      "requestRevision": "请求修改",
+      "markResubmitted": "标记为已重新提交",
+      "deleteDisapprovedAgent": "删除未获批准代理"
+    },
+    "confirmDeleteDisapprovedAgent": "要删除这个未获批准的代理吗？此操作无法撤销。",
+    "comments": {
+      "title": "评论（{{count}}）",
+      "placeholder": "添加评论...",
+      "posting": "发布中...",
+      "post": "发布评论"
+    }
+  },
+  "payload": {
+    "fields": {
+      "name": "名称",
+      "role": "角色",
+      "title": "标题",
+      "icon": "图标",
+      "capabilities": "能力",
+      "adapter": "适配器",
+      "skills": "技能",
+      "scope": "范围",
+      "window": "窗口",
+      "metric": "指标"
+    },
+    "budgetOverride": {
+      "limitObserved": "上限 {{limit}} · 已观察 {{observed}}"
+    }
   }
 }

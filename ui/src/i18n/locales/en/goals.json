@@ -2,12 +2,78 @@
   "breadcrumbs": {
     "goals": "Goals"
   },
+  "shared": {
+    "goal": "Goal"
+  },
   "empty": {
     "selectCompany": "Select a company to view goals.",
-    "noGoals": "No goals yet."
+    "noGoals": "No goals yet.",
+    "noSubGoals": "No sub-goals.",
+    "noLinkedProjects": "No linked projects."
   },
   "actions": {
     "addGoal": "Add Goal",
-    "newGoal": "New Goal"
+    "newGoal": "New Goal",
+    "subGoal": "Sub Goal",
+    "deleteGoal": "Delete Goal",
+    "confirmDeleteGoal": "Delete Goal",
+    "deletingGoal": "Deleting...",
+    "cancel": "Cancel"
+  },
+  "tabs": {
+    "children": "Sub-Goals ({{count}})",
+    "projects": "Projects ({{count}})"
+  },
+  "fields": {
+    "description": {
+      "placeholder": "Add a description..."
+    }
+  },
+  "properties": {
+    "none": "None",
+    "fields": {
+      "status": "Status",
+      "level": "Level",
+      "owner": "Owner",
+      "parentGoal": "Parent Goal",
+      "created": "Created",
+      "updated": "Updated"
+    }
+  },
+  "dialogs": {
+    "newGoal": {
+      "headerGoal": "New goal",
+      "headerSubGoal": "New sub-goal",
+      "titlePlaceholder": "Goal title",
+      "parentGoal": "Parent goal",
+      "noParent": "No parent",
+      "createGoal": "Create goal",
+      "createSubGoal": "Create sub-goal",
+      "creating": "Creating…",
+      "levels": {
+        "company": "Company",
+        "team": "Team",
+        "agent": "Agent",
+        "task": "Task"
+      },
+      "statuses": {
+        "planned": "Planned",
+        "active": "Active",
+        "achieved": "Achieved",
+        "cancelled": "Cancelled"
+      }
+    },
+    "deleteGoal": {
+      "title": "Delete goal?",
+      "description": "Delete \"{{title}}\"? This cannot be undone."
+    }
+  },
+  "errors": {
+    "noCompanySelected": "No company selected"
+  },
+  "toasts": {
+    "deleteSuccess": "Goal deleted",
+    "deleteError": "Failed to delete goal",
+    "unknownError": "Unknown error"
   }
 }

@@ -1,4 +1,34 @@
 {
+  "companies": {
+    "breadcrumb": "Companies",
+    "actions": {
+      "newCompany": "New Company",
+      "rename": "Rename",
+      "deleteCompany": "Delete Company",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleting": "Deleting..."
+    },
+    "states": {
+      "loading": "Loading companies..."
+    },
+    "status": {
+      "active": "active",
+      "paused": "paused",
+      "archived": "archived"
+    },
+    "stats": {
+      "agents_one": "{{count}} agent",
+      "agents_other": "{{count}} agents",
+      "issues_one": "{{count}} issue",
+      "issues_other": "{{count}} issues",
+      "unlimitedBudget": "Unlimited budget",
+      "created": "Created {{time}}"
+    },
+    "confirmDelete": {
+      "message": "Delete this company and all its data? This cannot be undone."
+    }
+  },
   "settings": {
     "breadcrumbs": {
       "company": "Company",
@@ -104,12 +134,34 @@
       "collisionSkip": "Skip on conflict",
       "collisionReplace": "Replace existing"
     },
+    "frontmatterFields": {
+      "name": "Name",
+      "title": "Title",
+      "kind": "Kind",
+      "reportsTo": "Reports to",
+      "skills": "Skills",
+      "status": "Status",
+      "description": "Description",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "project": "Project",
+      "recurring": "Recurring",
+      "targetDate": "Target date"
+    },
     "actions": {
       "preview": "Preview import",
       "previewing": "Previewing...",
       "importFiles_one": "Import {{count}} file",
       "importFiles_other": "Import {{count}} files",
-      "importing": "Importing..."
+      "importing": "Importing...",
+      "badges": {
+        "create": "create",
+        "update": "update",
+        "overwrite": "overwrite",
+        "replace": "replace",
+        "skip": "skip",
+        "none": "none"
+      }
     },
     "preview": {
       "title": "Import preview",
@@ -119,7 +171,33 @@
       "conflicts_other": "{{count}} conflicts",
       "errors_one": "{{count}} error",
       "errors_other": "{{count}} errors",
-      "packageFiles": "Package files"
+      "packageFiles": "Package files",
+      "emptyState": "Select a file to preview its contents.",
+      "binaryUnavailable": "Binary asset preview is not available for this file type."
+    },
+    "conflicts": {
+      "title": "Renames",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items",
+      "actions": {
+        "skip": "skip",
+        "skipped": "skipped",
+        "confirmRename": "confirm rename",
+        "confirmed": "confirmed"
+      },
+      "kind": {
+        "agent": "agent",
+        "project": "project",
+        "issue": "issue",
+        "skill": "skill"
+      }
+    },
+    "adapters": {
+      "title": "Adapters",
+      "agents_one": "{{count}} agent",
+      "agents_other": "{{count}} agents",
+      "agentBadge": "agent",
+      "configure": "configure adapter"
     },
     "toasts": {
       "previewFailed": "Preview failed",
@@ -133,7 +211,9 @@
       "packageReadFailedBody": "Failed to read folder."
     },
     "errors": {
-      "noSourceConfigured": "No source configured."
+      "noSourceConfigured": "No source configured.",
+      "selectZipPackage": "Select a .zip company package.",
+      "emptyArchive": "No package files were found in the selected zip archive."
     }
   },
   "export": {
@@ -158,6 +238,10 @@
       "building": "Building export..."
     },
     "packageFiles": "Package files",
+    "preview": {
+      "emptyState": "Select a file to preview its contents.",
+      "binaryUnavailable": "Binary asset preview is not available for this file type."
+    },
     "searchPlaceholder": "Search files...",
     "showMoreIssues": "Show more issues ({{visible}} of {{total}})",
     "toasts": {
@@ -186,13 +270,33 @@
       "add": "Add",
       "edit": "Edit",
       "stopEditing": "Stop editing",
+      "cancel": "Cancel",
       "save": "Save",
       "saving": "Saving...",
       "preview": "Preview",
       "code": "Code",
       "checkUpdates": "Check updates",
       "installUpdate": "Install update",
-      "upToDate": "Up to date"
+      "upToDate": "Up to date",
+      "collapseSkill": "Collapse {{name}}",
+      "expandSkill": "Expand {{name}}"
+    },
+    "list": {
+      "noMatches": "No skills match this filter."
+    },
+    "sources": {
+      "skillsSh": "skills.sh",
+      "skillsShManaged": "skills.sh managed",
+      "github": "GitHub",
+      "githubManaged": "GitHub managed",
+      "url": "URL",
+      "urlManaged": "URL managed",
+      "folder": "Folder",
+      "folderManaged": "Folder managed",
+      "paperclip": "Paperclip",
+      "paperclipManaged": "Paperclip managed",
+      "catalog": "Catalog",
+      "catalogManaged": "Catalog managed"
     },
     "placeholders": {
       "filter": "Filter skills",
@@ -213,17 +317,20 @@
       "title": "Scan project workspaces for skills",
       "scanning": "Scanning project workspaces for skills...",
       "refreshing": "Refreshing skills list...",
+      "summary": "{{discovered}} found, {{imported}} imported, {{updated}} updated, {{conflicts}} conflicts, {{skipped}} skipped across {{workspaces}} workspace(s).",
       "complete": "Project skill scan complete",
       "conflicts": "Skill conflicts found",
       "warnings": "Scan warnings",
-      "failed": "Project skill scan failed"
+      "failed": "Project skill scan failed",
+      "failedBody": "Failed to scan project workspaces."
     },
     "create": {
       "createSkill": "Create skill",
       "creating": "Creating...",
       "created": "Skill created",
       "createdBody": "{{name}} is now editable in the Paperclip workspace.",
-      "failed": "Skill creation failed"
+      "failed": "Skill creation failed",
+      "failedBody": "Failed to create skill."
     },
     "import": {
       "imported": "Skills imported",
@@ -240,12 +347,14 @@
     },
     "update": {
       "updated": "Skill updated",
+      "updatedBodyPinned": "Pinned to {{ref}}",
       "failed": "Update failed",
       "failedBody": "Failed to install skill update."
     },
     "labels": {
       "source": "Source",
       "pin": "Pin",
+      "tracking": "tracking {{ref}}",
       "key": "Key",
       "mode": "Mode",
       "usedBy": "Used by",

@@ -253,4 +253,42 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     expect(run?.errorCode).toBeNull();
     expect(run?.error).toBeNull();
   });
+
+  it("returns an empty log payload when a run exists but log capture has not started", async () => {
+    const { runId } = await seedRunFixture({ includeIssue: false });
+    const heartbeat = heartbeatService(db);
+
+    const result = await heartbeat.readLog(runId, { offset: 0, limitBytes: 1024 });
+
+    expect(result).toEqual({
+      runId,
+      store: null,
+      logRef: null,
+      content: "",
+      nextOffset: 0,
+    });
+  });
+
+  it("returns an empty log payload when log metadata exists but the file is missing", async () => {
+    const { runId } = await seedRunFixture({ includeIssue: false });
+    await db
+      .update(heartbeatRuns)
+      .set({
+        logStore: "local_file",
+        logRef: `missing/${runId}.ndjson`,
+        updatedAt: new Date("2026-03-19T00:00:00.000Z"),
+      })
+      .where(eq(heartbeatRuns.id, runId));
+
+    const heartbeat = heartbeatService(db);
+    const result = await heartbeat.readLog(runId, { offset: 0, limitBytes: 1024 });
+
+    expect(result).toEqual({
+      runId,
+      store: "local_file",
+      logRef: `missing/${runId}.ndjson`,
+      content: "",
+      nextOffset: 0,
+    });
+  });
 });

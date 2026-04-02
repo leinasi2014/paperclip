@@ -1,4 +1,289 @@
 {
+  "shared": {
+    "workspaces": "Workspaces",
+    "loadingWorkspace": "Loading workspace...",
+    "none": "None",
+    "copied": "Copied",
+    "runtimeServices": "Runtime services",
+    "attachedServices": "Attached services",
+    "noCommandRecorded": "No command recorded",
+    "noUnsavedChanges": "No unsaved changes",
+    "port": "Port {{port}}",
+    "actions": {
+      "start": "Start",
+      "restart": "Restart",
+      "stop": "Stop",
+      "saveChanges": "Save changes",
+      "reset": "Reset",
+      "closeWorkspace": "Close workspace",
+      "retryClose": "Retry close"
+    },
+    "errors": {
+      "loadWorkspaceFailed": "Failed to load workspace"
+    },
+    "validation": {
+      "invalidJson": "Invalid JSON.",
+      "repoUrlMustBeValid": "Repo URL must be a valid URL."
+    }
+  },
+  "projectDetail": {
+    "workspaces": {
+      "loading": "Loading workspaces...",
+      "empty": "No workspaces yet.",
+      "noBranchInfo": "No branch info",
+      "runningServices": "Services {{running}}/{{total}}",
+      "pathCopied": "Path copied",
+      "issues": "Issues ({{count}})",
+      "moreIssues": "... and {{count}} more",
+      "configureWorkspace": "Configure workspace",
+      "viewWorkspace": "View workspace",
+      "cleanupAttentionNeeded": "Cleanup attention needed"
+    }
+  },
+  "projectWorkspaceDetail": {
+    "actions": {
+      "backToWorkspaces": "Back to workspaces",
+      "makePrimary": "Make primary"
+    },
+    "badges": {
+      "primaryWorkspace": "Primary workspace",
+      "secondaryWorkspace": "Secondary workspace"
+    },
+    "header": {
+      "eyebrow": "Project workspace",
+      "description": "Control source settings, runtime defaults, and lifecycle commands for this workspace.",
+      "primaryWorkspaceDescription": "This workspace is currently the primary workspace for the project."
+    },
+    "errors": {
+      "saveWorkspaceFailed": "Failed to save workspace changes.",
+      "updateWorkspaceFailed": "Failed to update workspace.",
+      "controlRuntimeFailed": "Failed to control runtime services."
+    },
+    "toasts": {
+      "runtimeStopped": "Runtime services stopped.",
+      "runtimeRestarted": "Runtime services restarted.",
+      "runtimeStarted": "Runtime services started."
+    },
+    "empty": {
+      "workspaceNotFound": "Workspace not found."
+    },
+    "visibilityOptions": {
+      "default": "Default",
+      "advanced": "Advanced"
+    },
+    "sourceTypeOptions": {
+      "local_path": "Local git checkout",
+      "non_git_path": "Local non-git path",
+      "git_repo": "Remote git repo",
+      "remote_managed": "Remote-managed workspace"
+    },
+    "sourceTypeDescriptions": {
+      "local_path": "A local path Paperclip can use directly.",
+      "non_git_path": "A local folder without git semantics.",
+      "git_repo": "A repo URL with optional refs and local checkout.",
+      "remote_managed": "A hosted workspace tracked by external reference."
+    },
+    "fields": {
+      "workspaceName": {
+        "label": "Workspace name",
+        "placeholder": "Workspace name"
+      },
+      "visibility": {
+        "label": "Visibility"
+      },
+      "sourceType": {
+        "label": "Source type"
+      },
+      "localPath": {
+        "label": "Local path",
+        "placeholder": "/absolute/path/to/workspace"
+      },
+      "repoUrl": {
+        "label": "Repo URL",
+        "placeholder": "https://github.com/org/repo.git"
+      },
+      "repoRef": {
+        "label": "Repo ref",
+        "placeholder": "feature/branch"
+      },
+      "defaultRef": {
+        "label": "Default ref",
+        "placeholder": "main"
+      },
+      "sharedWorkspaceKey": {
+        "label": "Shared workspace key",
+        "placeholder": "team-default"
+      },
+      "remoteProvider": {
+        "label": "Remote provider",
+        "placeholder": "provider name"
+      },
+      "remoteWorkspaceRef": {
+        "label": "Remote workspace ref",
+        "placeholder": "workspace reference"
+      },
+      "setupCommand": {
+        "label": "Setup command",
+        "hint": "Runs when preparing this workspace.",
+        "placeholder": "pnpm install"
+      },
+      "cleanupCommand": {
+        "label": "Cleanup command",
+        "hint": "Runs when cleaning up this workspace.",
+        "placeholder": "pnpm clean"
+      },
+      "runtimeServicesJson": {
+        "label": "Runtime services JSON",
+        "hint": "Define default runtime services for this workspace."
+      }
+    },
+    "validation": {
+      "runtimeConfigObject": "Runtime services JSON must be a JSON object.",
+      "remoteManagedRequiresRefOrRepo": "Remote-managed workspaces require a remote workspace ref or repo URL.",
+      "requiresPathOrRepo": "Workspace requires at least one local path or repo URL.",
+      "localPathMustBeAbsolute": "Local workspace path must be absolute."
+    },
+    "facts": {
+      "eyebrow": "Workspace facts",
+      "title": "Details",
+      "labels": {
+        "project": "Project",
+        "workspaceId": "Workspace ID",
+        "localPath": "Local path",
+        "repo": "Repo",
+        "defaultRef": "Default ref",
+        "updated": "Last updated"
+      }
+    },
+    "runtime": {
+      "description": "Start, restart, or stop services defined in this workspace runtime config.",
+      "noRunningServices": "No runtime services are currently running.",
+      "noDefaultRuntime": "No runtime services config is defined."
+    }
+  },
+  "executionWorkspaceDetail": {
+    "actions": {
+      "backToAllWorkspaces": "Back to all workspaces"
+    },
+    "header": {
+      "eyebrow": "Execution workspace",
+      "description": "Adjust workspace metadata, runtime inheritance, and lifecycle commands."
+    },
+    "errors": {
+      "saveWorkspaceFailed": "Failed to save workspace changes.",
+      "controlRuntimeFailed": "Failed to control runtime services.",
+      "buildPatchFailed": "Failed to build workspace update payload."
+    },
+    "toasts": {
+      "runtimeStopped": "Runtime services stopped.",
+      "runtimeRestarted": "Runtime services restarted.",
+      "runtimeStarted": "Runtime services started."
+    },
+    "validation": {
+      "runtimeConfigObject": "Workspace runtime JSON must be a JSON object."
+    },
+    "fields": {
+      "workspaceName": {
+        "label": "Workspace name",
+        "placeholder": "Workspace name"
+      },
+      "branchName": {
+        "label": "Branch name",
+        "hint": "Branch used for this execution workspace.",
+        "placeholder": "feature/branch"
+      },
+      "workingDirectory": {
+        "label": "Working directory",
+        "placeholder": "/absolute/path/to/workspace"
+      },
+      "providerRef": {
+        "label": "Provider ref",
+        "placeholder": "provider/workspace/ref"
+      },
+      "repoUrl": {
+        "label": "Repo URL",
+        "placeholder": "https://github.com/org/repo.git"
+      },
+      "baseRef": {
+        "label": "Base ref",
+        "placeholder": "main"
+      },
+      "provisionCommand": {
+        "label": "Provision command",
+        "hint": "Runs when preparing this execution workspace.",
+        "placeholder": "pnpm install"
+      },
+      "teardownCommand": {
+        "label": "Teardown command",
+        "hint": "Runs before archiving this execution workspace.",
+        "placeholder": "pnpm test"
+      },
+      "cleanupCommand": {
+        "label": "Cleanup command",
+        "hint": "Runs during cleanup after close.",
+        "placeholder": "pnpm clean"
+      },
+      "runtimeServicesJson": {
+        "label": "Runtime services JSON",
+        "hint": "Override runtime services for this execution workspace."
+      }
+    },
+    "runtime": {
+      "sourceTitle": "Runtime source",
+      "sourceExecutionWorkspace": "Using execution workspace runtime override.",
+      "sourceProjectWorkspace": "Inheriting runtime from linked project workspace.",
+      "sourceNone": "No runtime configuration available.",
+      "sourcePrefix": "Runtime source:",
+      "sourceExecutionWorkspaceShort": "execution workspace",
+      "sourceProjectWorkspaceShort": "project workspace",
+      "resetToInherit": "Reset to inherit",
+      "inheritCheckbox": "Inherit runtime from linked project workspace",
+      "noRunningServices": "No runtime services are currently running.",
+      "noRuntimeConfig": "No runtime services config is defined."
+    },
+    "context": {
+      "eyebrow": "Context",
+      "title": "Linked records",
+      "labels": {
+        "project": "Project",
+        "projectWorkspace": "Project workspace",
+        "sourceIssue": "Source issue",
+        "derivedFrom": "Derived from",
+        "workspaceId": "Workspace ID"
+      }
+    },
+    "paths": {
+      "eyebrow": "Paths",
+      "title": "Workspace paths",
+      "labels": {
+        "workingDir": "Working directory",
+        "providerRef": "Provider ref",
+        "repoUrl": "Repo URL",
+        "baseRef": "Base ref",
+        "branch": "Branch",
+        "opened": "Opened at",
+        "lastUsed": "Last used",
+        "cleanup": "Cleanup schedule"
+      },
+      "notScheduled": "Not scheduled"
+    },
+    "operations": {
+      "eyebrow": "Operations",
+      "title": "Recent workspace operations",
+      "loading": "Loading workspace operations...",
+      "loadFailed": "Failed to load workspace operations.",
+      "empty": "No workspace operations yet."
+    },
+    "linkedIssues": {
+      "eyebrow": "Linked issues",
+      "title": "Issue context",
+      "description": "Issues associated with this execution workspace.",
+      "count": "{{count}} issues",
+      "loading": "Loading linked issues...",
+      "loadFailed": "Failed to load linked issues.",
+      "empty": "No linked issues."
+    }
+  },
   "closeDialog": {
     "actions": {
       "retryClose": "Retry close",

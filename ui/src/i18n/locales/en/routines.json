@@ -1,0 +1,242 @@
+{
+  "breadcrumbs": {
+    "routines": "Routines"
+  },
+  "title": "Routines",
+  "subtitle": "Recurring work definitions that materialize into auditable execution issues.",
+  "badges": {
+    "beta": "Beta"
+  },
+  "actions": {
+    "createRoutine": "Create routine",
+    "creating": "Creating...",
+    "cancel": "Cancel",
+    "adding": "Adding...",
+    "addTrigger": "Add trigger",
+    "saveRoutine": "Save routine"
+  },
+  "fields": {
+    "routineTitle": {
+      "placeholder": "Routine title"
+    },
+    "instructions": {
+      "placeholder": "Add instructions..."
+    }
+  },
+  "advanced": {
+    "title": "Advanced delivery settings",
+    "description": "Keep policy controls secondary to the work definition."
+  },
+  "policies": {
+    "concurrency": {
+      "label": "Concurrency",
+      "options": {
+        "coalesce_if_active": "Coalesce if active",
+        "always_enqueue": "Always enqueue",
+        "skip_if_active": "Skip if active"
+      },
+      "descriptions": {
+        "coalesce_if_active": "Keep one follow-up run queued while an active run is still working.",
+        "always_enqueue": "Queue every trigger occurrence, even if several runs stack up.",
+        "skip_if_active": "Drop overlapping trigger occurrences while the routine is already active."
+      }
+    },
+    "catchUp": {
+      "label": "Catch-up",
+      "options": {
+        "skip_missed": "Skip missed",
+        "enqueue_missed_with_cap": "Enqueue missed with cap"
+      },
+      "descriptions": {
+        "skip_missed": "Ignore schedule windows that were missed while the routine or scheduler was paused.",
+        "enqueue_missed_with_cap": "Catch up missed schedule windows in capped batches after recovery."
+      }
+    }
+  },
+  "composer": {
+    "eyebrow": "New routine",
+    "description": "Define the recurring work first. Trigger setup comes next on the detail page.",
+    "footer": "After creation, Paperclip takes you straight to trigger setup for schedules, webhooks, or internal runs.",
+    "assignment": {
+      "for": "For",
+      "in": "in"
+    }
+  },
+  "assignment": {
+    "for": "For",
+    "in": "in"
+  },
+  "selectors": {
+    "assignee": {
+      "label": "Assignee",
+      "placeholder": "Assignee",
+      "noneLabel": "No assignee",
+      "searchPlaceholder": "Search assignees...",
+      "emptyMessage": "No assignees found."
+    },
+    "project": {
+      "label": "Project",
+      "placeholder": "Project",
+      "noneLabel": "No project",
+      "searchPlaceholder": "Search projects...",
+      "emptyMessage": "No projects found."
+    }
+  },
+  "empty": {
+    "selectCompany": "Select a company to view routines.",
+    "noRoutines": "No routines yet. Use Create routine to define the first recurring workflow."
+  },
+  "errors": {
+    "createRoutineFailed": "Failed to create routine",
+    "loadRoutinesFailed": "Failed to load routines",
+    "routineNotFound": "Routine not found",
+    "clipboardDenied": "Clipboard access was denied."
+  },
+  "toasts": {
+    "created": {
+      "title": "Routine created",
+      "body": "Add the first trigger to turn it into a live workflow."
+    },
+    "updateFailed": {
+      "title": "Failed to update routine",
+      "body": "Paperclip could not update the routine."
+    },
+    "runFailed": {
+      "title": "Routine run failed",
+      "body": "Paperclip could not start the routine run."
+    },
+    "runStarted": "Routine run started",
+    "saveFailed": {
+      "title": "Failed to save routine",
+      "body": "Paperclip could not save the routine."
+    },
+    "saved": {
+      "title": "Routine saved",
+      "paused": "Automation paused.",
+      "enabled": "Automation enabled."
+    },
+    "triggerCreated": "Webhook trigger created",
+    "addTriggerFailed": {
+      "title": "Failed to add trigger",
+      "body": "Paperclip could not create the trigger."
+    },
+    "updateTriggerFailed": {
+      "title": "Failed to update trigger",
+      "body": "Paperclip could not update the trigger."
+    },
+    "deleteTriggerFailed": {
+      "title": "Failed to delete trigger",
+      "body": "Paperclip could not delete the trigger."
+    },
+    "webhookSecretRotated": "Webhook secret rotated",
+    "rotateWebhookSecretFailed": {
+      "title": "Failed to rotate webhook secret",
+      "body": "Paperclip could not rotate the webhook secret."
+    }
+  },
+  "table": {
+    "headers": {
+      "name": "Name",
+      "project": "Project",
+      "agent": "Agent",
+      "lastRun": "Last run",
+      "enabled": "Enabled"
+    },
+    "never": "Never",
+    "toggle": {
+      "disableAria": "Disable {{title}}",
+      "enableAria": "Enable {{title}}",
+      "archived": "Archived",
+      "on": "On",
+      "off": "Off"
+    },
+    "menu": {
+      "moreActionsAria": "More actions for {{title}}",
+      "edit": "Edit",
+      "runningNow": "Running...",
+      "runNow": "Run now",
+      "pause": "Pause",
+      "enable": "Enable",
+      "restore": "Restore",
+      "archive": "Archive"
+    }
+  },
+  "shared": {
+    "unknown": "Unknown",
+    "emDash": "—"
+  },
+  "states": {
+    "active": "Active",
+    "paused": "Paused",
+    "archived": "Archived"
+  },
+  "automation": {
+    "pauseAria": "Pause automatic triggers",
+    "enableAria": "Enable automatic triggers"
+  },
+  "saveBar": {
+    "unsavedChanges": "Unsaved changes"
+  },
+  "tabs": {
+    "triggers": "Triggers",
+    "runs": "Runs",
+    "activity": "Activity"
+  },
+  "triggers": {
+    "addTrigger": "Add trigger",
+    "kind": "Kind",
+    "comingSoon": "— COMING SOON",
+    "empty": "No triggers configured yet."
+  },
+  "triggerKinds": {
+    "schedule": "Schedule",
+    "webhook": "Webhook",
+    "api": "API"
+  },
+  "triggerEditor": {
+    "next": "Next: {{time}}",
+    "lastResult": "Last: {{value}}",
+    "fields": {
+      "label": "Label",
+      "schedule": "Schedule",
+      "signingMode": "Signing mode",
+      "replayWindowSec": "Replay window (seconds)"
+    },
+    "actions": {
+      "rotateSecret": "Rotate secret",
+      "save": "Save"
+    }
+  },
+  "signingModes": {
+    "bearer": "bearer",
+    "hmac_sha256": "hmac_sha256"
+  },
+  "signingModeDescriptions": {
+    "bearer": "Expect a shared bearer token in the Authorization header.",
+    "hmac_sha256": "Expect an HMAC SHA-256 signature over the request using the shared secret."
+  },
+  "secret": {
+    "saveNowHint": "Save this now. Paperclip will not show the secret value again.",
+    "labels": {
+      "webhookUrl": "Webhook URL",
+      "webhookSecret": "Webhook secret"
+    },
+    "actions": {
+      "copyUrl": "URL",
+      "copySecret": "Secret"
+    },
+    "copied": "{{label}} copied",
+    "copyFailed": "Failed to copy {{label}}"
+  },
+  "runs": {
+    "empty": "No runs yet."
+  },
+  "activity": {
+    "empty": "No activity yet.",
+    "value": {
+      "null": "null",
+      "emptyArray": "[]",
+      "unserializable": "[unserializable]"
+    }
+  }
+}

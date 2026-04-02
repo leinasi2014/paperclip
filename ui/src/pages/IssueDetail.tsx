@@ -45,6 +45,14 @@ import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -74,30 +82,6 @@ type IssueDetailComment = (IssueComment | OptimisticIssueComment) & {
   interruptedRunId?: string | null;
   queueState?: "queued";
   queueTargetRunId?: string | null;
-};
-
-const DEFAULT_ACTION_LABELS: Record<string, string> = {
-  "issue.created": "created the issue",
-  "issue.updated": "updated the issue",
-  "issue.checked_out": "checked out the issue",
-  "issue.released": "released the issue",
-  "issue.comment_added": "added a comment",
-  "issue.attachment_added": "added an attachment",
-  "issue.attachment_removed": "removed an attachment",
-  "issue.document_created": "created a document",
-  "issue.document_updated": "updated a document",
-  "issue.document_deleted": "deleted a document",
-  "issue.deleted": "deleted the issue",
-  "agent.created": "created an agent",
-  "agent.updated": "updated the agent",
-  "agent.paused": "paused the agent",
-  "agent.resumed": "resumed the agent",
-  "agent.terminated": "terminated the agent",
-  "heartbeat.invoked": "invoked a heartbeat",
-  "heartbeat.cancelled": "cancelled a heartbeat",
-  "approval.created": "requested approval",
-  "approval.approved": "approved",
-  "approval.rejected": "rejected",
 };
 
 function humanizeValue(value: unknown): string {
@@ -259,6 +243,7 @@ export function IssueDetail() {
   const location = useLocation();
   const { pushToast } = useToast();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [mobilePropsOpen, setMobilePropsOpen] = useState(false);
   const [detailTab, setDetailTab] = useState("comments");
@@ -276,7 +261,7 @@ export function IssueDetail() {
     t(`priority.${value}`, { defaultValue: humanizeValue(value) });
   const actionLabel = (value: string) =>
     t(`activity.actions.${value}`, {
-      defaultValue: DEFAULT_ACTION_LABELS[value] ?? value.replace(/[._]/g, " "),
+      defaultValue: humanizeLabel(value.replace(/\./g, "_")),
     });
 
   const { data: issue, isLoading, error } = useQuery({
@@ -601,6 +586,46 @@ export function IssueDetail() {
     mutationFn: (data: Record<string, unknown>) => issuesApi.update(issueId!, data),
     onSuccess: () => {
       invalidateIssue();
+    },
+  });
+
+  const deleteIssue = useMutation({
+    mutationFn: () => issuesApi.remove(issueId!),
+    onSuccess: async (deletedIssue) => {
+      const companyId = deletedIssue.companyId ?? issue?.companyId ?? selectedCompanyId ?? null;
+
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.detail(issueId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.comments(issueId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.activity(issueId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.runs(issueId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.approvals(issueId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.attachments(issueId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.documents(issueId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.liveRuns(issueId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.activeRun(issueId!) });
+
+      if (companyId) {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.list(companyId) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.listMineByMe(companyId) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.listTouchedByMe(companyId) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.listUnreadTouchedByMe(companyId) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.sidebarBadges(companyId) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.activity(companyId) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.dashboard(companyId) }),
+        ]);
+      }
+
+      navigate("/issues", { replace: true });
+    },
+    onError: (err) => {
+      pushToast({
+        title: t("toasts.deleteFailed.title", { defaultValue: "Delete failed" }),
+        body: err instanceof Error
+          ? err.message
+          : t("toasts.deleteFailed.body", { defaultValue: "Unable to delete issue" }),
+        tone: "error",
+      });
     },
   });
 
@@ -1140,10 +1165,59 @@ export function IssueDetail() {
                 <EyeOff className="h-3 w-3" />
                 {t("actions.hideIssue", { defaultValue: "Hide this Issue" })}
               </button>
+              <button
+                className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-destructive disabled:opacity-50"
+                onClick={() => {
+                  setMoreOpen(false);
+                  setDeleteDialogOpen(true);
+                }}
+                disabled={deleteIssue.isPending}
+              >
+                <Trash2 className="h-3 w-3" />
+                {t("actions.deleteIssue", { defaultValue: "Delete issue" })}
+              </button>
             </PopoverContent>
             </Popover>
           </div>
         </div>
+
+        <Dialog
+          open={deleteDialogOpen}
+          onOpenChange={(open) => {
+            if (!deleteIssue.isPending) {
+              setDeleteDialogOpen(open);
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {t("actions.deleteIssue", { defaultValue: "Delete issue" })}
+              </DialogTitle>
+              <DialogDescription>
+                {t("confirmations.deleteIssue", {
+                  defaultValue: "Delete this issue? This cannot be undone.",
+                })}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={deleteIssue.isPending}
+              >
+                {tCommon("actions.cancel", { defaultValue: "Cancel" })}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => deleteIssue.mutate()}
+                disabled={deleteIssue.isPending}
+              >
+                {t("actions.deleteIssue", { defaultValue: "Delete issue" })}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <InlineEditor
           value={issue.title}

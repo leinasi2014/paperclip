@@ -16,7 +16,7 @@ import {
   projects,
   projectWorkspaces,
 } from "@paperclipai/db";
-import { conflict, notFound } from "../errors.js";
+import { conflict, HttpError, notFound } from "../errors.js";
 import { logger } from "../middleware/logger.js";
 import { publishLiveEvent } from "./live-events.js";
 import { getRunLogStore, type RunLogHandle } from "./run-log-store.js";
@@ -3873,15 +3873,37 @@ export function heartbeatService(db: Db) {
     readLog: async (runId: string, opts?: { offset?: number; limitBytes?: number }) => {
       const run = await getRun(runId);
       if (!run) throw notFound("Heartbeat run not found");
-      if (!run.logStore || !run.logRef) throw notFound("Run log not found");
+      if (!run.logStore || !run.logRef) {
+        return {
+          runId,
+          store: null,
+          logRef: null,
+          content: "",
+          nextOffset: opts?.offset ?? 0,
+        };
+      }
 
-      const result = await runLogStore.read(
-        {
-          store: run.logStore as "local_file",
-          logRef: run.logRef,
-        },
-        opts,
-      );
+      let result;
+      try {
+        result = await runLogStore.read(
+          {
+            store: run.logStore as "local_file",
+            logRef: run.logRef,
+          },
+          opts,
+        );
+      } catch (error) {
+        if (error instanceof HttpError && error.status === 404) {
+          return {
+            runId,
+            store: run.logStore,
+            logRef: run.logRef,
+            content: "",
+            nextOffset: opts?.offset ?? 0,
+          };
+        }
+        throw error;
+      }
 
       return {
         runId,

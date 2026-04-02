@@ -79,5 +79,94 @@
   },
   "labels": {
     "plugin": "插件"
+  },
+  "page": {
+    "selectCompany": "请先选择公司以查看此页面。",
+    "loading": "加载中…",
+    "routeConflict": "多个插件声明了路由 {{routePath}}。在冲突解决前请使用带 plugin-id 的路由。",
+    "actions": {
+      "back": "返回"
+    }
+  },
+  "settingsPage": {
+    "detailsTitle": "插件详情",
+    "loading": "正在加载插件详情…",
+    "tabs": {
+      "configuration": "配置",
+      "status": "状态"
+    },
+    "configuration": {
+      "about": {
+        "title": "关于",
+        "descriptionLabel": "描述",
+        "authorLabel": "作者",
+        "categoriesLabel": "分类",
+        "none": "无"
+      },
+      "settings": {
+        "title": "设置",
+        "noSettings": "此插件不需要任何设置。"
+      },
+      "form": {
+        "loading": "正在加载配置…",
+        "actions": {
+          "save": "保存配置",
+          "saving": "保存中…",
+          "test": "测试配置",
+          "testing": "测试中…"
+        },
+        "messages": {
+          "saved": "配置已保存。",
+          "saveFailed": "保存配置失败。",
+          "testPassed": "配置测试通过。",
+          "testFailed": "配置测试失败。"
+        }
+      }
+    },
+    "status": {
+      "runtime": {
+        "title": "运行时仪表盘",
+        "description": "Worker 进程、定时任务和 Webhook 投递",
+        "workerProcess": "Worker 进程",
+        "noWorker": "尚未注册 Worker 进程。",
+        "recentJobRuns": "最近任务执行",
+        "noJobRuns": "尚无任务执行记录。",
+        "recentWebhookDeliveries": "最近 Webhook 投递",
+        "noWebhookDeliveries": "尚无 Webhook 投递记录。",
+        "lastChecked": "最后检查时间：{{time}}",
+        "unavailable": "当前无法获取运行时诊断信息。"
+      },
+      "labels": {
+        "status": "状态",
+        "pid": "PID",
+        "uptime": "运行时长",
+        "pendingRpcs": "待处理 RPC",
+        "crashes": "崩溃",
+        "crashSummary": "连续 {{consecutive}} 次 / 共 {{total}} 次",
+        "lastCrash": "最近崩溃"
+      },
+      "logs": {
+        "title": "最近日志",
+        "count": "最近 {{count}} 条日志"
+      },
+      "health": {
+        "title": "健康状态",
+        "checking": "正在检查健康状态…",
+        "overall": "总体",
+        "lifecycle": "生命周期",
+        "lifecycleHint": "插件就绪后才会执行健康检查。"
+      }
+    },
+    "details": {
+      "title": "详情",
+      "pluginId": "插件 ID",
+      "pluginKey": "插件 Key",
+      "npmPackage": "NPM 包",
+      "version": "版本"
+    },
+    "permissions": {
+      "title": "权限",
+      "none": "未申请特殊权限。"
+    }
   }
 }

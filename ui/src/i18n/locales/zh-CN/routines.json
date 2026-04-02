@@ -1,0 +1,242 @@
+{
+  "breadcrumbs": {
+    "routines": "例行任务"
+  },
+  "title": "例行任务",
+  "subtitle": "可周期执行的工作定义，会落地为可审计的执行议题。",
+  "badges": {
+    "beta": "测试版"
+  },
+  "actions": {
+    "createRoutine": "创建例行任务",
+    "creating": "创建中...",
+    "cancel": "取消",
+    "adding": "添加中...",
+    "addTrigger": "添加触发器",
+    "saveRoutine": "保存例行任务"
+  },
+  "fields": {
+    "routineTitle": {
+      "placeholder": "例行任务标题"
+    },
+    "instructions": {
+      "placeholder": "添加说明..."
+    }
+  },
+  "advanced": {
+    "title": "高级交付设置",
+    "description": "将策略控制作为工作定义的次级配置。"
+  },
+  "policies": {
+    "concurrency": {
+      "label": "并发",
+      "options": {
+        "coalesce_if_active": "运行中合并",
+        "always_enqueue": "始终入队",
+        "skip_if_active": "运行中跳过"
+      },
+      "descriptions": {
+        "coalesce_if_active": "当已有运行进行中时，仅保留一个后续运行排队。",
+        "always_enqueue": "每次触发都入队，即使会产生多条排队运行。",
+        "skip_if_active": "当例行任务已在运行时，丢弃重叠触发。"
+      }
+    },
+    "catchUp": {
+      "label": "补跑",
+      "options": {
+        "skip_missed": "跳过错过窗口",
+        "enqueue_missed_with_cap": "限额补跑入队"
+      },
+      "descriptions": {
+        "skip_missed": "调度器或例行任务暂停期间错过的窗口将被忽略。",
+        "enqueue_missed_with_cap": "恢复后按批次上限补跑错过的调度窗口。"
+      }
+    }
+  },
+  "composer": {
+    "eyebrow": "新建例行任务",
+    "description": "先定义周期工作，随后在详情页配置触发器。",
+    "footer": "创建后，Paperclip 会直接带你进入触发器设置（调度、Webhook 或内部触发）。",
+    "assignment": {
+      "for": "给",
+      "in": "于"
+    }
+  },
+  "assignment": {
+    "for": "给",
+    "in": "于"
+  },
+  "selectors": {
+    "assignee": {
+      "label": "指派对象",
+      "placeholder": "指派对象",
+      "noneLabel": "无指派",
+      "searchPlaceholder": "搜索指派对象...",
+      "emptyMessage": "未找到指派对象。"
+    },
+    "project": {
+      "label": "项目",
+      "placeholder": "项目",
+      "noneLabel": "无项目",
+      "searchPlaceholder": "搜索项目...",
+      "emptyMessage": "未找到项目。"
+    }
+  },
+  "empty": {
+    "selectCompany": "选择公司后可查看例行任务。",
+    "noRoutines": "暂无例行任务。可先点击“创建例行任务”定义首个周期工作流。"
+  },
+  "errors": {
+    "createRoutineFailed": "创建例行任务失败",
+    "loadRoutinesFailed": "加载例行任务失败",
+    "routineNotFound": "未找到例行任务",
+    "clipboardDenied": "剪贴板访问被拒绝。"
+  },
+  "toasts": {
+    "created": {
+      "title": "例行任务已创建",
+      "body": "先添加第一个触发器，使其成为可运行流程。"
+    },
+    "updateFailed": {
+      "title": "更新例行任务失败",
+      "body": "Paperclip 无法更新该例行任务。"
+    },
+    "runFailed": {
+      "title": "例行任务运行失败",
+      "body": "Paperclip 无法启动该例行任务运行。"
+    },
+    "runStarted": "例行任务运行已启动",
+    "saveFailed": {
+      "title": "保存例行任务失败",
+      "body": "Paperclip 无法保存该例行任务。"
+    },
+    "saved": {
+      "title": "例行任务已保存",
+      "paused": "自动化已暂停。",
+      "enabled": "自动化已启用。"
+    },
+    "triggerCreated": "Webhook 触发器已创建",
+    "addTriggerFailed": {
+      "title": "添加触发器失败",
+      "body": "Paperclip 无法创建该触发器。"
+    },
+    "updateTriggerFailed": {
+      "title": "更新触发器失败",
+      "body": "Paperclip 无法更新该触发器。"
+    },
+    "deleteTriggerFailed": {
+      "title": "删除触发器失败",
+      "body": "Paperclip 无法删除该触发器。"
+    },
+    "webhookSecretRotated": "Webhook 密钥已轮换",
+    "rotateWebhookSecretFailed": {
+      "title": "轮换 Webhook 密钥失败",
+      "body": "Paperclip 无法轮换该 Webhook 密钥。"
+    }
+  },
+  "table": {
+    "headers": {
+      "name": "名称",
+      "project": "项目",
+      "agent": "代理",
+      "lastRun": "最近运行",
+      "enabled": "启用"
+    },
+    "never": "从未",
+    "toggle": {
+      "disableAria": "禁用 {{title}}",
+      "enableAria": "启用 {{title}}",
+      "archived": "已归档",
+      "on": "开",
+      "off": "关"
+    },
+    "menu": {
+      "moreActionsAria": "{{title}} 的更多操作",
+      "edit": "编辑",
+      "runningNow": "运行中...",
+      "runNow": "立即运行",
+      "pause": "暂停",
+      "enable": "启用",
+      "restore": "恢复",
+      "archive": "归档"
+    }
+  },
+  "shared": {
+    "unknown": "未知",
+    "emDash": "—"
+  },
+  "states": {
+    "active": "运行中",
+    "paused": "已暂停",
+    "archived": "已归档"
+  },
+  "automation": {
+    "pauseAria": "暂停自动触发",
+    "enableAria": "启用自动触发"
+  },
+  "saveBar": {
+    "unsavedChanges": "有未保存的更改"
+  },
+  "tabs": {
+    "triggers": "触发器",
+    "runs": "运行记录",
+    "activity": "活动"
+  },
+  "triggers": {
+    "addTrigger": "添加触发器",
+    "kind": "类型",
+    "comingSoon": "— 即将支持",
+    "empty": "尚未配置触发器。"
+  },
+  "triggerKinds": {
+    "schedule": "调度",
+    "webhook": "Webhook",
+    "api": "API"
+  },
+  "triggerEditor": {
+    "next": "下次：{{time}}",
+    "lastResult": "最近结果：{{value}}",
+    "fields": {
+      "label": "标签",
+      "schedule": "调度",
+      "signingMode": "签名模式",
+      "replayWindowSec": "重放窗口（秒）"
+    },
+    "actions": {
+      "rotateSecret": "轮换密钥",
+      "save": "保存"
+    }
+  },
+  "signingModes": {
+    "bearer": "bearer",
+    "hmac_sha256": "hmac_sha256"
+  },
+  "signingModeDescriptions": {
+    "bearer": "要求在 Authorization 请求头中携带共享 Bearer Token。",
+    "hmac_sha256": "要求使用共享密钥对请求进行 HMAC SHA-256 签名。"
+  },
+  "secret": {
+    "saveNowHint": "请立即保存，Paperclip 不会再次展示该密钥值。",
+    "labels": {
+      "webhookUrl": "Webhook URL",
+      "webhookSecret": "Webhook 密钥"
+    },
+    "actions": {
+      "copyUrl": "URL",
+      "copySecret": "密钥"
+    },
+    "copied": "{{label}} 已复制",
+    "copyFailed": "复制 {{label}} 失败"
+  },
+  "runs": {
+    "empty": "暂无运行记录。"
+  },
+  "activity": {
+    "empty": "暂无活动记录。",
+    "value": {
+      "null": "null",
+      "emptyArray": "[]",
+      "unserializable": "[不可序列化]"
+    }
+  }
+}
