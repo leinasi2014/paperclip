@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Paperclip · CEO Control Plane Demo</title>
+  <style>
+    :root {
+      --bg:#ffffff; --fg:#18181b; --panel:#ffffff; --muted:#f4f4f5; --muted-fg:#71717a; --line:#e4e4e7;
+      --accent:#18181b; --accent-fg:#fafafa; --soft:#f4f4f5; --blue:#2563eb; --blue-soft:rgba(37,99,235,.08);
+      --green:#16a34a; --green-soft:rgba(22,163,74,.08); --amber:#d97706; --amber-soft:rgba(217,119,6,.08);
+      --red:#dc2626; --red-soft:rgba(220,38,38,.08); --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    }
+    .dark {
+      --bg:#18181b; --fg:#fafafa; --panel:#18181b; --muted:#27272a; --muted-fg:#a1a1aa; --line:#3f3f46;
+      --accent:#fafafa; --accent-fg:#18181b; --soft:#27272a; --blue-soft:rgba(96,165,250,.1);
+      --green-soft:rgba(74,222,128,.12); --amber-soft:rgba(251,191,36,.12); --red-soft:rgba(248,113,113,.12);
+    }
+    * { box-sizing:border-box; }
+    html,body { height:100%; }
+    body {
+      margin:0; font:13px/1.5 var(--sans); color:var(--fg);
+      background:radial-gradient(circle at top left, rgba(0,0,0,.04), transparent 28%), var(--bg);
+      -webkit-font-smoothing:antialiased;
+    }
+    button,input,textarea,select { font:inherit; color:inherit; }
+    button { border:0; background:none; cursor:pointer; }
+    .app { min-height:100dvh; display:grid; grid-template-rows:52px 1fr; }
+    .topbar,.brand,.toolbar,.stat-row,.nav-head,.nav-item,.summary-grid,.summary-card,.issue-row,.issue-meta,.detail-head,.detail-tools,.activity-row,.chat-tabs,.chat-head,.chat-meta,.message-head,.employee-tools,.employee-meta,.employee-row,.draft-actions,.composer-row,.composer-meta { display:flex; align-items:center; gap:8px; }
+    .topbar { justify-content:space-between; padding:0 16px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.72); backdrop-filter:blur(14px); }
+    .dark .topbar { background:rgba(24,24,27,.8); }
+    .brand { gap:12px; min-width:0; }
+    .brand-title { font-size:14px; font-weight:600; line-height:1.2; }
+    .brand-sub,.nav-copy,.muted,.issue-sub,.employee-sub,.activity-time,.chat-sub,.composer-meta,.empty { color:var(--muted-fg); }
+    .brand-sub,.nav-copy,.issue-sub,.employee-sub,.activity-time,.chat-sub,.empty { font-size:12px; }
+    .toolbar { font-size:12px; color:var(--muted-fg); }
+    .toolbar button,.ghost-btn,.assign-btn,.theme-btn,.submit-btn { height:36px; border:1px solid var(--line); background:var(--bg); padding:0 14px; }
+    .theme-btn { width:36px; padding:0; }
+    .shell { min-height:0; display:grid; grid-template-columns:220px minmax(0,1fr) 360px; }
+    .nav,.main,.side { min-height:0; background:var(--panel); }
+    .nav,.main { border-right:1px solid var(--line); }
+    .nav { display:flex; flex-direction:column; }
+    .nav-section { padding:14px 12px 0; }
+    .nav-head { justify-content:space-between; margin-bottom:8px; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted-fg); }
+    .nav-copy { padding:0 12px 12px; line-height:1.55; }
+    .nav-item { width:100%; justify-content:space-between; padding:10px 14px; margin-bottom:0; text-align:left; border-left:3px solid transparent; }
+    .nav-item:hover,.issue-row:hover,.employee-row:hover,.tab-btn:hover,.ghost-btn:hover,.assign-btn:hover,.theme-btn:hover { background:var(--muted); }
+    .nav-item.active { background:var(--soft); border-left-color:var(--accent); }
+    .nav-label { font-size:13px; font-weight:600; }
+    .pill,.status-pill,.badge { display:inline-flex; align-items:center; height:22px; padding:0 8px; border:1px solid var(--line); background:var(--bg); font-size:11px; white-space:nowrap; }
+    .status-pill.ok { color:var(--green); border-color:var(--green); background:var(--green-soft); }
+    .status-pill.warn,.badge.approval { color:var(--amber); border-color:var(--amber); background:var(--amber-soft); }
+    .status-pill.stop { color:var(--red); border-color:var(--red); background:var(--red-soft); }
+    .badge.bot { color:var(--blue); border-color:var(--blue); background:var(--blue-soft); }
+    .main { display:flex; flex-direction:column; }
+    .main-head,.side-head { padding:16px; border-bottom:1px solid var(--line); }
+    .main-title { margin:0; font-size:18px; font-weight:600; }
+    .main-copy { display:none; }
+    .main-body,.side-body { min-height:0; overflow:auto; padding:16px; }
+    .summary-grid { align-items:stretch; gap:12px; margin-bottom:16px; }
+    .summary-card { flex:1; align-items:flex-start; flex-direction:column; padding:14px; border:1px solid var(--line); background:linear-gradient(180deg, rgba(0,0,0,.02), transparent 60%), var(--bg); }
+    .summary-label { font-size:11px; color:var(--muted-fg); text-transform:uppercase; letter-spacing:.05em; }
+    .summary-value { font-size:22px; font-weight:600; line-height:1; }
+    .summary-note { display:none; }
+    .issue-layout,.approval-layout { display:grid; grid-template-columns:280px minmax(0,1fr); border:1px solid var(--line); min-height:420px; }
+    .issue-list,.approval-list { border-right:1px solid var(--line); background:linear-gradient(180deg, rgba(0,0,0,.02), transparent 120px), var(--bg); }
+    .section-title { margin:0 0 10px; font-size:12px; font-weight:600; }
+    .issue-row,.employee-row { width:100%; padding:12px 14px; text-align:left; border-bottom:1px solid var(--line); align-items:flex-start; justify-content:space-between; }
+    .issue-row.active,.employee-row.active,.tab-btn.active { background:var(--soft); }
+    .issue-id,.employee-name { font-size:11px; color:var(--muted-fg); font-family:var(--mono); }
+    .issue-title,.employee-role { font-size:13px; font-weight:600; }
+    .issue-detail,.approval-detail { padding:16px; }
+    .detail-head { justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+    .detail-title { margin:0; font-size:18px; font-weight:600; }
+    .detail-copy { margin:6px 0 0; color:var(--muted-fg); font-size:13px; max-width:70ch; }
+    .detail-tools { flex-wrap:wrap; }
+    .ghost-btn,.assign-btn,.submit-btn,.theme-btn,.tab-btn { border:1px solid var(--line); background:var(--bg); }
+    .assign-btn,.submit-btn { background:var(--accent); color:var(--accent-fg); border-color:var(--accent); }
+    .detail-block,.draft-card,.chat-panel,.employee-card,.approval-card { margin-top:14px; padding:14px; border:1px solid var(--line); background:var(--bg); }
+    .detail-block h3,.draft-card h3,.chat-panel h3,.employee-card h3,.approval-card h3 { margin:0 0 10px; font-size:12px; font-weight:600; }
+    .list-text { margin:0; padding-left:18px; color:var(--fg); }
+    .list-text li + li { margin-top:6px; }
+    .draft-card.hidden,.hidden { display:none !important; }
+    .draft-grid { display:grid; grid-template-columns:1fr 180px; gap:10px; margin-bottom:10px; }
+    .field { display:flex; flex-direction:column; gap:6px; }
+    .field label { font-size:11px; color:var(--muted-fg); }
+    .employee-search { width:100%; height:36px; padding:0 12px; border:1px solid var(--line); background:var(--bg); outline:none; }
+    .field input,.field textarea,.field select { width:100%; border:1px solid var(--line); background:var(--bg); padding:10px 12px; outline:none; }
+    .field input,.field select { height:36px; }
+    .field textarea { min-height:80px; resize:vertical; }
+    .employee-search:focus,.field input:focus,.field textarea:focus,.field select:focus,.composer textarea:focus { border-color:var(--accent); box-shadow:0 0 0 2px var(--soft); }
+    .draft-actions { justify-content:space-between; flex-wrap:wrap; color:var(--muted-fg); font-size:11px; }
+    .employee-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
+    .employee-card { margin-top:0; }
+    .employee-card .employee-role { margin-bottom:4px; }
+    .employee-tools { margin-top:12px; }
+    .metric-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px; }
+    .metric { padding:10px; background:var(--muted); }
+    .metric-label { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted-fg); }
+    .metric-value { margin-top:4px; font-size:16px; font-weight:600; }
+    .activity-list { border:1px solid var(--line); }
+    .activity-row { align-items:flex-start; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--line); }
+    .activity-row:last-child { border-bottom:0; }
+    .activity-title { font-size:13px; font-weight:600; }
+    .activity-copy { margin-top:4px; color:var(--muted-fg); font-size:12px; }
+    .side { display:flex; flex-direction:column; }
+    .chat-tabs { margin-top:12px; flex-wrap:wrap; gap:0; border-bottom:1px solid var(--line); }
+    .tab-btn { height:36px; padding:0 12px; border:0; border-bottom:2px solid transparent; background:transparent; }
+    .tab-btn.active { border-color:var(--accent); color:var(--accent); }
+    .chat-panel { margin-top:0; }
+    .chat-head { justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+    .chat-name { margin:0; font-size:14px; font-weight:600; }
+    .message-list { max-height:360px; overflow:auto; border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin:0 -14px; }
+    .message { padding:12px 14px; border-bottom:1px solid var(--line); }
+    .message:last-child { border-bottom:0; }
+    .message-head { justify-content:space-between; }
+    .message-author { font-size:12px; font-weight:600; }
+    .message-time { font-size:11px; color:var(--muted-fg); font-family:var(--mono); }
+    .message-body { margin-top:6px; color:var(--fg); white-space:pre-wrap; }
+    .composer { margin-top:12px; }
+    .composer-row { align-items:stretch; }
+    .composer textarea { flex:1; min-height:88px; border:1px solid var(--line); background:var(--bg); padding:10px 12px; resize:none; outline:none; }
+    .composer button { width:96px; height:36px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-fg); font-weight:600; }
+    .composer-meta { display:none; }
+    .chat-empty { padding:24px 0; color:var(--muted-fg); font-size:12px; }
+    .status-dot { width:8px; height:8px; border-radius:999px; background:var(--green); display:inline-block; }
+    .status-dot.busy { background:var(--amber); }
+    .status-dot.offline { background:var(--muted-fg); }
+    .dark ::-webkit-scrollbar { width:8px; height:8px; }
+    .dark ::-webkit-scrollbar-track { background:var(--panel); }
+    .dark ::-webkit-scrollbar-thumb { background:#52525b; }
+    @media (max-width:1200px) {
+      .shell { grid-template-columns:200px minmax(0,1fr) 320px; }
+      .issue-layout,.approval-layout { grid-template-columns:240px minmax(0,1fr); }
+      .draft-grid { grid-template-columns:1fr; }
+    }
+    @media (max-width:900px) {
+      .shell { grid-template-columns:1fr; }
+      .nav,.main { border-right:0; border-bottom:1px solid var(--line); }
+      .issue-layout,.approval-layout { grid-template-columns:1fr; }
+      .issue-list,.approval-list { border-right:0; border-bottom:1px solid var(--line); }
+      .summary-grid { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 140 32" width="104" height="24" fill="none" aria-hidden="true">
+          <g stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m18 4-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"/>
+          </g>
+          <text x="32" y="22" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="currentColor">Paperclip</text>
+        </svg>
+        <div>
+          <div class="brand-title">CEO Control Plane Demo</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <span class="status-pill ok">Company Scoped</span>
+        <span class="status-pill warn">Approval Gate</span>
+        <button class="theme-btn" type="button" id="themeToggle" aria-label="切换主题">◐</button>
+      </div>
+    </header>
+
+    <main class="shell">
+      <aside class="nav">
+        <div class="nav-section">
+          <div class="nav-head"><span>工作台</span><span class="pill">CEO</span></div>
+        </div>
+        <div class="nav-section">
+          <button class="nav-item active" data-view="issues" type="button">
+            <div>
+              <div class="nav-label">Issue Inbox</div>
+            </div>
+            <span class="pill" id="issueCountPill">0</span>
+          </button>
+          <button class="nav-item" data-view="approvals" type="button">
+            <div>
+              <div class="nav-label">审批门禁</div>
+            </div>
+            <span class="pill" id="approvalCountPill">0</span>
+          </button>
+          <button class="nav-item" data-view="employees" type="button">
+            <div>
+              <div class="nav-label">正式员工</div>
+            </div>
+            <span class="pill" id="employeeCountPill">0</span>
+          </button>
+          <button class="nav-item" data-view="activity" type="button">
+            <div>
+              <div class="nav-label">活动日志</div>
+            </div>
+            <span class="pill">Audit</span>
+          </button>
+        </div>
+      </aside>
+
+      <section class="main">
+        <div class="main-head">
+          <h1 class="main-title" id="mainTitle"></h1>
+        </div>
+        <div class="main-body" id="mainBody"></div>
+      </section>
+
+      <aside class="side">
+        <div class="side-head">
+          <div class="nav-head"><span>沟通侧栏</span><span class="pill">Context</span></div>
+          <div class="chat-tabs">
+            <button class="tab-btn active" data-chat="group" type="button">公司总群</button>
+            <button class="tab-btn" data-chat="dm" type="button">单聊</button>
+            <button class="tab-btn" data-chat="announcements" type="button">公告</button>
+          </div>
+        </div>
+        <div class="side-body" id="sideBody"></div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    var employees = [
+      { id:'cto', name:'张明', role:'CTO', dept:'Technology', status:'online', load:4, budget:'76%', initials:'ZM' },
+      { id:'cmo', name:'赵雪', role:'CMO', dept:'Marketing', status:'busy', load:3, budget:'61%', initials:'ZX' },
+      { id:'design', name:'林一', role:'Design Lead', dept:'Design', status:'online', load:2, budget:'42%', initials:'LY' },
+      { id:'finance', name:'李华', role:'Finance Lead', dept:'Finance', status:'offline', load:1, budget:'29%', initials:'LH' }
+    ];
+
+    var issues = [
+      {
+        id:'ISSUE-17',
+        title:'初始化部门与部长招聘流程',
+        summary:'先落部门，再走部长招聘与审批，避免 CEO 直接跳过组织层。',
+        assignee:'cto',
+        status:'in_progress',
+        approval:'required',
+        definition:['创建 Technology / Marketing / Design 部门实体','产出部长候选名单','若涉及治理动作则进入审批队列']
+      },
+      {
+        id:'ISSUE-21',
+        title:'重构 CEO 沟通面板为控制面侧栏',
+        summary:'把聊天从主界面降级为上下文入口，主区域回到 Issue 和 Approval。',
+        assignee:'design',
+        status:'review',
+        approval:'none',
+        definition:['提供新版信息架构','验证员工单聊与总群入口','保留审计和审批边界']
+      },
+      {
+        id:'ISSUE-24',
+        title:'为公告流补充来源链接',
+        summary:'每条公告应能回到正式对象，避免公告成为死胡同。',
+        assignee:'finance',
+        status:'todo',
+        approval:'required',
+        definition:['公告显示来源 Issue / Approval','标记只读状态','追踪已发布记录']
+      }
+    ];
+
+    var approvals = [
+      { id:'APR-9', title:'部长任命方案审批', state:'pending', owner:'CEO', reason:'涉及公司治理动作' },
+      { id:'APR-11', title:'Q2 预算封顶调整', state:'pending', owner:'Finance', reason:'超出当前预算 envelope' }
+    ];
+
+    var activities = [
+      { title:'CEO 创建 ISSUE-24 草稿', copy:'目标是让公告回到正式对象，避免“评论即状态”误解。', time:'10:48' },
+      { title:'APR-9 进入待审批', copy:'部长任命方案已进入显式审批状态机。', time:'09:37' },
+      { title:'System 记录预算告警', copy:'Technology 部门预算使用率达到 76%。', time:'09:20' }
+    ];
+
+    var chats = {
+      group: [
+        { author:'CEO', kind:'formal', time:'09:12', text:'群聊不是唯一入口。正式员工列表和单聊要能直接进入。', initials:'CE' },
+        { author:'张明', kind:'formal', time:'09:15', text:'收到。任务入口我会保留在 Issue 工作台，不放在纯消息里。', initials:'ZM' },
+        { author:'System', kind:'bot', time:'09:18', text:'提醒：审批通过前，任何治理动作都不能视为已完成。', initials:'SY' }
+      ],
+      announcements: [
+        { author:'System', kind:'bot', time:'08:00', text:'公告 #42 已发布：本周优先级是部门初始化与部长任命。', initials:'SY' },
+        { author:'System', kind:'bot', time:'昨日', text:'APR-8 已完成，预算调整已生效。', initials:'SY' }
+      ],
+      dm: {
+        cto: [
+          { author:'张明', kind:'formal', time:'10:02', text:'如果需要指派新任务，请直接在主工作台创建 Issue，我会从这里接收上下文。', initials:'ZM' }
+        ],
+        cmo: [
+          { author:'赵雪', kind:'formal', time:'09:40', text:'营销侧需要知道公告来源，否则会把公告当最终状态。', initials:'ZX' }
+        ],
+        design: [
+          { author:'林一', kind:'formal', time:'09:58', text:'新的页面应该让主区域承载工作，聊天只是侧栏。', initials:'LY' }
+        ],
+        finance: [
+          { author:'李华', kind:'formal', time:'09:20', text:'预算相关动作一律需要正式审批，不建议在聊天里完成确认。', initials:'LH' }
+        ]
+      }
+    };
+
+    var state = {
+      view:'issues',
+      chat:'group',
+      selectedIssue:'ISSUE-17',
+      selectedApproval:'APR-9',
+      selectedEmployee:'cto',
+      draftAssignee:'cto',
+      draftTitle:'',
+      draftSummary:'',
+      draftApproval:'no'
+    };
+
+    function esc(value) {
+      var node = document.createElement('div');
+      node.textContent = value;
+      return node.innerHTML;
+    }
+
+    function byId(list, id) {
+      for (var i = 0; i < list.length; i += 1) if (list[i].id === id) return list[i];
+      return null;
+    }
+
+    function employeeById(id) { return byId(employees, id); }
+    function issueById(id) { return byId(issues, id); }
+    function approvalById(id) { return byId(approvals, id); }
+
+    function statusLabel(status) {
+      if (status === 'online') return '在线';
+      if (status === 'busy') return '忙碌';
+      return '离线';
+    }
+
+    function issueStatusLabel(status) {
+      if (status === 'in_progress') return '进行中';
+      if (status === 'review') return '待评审';
+      return '待处理';
+    }
+
+    function countPendingApprovals() {
+      var count = 0;
+      for (var i = 0; i < approvals.length; i += 1) if (approvals[i].state === 'pending') count += 1;
+      return count;
+    }
+
+    function renderNav() {
+      document.getElementById('issueCountPill').textContent = String(issues.length);
+      document.getElementById('approvalCountPill').textContent = String(countPendingApprovals());
+      document.getElementById('employeeCountPill').textContent = String(employees.length);
+      document.querySelectorAll('[data-view]').forEach(function(button) {
+        button.classList.toggle('active', button.dataset.view === state.view);
+      });
+    }
+
+    function renderSummary() {
+      return [
+        '<div class="summary-grid">',
+        '<div class="summary-card"><div class="summary-label">活跃 Issue</div><div class="summary-value">' + issues.length + '</div></div>',
+        '<div class="summary-card"><div class="summary-label">待审批</div><div class="summary-value">' + countPendingApprovals() + '</div></div>',
+        '<div class="summary-card"><div class="summary-label">正式员工</div><div class="summary-value">' + employees.length + '</div></div>',
+        '</div>'
+      ].join('');
+    }
+
+    function openDraft(employeeId, title) {
+      state.view = 'issues';
+      state.draftAssignee = employeeId || state.draftAssignee;
+      state.draftTitle = title || '';
+      state.draftSummary = '';
+      state.draftApproval = 'no';
+      render();
+      var titleInput = document.getElementById('draftTitle');
+      if (titleInput) titleInput.focus();
+    }
+
+    function renderIssuesView() {
+      var selected = issueById(state.selectedIssue) || issues[0];
+      if (selected) state.selectedIssue = selected.id;
+      var issueRows = issues.map(function(issue) {
+        var employee = employeeById(issue.assignee);
+        var active = issue.id === state.selectedIssue ? ' active' : '';
+        var approvalBadge = issue.approval === 'required' ? '<span class="badge approval">审批</span>' : '<span class="pill">无需审批</span>';
+        return [
+          '<button class="issue-row' + active + '" type="button" data-issue="' + issue.id + '">',
+          '<div><div class="issue-id">' + esc(issue.id) + '</div><div class="issue-title">' + esc(issue.title) + '</div><div class="issue-sub">' + esc(issueStatusLabel(issue.status) + ' · ' + employee.name) + '</div></div>',
+          '<div class="issue-meta">' + approvalBadge + '</div>',
+          '</button>'
+        ].join('');
+      }).join('');
+
+      var definition = selected ? selected.definition.map(function(item) { return '<li>' + esc(item) + '</li>'; }).join('') : '';
+      var detail = selected ? [
+        '<div class="detail-head">',
+        '<div><div class="issue-id">' + esc(selected.id) + '</div><h2 class="detail-title">' + esc(selected.title) + '</h2></div>',
+        '<div class="detail-tools">',
+        '<span class="status-pill ok">' + esc(issueStatusLabel(selected.status)) + '</span>',
+        selected.approval === 'required' ? '<span class="status-pill warn">需要审批</span>' : '<span class="status-pill ok">直接执行</span>',
+        '</div></div>',
+        '<div class="detail-block"><h3>完成定义</h3><ul class="list-text">' + definition + '</ul></div>',
+        '<div class="detail-block"><h3>操作入口</h3><div class="detail-tools"><button class="ghost-btn" type="button" id="chatAssigneeBtn">与负责人单聊</button><button class="assign-btn" type="button" id="cloneIssueBtn">基于当前任务新建 Issue</button></div></div>'
+      ].join('') : '<div class="empty">暂无 Issue。</div>';
+
+      return [
+        renderSummary(),
+        '<div class="draft-card" id="draftCard">',
+        '<h3>创建 Issue 草稿</h3>',
+        '<div class="draft-grid">',
+        '<div class="field"><label for="draftTitle">标题</label><input id="draftTitle" value="' + esc(state.draftTitle) + '" placeholder="标题"></div>',
+        '<div class="field"><label for="draftAssignee">负责人</label><select id="draftAssignee">' + employees.map(function(employee) { return '<option value="' + esc(employee.id) + '"' + (employee.id === state.draftAssignee ? ' selected' : '') + '>' + esc(employee.name + ' · ' + employee.role) + '</option>'; }).join('') + '</select></div>',
+        '</div>',
+        '<div class="field"><label for="draftSummary">任务描述</label><textarea id="draftSummary" placeholder="任务描述">' + esc(state.draftSummary) + '</textarea></div>',
+        '<div class="draft-actions"><div></div><div class="detail-tools"><label class="pill"><input id="draftApproval" type="checkbox"' + (state.draftApproval === 'yes' ? ' checked' : '') + '>需要审批</label><button class="submit-btn" type="button" id="submitDraftBtn">创建草稿</button></div></div>',
+        '</div>',
+        '<div class="issue-layout">',
+        '<div class="issue-list">' + issueRows + '</div>',
+        '<div class="issue-detail">' + detail + '</div>',
+        '</div>'
+      ].join('');
+    }
+
+    function renderApprovalsView() {
+      var selected = approvalById(state.selectedApproval) || approvals[0];
+      if (selected) state.selectedApproval = selected.id;
+      var rows = approvals.map(function(item) {
+        var active = item.id === state.selectedApproval ? ' active' : '';
+        return [
+          '<button class="issue-row' + active + '" type="button" data-approval="' + item.id + '">',
+          '<div><div class="issue-id">' + esc(item.id) + '</div><div class="issue-title">' + esc(item.title) + '</div><div class="issue-sub">' + esc(item.owner + ' · ' + item.reason) + '</div></div>',
+          '<span class="status-pill warn">' + esc(item.state === 'pending' ? '待审批' : item.state) + '</span>',
+          '</button>'
+        ].join('');
+      }).join('');
+      var detail = selected ? [
+        '<div class="detail-head"><div><div class="issue-id">' + esc(selected.id) + '</div><h2 class="detail-title">' + esc(selected.title) + '</h2></div><span class="status-pill warn">Pending</span></div>',
+        '<div class="detail-block"><h3>后续动作</h3><div class="detail-tools"><button class="ghost-btn" type="button" id="notifyApprovalBtn">在总群同步状态</button><button class="assign-btn" type="button" id="reviewApprovalBtn">查看关联 Issue</button></div></div>'
+      ].join('') : '<div class="empty">暂无审批。</div>';
+      return [renderSummary(), '<div class="approval-layout"><div class="approval-list">' + rows + '</div><div class="approval-detail">' + detail + '</div></div>'].join('');
+    }
+
+    function renderEmployeesView() {
+      var cards = employees.map(function(employee) {
+        return [
+          '<div class="employee-card">',
+          '<div class="employee-name"><span class="status-dot ' + esc(employee.status) + '"></span><span>' + esc(employee.name) + '</span></div>',
+          '<div class="employee-role">' + esc(employee.role + ' · ' + employee.dept) + '</div>',
+          '<div class="metric-grid">',
+          '<div class="metric"><div class="metric-label">活跃任务</div><div class="metric-value">' + esc(String(employee.load)) + '</div></div>',
+          '<div class="metric"><div class="metric-label">预算使用</div><div class="metric-value">' + esc(employee.budget) + '</div></div>',
+          '<div class="metric"><div class="metric-label">状态</div><div class="metric-value">' + esc(statusLabel(employee.status)) + '</div></div>',
+          '</div>',
+          '<div class="employee-tools"><button class="ghost-btn" type="button" data-open-dm="' + employee.id + '">进入单聊</button><button class="assign-btn" type="button" data-assign="' + employee.id + '">发起任务</button></div>',
+          '</div>'
+        ].join('');
+      }).join('');
+      return [renderSummary(), '<div class="employee-grid">' + cards + '</div>'].join('');
+    }
+
+    function renderActivityView() {
+      var rows = activities.map(function(item) {
+        return [
+          '<div class="activity-row">',
+          '<div><div class="activity-title">' + esc(item.title) + '</div><div class="activity-copy">' + esc(item.copy) + '</div></div>',
+          '<div class="activity-time">' + esc(item.time) + '</div>',
+          '</div>'
+        ].join('');
+      }).join('');
+      return [renderSummary(), '<div class="activity-list">' + rows + '</div>'].join('');
+    }
+
+    function renderMain() {
+      var title = 'Issue Inbox';
+      var body = '';
+
+      if (state.view === 'issues') body = renderIssuesView();
+      if (state.view === 'approvals') {
+        title = '审批门禁';
+        body = renderApprovalsView();
+      }
+      if (state.view === 'employees') {
+        title = '正式员工名册';
+        body = renderEmployeesView();
+      }
+      if (state.view === 'activity') {
+        title = '活动日志';
+        body = renderActivityView();
+      }
+
+      document.getElementById('mainTitle').textContent = title;
+      document.getElementById('mainBody').innerHTML = body;
+      wireMainActions();
+    }
+
+    function renderMessages(messages, name, sub, readOnly) {
+      var body = messages.length ? messages.map(function(message) {
+        var badge = message.kind === 'bot' ? '<span class="badge bot">系统</span>' : '<span class="pill">正式</span>';
+        return [
+          '<div class="message">',
+          '<div class="message-head"><div class="message-author">' + esc(message.author) + '</div><div class="chat-meta">' + badge + '<span class="message-time">' + esc(message.time) + '</span></div></div>',
+          '<div class="message-body">' + esc(message.text) + '</div>',
+          '</div>'
+        ].join('');
+      }).join('') : '<div class="chat-empty">当前没有消息。</div>';
+
+      return [
+        '<div class="chat-panel">',
+        '<div class="chat-head"><div><h3 class="chat-name">' + esc(name) + '</h3>' + (sub ? '<div class="chat-sub">' + esc(sub) + '</div>' : '') + '</div><span class="pill">' + (readOnly ? '只读' : '上下文') + '</span></div>',
+        '<div class="message-list">' + body + '</div>',
+        readOnly ? '' : '<div class="composer"><div class="composer-row"><textarea id="chatComposer" placeholder="输入消息"></textarea><button id="chatSendBtn" type="button">发送</button></div></div>',
+        '</div>'
+      ].join('');
+    }
+
+    function renderSide() {
+      var html = '';
+      if (state.chat === 'group') {
+        html = renderMessages(chats.group, '公司总群', '', false);
+      }
+      if (state.chat === 'announcements') {
+        html = renderMessages(chats.announcements, '公告', '', true);
+      }
+      if (state.chat === 'dm') {
+        var employee = employeeById(state.selectedEmployee);
+        var dmMessages = employee ? (chats.dm[employee.id] || []) : [];
+        html = employee ? [
+          '<div class="chat-panel">',
+          '<div class="chat-head"><div><h3 class="chat-name">' + esc(employee.name) + '</h3><div class="chat-sub">' + esc(employee.role + ' · ' + employee.dept) + '</div></div><span class="status-pill ok">' + esc(statusLabel(employee.status)) + '</span></div>',
+          '<div class="detail-block" style="margin-top:0"><div class="chat-sub">活跃任务 ' + esc(String(employee.load)) + ' · 预算 ' + esc(employee.budget) + '</div><div class="detail-tools" style="margin-top:10px"><button class="ghost-btn" type="button" id="dmBackToIssueBtn">查看任务</button><button class="assign-btn" type="button" id="dmAssignBtn">新任务</button></div></div>',
+          renderMessages(dmMessages, '单聊', '', false).replace('<div class="chat-panel">', '').replace(/<\/div>$/, ''),
+          '</div>'
+        ].join('') : '<div class="chat-empty">未选择员工</div>';
+      }
+      document.getElementById('sideBody').innerHTML = html;
+      document.querySelectorAll('[data-chat]').forEach(function(button) {
+        button.classList.toggle('active', button.dataset.chat === state.chat);
+      });
+      wireSideActions();
+    }
+
+    function wireMainActions() {
+      document.querySelectorAll('[data-issue]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          state.selectedIssue = button.dataset.issue;
+          renderMain();
+        });
+      });
+      document.querySelectorAll('[data-approval]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          state.selectedApproval = button.dataset.approval;
+          renderMain();
+        });
+      });
+      document.querySelectorAll('[data-open-dm]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          state.selectedEmployee = button.dataset.openDm;
+          state.chat = 'dm';
+          renderSide();
+        });
+      });
+      document.querySelectorAll('[data-assign]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          openDraft(button.dataset.assign, '');
+        });
+      });
+      var chatAssigneeBtn = document.getElementById('chatAssigneeBtn');
+      if (chatAssigneeBtn) chatAssigneeBtn.addEventListener('click', function() {
+        var issue = issueById(state.selectedIssue);
+        state.selectedEmployee = issue.assignee;
+        state.chat = 'dm';
+        renderSide();
+      });
+      var cloneIssueBtn = document.getElementById('cloneIssueBtn');
+      if (cloneIssueBtn) cloneIssueBtn.addEventListener('click', function() {
+        var issue = issueById(state.selectedIssue);
+        openDraft(issue.assignee, issue.title + ' · 后续任务');
+      });
+      var notifyApprovalBtn = document.getElementById('notifyApprovalBtn');
+      if (notifyApprovalBtn) notifyApprovalBtn.addEventListener('click', function() {
+        var approval = approvalById(state.selectedApproval);
+        chats.group.push({ author:'System', kind:'bot', time:nowTime(), text:approval.id + ' 仍在审批中，尚未正式生效。', initials:'SY' });
+        state.chat = 'group';
+        renderSide();
+      });
+      var reviewApprovalBtn = document.getElementById('reviewApprovalBtn');
+      if (reviewApprovalBtn) reviewApprovalBtn.addEventListener('click', function() {
+        state.view = 'issues';
+        state.selectedIssue = 'ISSUE-17';
+        render();
+      });
+      var submitDraftBtn = document.getElementById('submitDraftBtn');
+      if (submitDraftBtn) submitDraftBtn.addEventListener('click', submitDraft);
+    }
+
+    function wireSideActions() {
+      var dmBackToIssueBtn = document.getElementById('dmBackToIssueBtn');
+      if (dmBackToIssueBtn) dmBackToIssueBtn.addEventListener('click', function() {
+        var target = issues.find(function(issue) { return issue.assignee === state.selectedEmployee; }) || issues[0];
+        if (target) state.selectedIssue = target.id;
+        state.view = 'issues';
+        render();
+      });
+      var dmAssignBtn = document.getElementById('dmAssignBtn');
+      if (dmAssignBtn) dmAssignBtn.addEventListener('click', function() {
+        openDraft(state.selectedEmployee, '');
+      });
+      var chatSendBtn = document.getElementById('chatSendBtn');
+      if (chatSendBtn) chatSendBtn.addEventListener('click', sendChat);
+      var chatComposer = document.getElementById('chatComposer');
+      if (chatComposer) chatComposer.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          sendChat();
+        }
+      });
+    }
+
+    function submitDraft() {
+      var title = document.getElementById('draftTitle').value.trim();
+      var assignee = document.getElementById('draftAssignee').value;
+      var summary = document.getElementById('draftSummary').value.trim();
+      var approval = document.getElementById('draftApproval').checked ? 'required' : 'none';
+      if (!title || !summary) return;
+      var id = 'ISSUE-' + String(25 + issues.length);
+      var employee = employeeById(assignee);
+      issues.unshift({
+        id:id,
+        title:title,
+        summary:summary,
+        assignee:assignee,
+        status:'todo',
+        approval:approval,
+        definition:['确认目标与完成定义','与负责人同步上下文','按流程进入执行或审批']
+      });
+      activities.unshift({ title:'CEO 创建 ' + id + ' 草稿', copy:title + ' 已进入正式 Issue 队列。', time:nowTime() });
+      chats.group.push({ author:'System', kind:'bot', time:nowTime(), text:id + ' 已创建，负责人是 ' + employee.name + '。请在工作台继续推进。', initials:'SY' });
+      if (!chats.dm[assignee]) chats.dm[assignee] = [];
+      chats.dm[assignee].push({ author:'System', kind:'bot', time:nowTime(), text:'已为你创建 ' + id + '。正式状态请在工作台查看。', initials:'SY' });
+      if (approval === 'required') {
+        approvals.unshift({ id:'APR-' + String(12 + approvals.length), title:title + ' 审批', state:'pending', owner:'CEO', reason:'该任务被标记为需要审批' });
+      }
+      state.selectedIssue = id;
+      state.selectedEmployee = assignee;
+      state.chat = 'dm';
+      state.draftTitle = '';
+      state.draftSummary = '';
+      state.draftApproval = 'no';
+      render();
+    }
+
+    function sendChat() {
+      var input = document.getElementById('chatComposer');
+      if (!input) return;
+      var text = input.value.trim();
+      if (!text) return;
+      var message = { author:'CEO', kind:'formal', time:nowTime(), text:text, initials:'CE' };
+      if (state.chat === 'group') chats.group.push(message);
+      if (state.chat === 'dm') {
+        if (!chats.dm[state.selectedEmployee]) chats.dm[state.selectedEmployee] = [];
+        chats.dm[state.selectedEmployee].push(message);
+      }
+      input.value = '';
+      renderSide();
+    }
+
+    function nowTime() {
+      var now = new Date();
+      return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    }
+
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      var dark = document.documentElement.classList.contains('dark');
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', dark ? '#18181b' : '#ffffff');
+      document.getElementById('themeToggle').textContent = dark ? '◑' : '◐';
+      try { localStorage.setItem('paperclip.theme', dark ? 'dark' : 'light'); } catch (error) {}
+    }
+
+    function render() {
+      renderNav();
+      renderMain();
+      renderSide();
+    }
+
+    (function init() {
+      try {
+        var saved = localStorage.getItem('paperclip.theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+          document.getElementById('themeToggle').textContent = '◑';
+        }
+      } catch (error) {}
+      document.querySelectorAll('[data-view]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          state.view = button.dataset.view;
+          render();
+        });
+      });
+      document.querySelectorAll('[data-chat]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          state.chat = button.dataset.chat;
+          renderSide();
+        });
+      });
+      document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+      render();
+    })();
+  </script>
+</body>
+</html>

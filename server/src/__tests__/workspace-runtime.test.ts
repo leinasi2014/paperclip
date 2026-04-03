@@ -131,7 +131,7 @@ async function writeProvisionWorktreeScript(scriptPath: string): Promise<void> {
       "    embeddedPostgresDataDir: path.join(instanceRoot, 'db'),",
       "    embeddedPostgresPort: 54330,",
       "  },",
-      "  logging: { ...sourceConfig.logging, logDir: path.join(instanceRoot, 'logs') },",
+      "  logging: { ...sourceConfig.logging, logDir: path.join(process.env.PAPERCLIP_WORKSPACE_CWD || process.cwd(), '.log') },",
       "  server: { ...sourceConfig.server, port: 3101 },",
       "  storage: {",
       "    ...sourceConfig.storage,",
@@ -524,7 +524,7 @@ describe("realizeExecutionWorkspace", () => {
           },
           logging: {
             mode: "file",
-            logDir: path.join(sharedConfigDir, "logs"),
+            logDir: path.join(repoRoot, ".log"),
           },
           server: {
             deploymentMode: "local_trusted",

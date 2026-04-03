@@ -40,7 +40,7 @@ export const databaseConfigSchema = z.object({
 
 export const loggingConfigSchema = z.object({
   mode: z.enum(["file", "cloud"]),
-  logDir: z.string().default("~/.paperclip/instances/default/logs"),
+  logDir: z.string().default(".log"),
 });
 
 export const serverConfigSchema = z.object({

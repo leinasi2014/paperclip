@@ -35,7 +35,7 @@ console.log(`[paperclip-playwright] deployment mode: ${deploymentMode}/${deploym
 function writeConfig() {
   mkdirSync(instanceRoot, { recursive: true });
   mkdirSync(path.join(instanceRoot, "db"), { recursive: true });
-  mkdirSync(path.join(instanceRoot, "logs"), { recursive: true });
+  mkdirSync(path.join(repoRoot, ".log"), { recursive: true });
   mkdirSync(path.join(instanceRoot, "data", "storage"), { recursive: true });
   mkdirSync(path.join(instanceRoot, "data", "backups"), { recursive: true });
   mkdirSync(path.join(instanceRoot, "secrets"), { recursive: true });
@@ -60,7 +60,7 @@ function writeConfig() {
     },
     logging: {
       mode: "file",
-      logDir: path.join(instanceRoot, "logs"),
+      logDir: path.join(repoRoot, ".log"),
     },
     server: {
       deploymentMode,

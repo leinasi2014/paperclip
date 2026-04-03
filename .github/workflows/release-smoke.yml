@@ -94,8 +94,11 @@ jobs:
       - name: Capture Docker logs
         if: always()
         run: |
+          log_dir="$GITHUB_WORKSPACE/.log/release-smoke"
+          mkdir -p "$log_dir"
+          : >"$log_dir/docker-onboard-smoke.log"
           if [[ -n "${SMOKE_CONTAINER_NAME:-}" ]]; then
-            docker logs "$SMOKE_CONTAINER_NAME" >"$RUNNER_TEMP/docker-onboard-smoke.log" 2>&1 || true
+            docker logs "$SMOKE_CONTAINER_NAME" >"$log_dir/docker-onboard-smoke.log" 2>&1 || true
           fi
 
       - name: Upload diagnostics
@@ -104,7 +107,7 @@ jobs:
         with:
           name: ${{ inputs.artifact_name }}
           path: |
-            ${{ runner.temp }}/docker-onboard-smoke.log
+            ${{ github.workspace }}/.log/release-smoke/docker-onboard-smoke.log
             ${{ env.SMOKE_METADATA_FILE }}
             tests/release-smoke/playwright-report/
             tests/release-smoke/test-results/

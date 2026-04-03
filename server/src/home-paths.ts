@@ -39,7 +39,7 @@ export function resolveDefaultEmbeddedPostgresDir(): string {
 }
 
 export function resolveDefaultLogsDir(): string {
-  return path.resolve(resolvePaperclipInstanceRoot(), "logs");
+  return path.resolve(process.cwd(), ".log");
 }
 
 export function resolveDefaultSecretsKeyFilePath(): string {

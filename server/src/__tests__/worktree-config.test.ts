@@ -127,7 +127,7 @@ describe("worktree config repair", () => {
 
     expect(repairedConfig.database.embeddedPostgresDataDir).toBe(path.join(instanceRoot, "db"));
     expect(repairedConfig.database.backup.dir).toBe(path.join(instanceRoot, "data", "backups"));
-    expect(repairedConfig.logging.logDir).toBe(path.join(instanceRoot, "logs"));
+    expect(repairedConfig.logging.logDir).toBe(path.join(worktreeRoot, ".log"));
     expect(repairedConfig.storage.localDisk.baseDir).toBe(path.join(instanceRoot, "data", "storage"));
     expect(repairedConfig.secrets.localEncrypted.keyFilePath).toBe(path.join(instanceRoot, "secrets", "master.key"));
     expect(repairedEnv).toContain(`PAPERCLIP_HOME=${JSON.stringify(isolatedHome)}`);
@@ -239,7 +239,7 @@ describe("worktree config repair", () => {
           },
           logging: {
             mode: "file",
-            logDir: path.join(currentInstanceRoot, "logs"),
+            logDir: path.join(currentWorktreeRoot, ".log"),
           },
           server: {
             deploymentMode: "local_trusted",
@@ -355,7 +355,7 @@ describe("worktree config repair", () => {
           },
           logging: {
             mode: "file",
-            logDir: path.join(instanceRoot, "logs"),
+            logDir: path.join(worktreeRoot, ".log"),
           },
           server: {
             deploymentMode: "local_trusted",

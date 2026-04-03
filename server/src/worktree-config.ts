@@ -99,6 +99,7 @@ type WorktreeRuntimeContext = {
   configPath: string;
   envPath: string;
   worktreeName: string;
+  worktreeRoot: string;
   instanceId: string;
   homeDir: string;
   instanceRoot: string;
@@ -132,13 +133,14 @@ function resolveWorktreeRuntimeContext(
     configPath,
     envPath,
     worktreeName,
+    worktreeRoot,
     instanceId,
     homeDir,
     instanceRoot,
     contextPath: path.resolve(homeDir, "context.json"),
     embeddedPostgresDataDir: path.resolve(instanceRoot, "db"),
     backupDir: path.resolve(instanceRoot, "data", "backups"),
-    logDir: path.resolve(instanceRoot, "logs"),
+    logDir: path.resolve(worktreeRoot, ".log"),
     storageDir: path.resolve(instanceRoot, "data", "storage"),
     secretsKeyFilePath: path.resolve(instanceRoot, "secrets", "master.key"),
   };
@@ -294,7 +296,7 @@ function needsWorktreeConfigRepair(
     }
   }
 
-  if (!isPathInside(config.logging.logDir, context.instanceRoot)) {
+  if (path.resolve(config.logging.logDir) !== path.resolve(context.logDir)) {
     return true;
   }
   if (!isPathInside(config.storage.localDisk.baseDir, context.instanceRoot)) {

@@ -163,6 +163,7 @@ function resolveRuntimeLikePath(value, configPath) {
 async function main() {
   const worktreeName = process.env.WORKTREE_NAME;
   const paperclipDir = process.env.PAPERCLIP_DIR;
+  const worktreeCwd = process.env.WORKTREE_CWD ?? process.cwd();
   const sourceConfigPath = process.env.SOURCE_CONFIG_PATH;
   const sourceEnvPath = process.env.SOURCE_ENV_PATH;
   const worktreeHome = path.resolve(expandHomePrefix(nonEmpty(process.env.PAPERCLIP_WORKTREES_DIR) ?? "~/.paperclip-worktrees"));
@@ -211,7 +212,7 @@ async function main() {
     },
     logging: {
       mode: sourceConfig?.logging?.mode ?? "file",
-      logDir: path.resolve(instanceRoot, "logs"),
+      logDir: path.resolve(worktreeCwd, ".log"),
     },
     server: {
       deploymentMode: sourceConfig?.server?.deploymentMode ?? "local_trusted",
