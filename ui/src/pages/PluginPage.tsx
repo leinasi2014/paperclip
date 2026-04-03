@@ -16,8 +16,7 @@ import { NotFoundPage } from "./NotFound";
  * `/:companyPrefix/plugins/:pluginId` when the plugin declares a page slot
  * and is enabled for that company.
  *
- * @see doc/plugins/PLUGIN_SPEC.md §19.2 — Company-Context Routes
- * @see doc/plugins/PLUGIN_SPEC.md §24.4 — Company-Context Plugin Page
+ * @see docs/extensions/index.en.md for plugin page and company-context routing notes
  */
 export function PluginPage() {
   const { t } = useTranslation("plugins");

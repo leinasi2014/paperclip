@@ -35,8 +35,8 @@ import { getSdkUiRuntimeValue } from "./runtime.js";
  * }
  * ```
  *
- * @see PLUGIN_SPEC.md §13.8 — `getData`
- * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+ * @see docs/extensions/index.en.md §13.8 — `getData`
+ * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
  */
 export function usePluginData<T = unknown>(
   key: string,
@@ -79,8 +79,8 @@ export function usePluginData<T = unknown>(
  * }
  * ```
  *
- * @see PLUGIN_SPEC.md §13.9 — `performAction`
- * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+ * @see docs/extensions/index.en.md §13.9 — `performAction`
+ * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
  */
 export function usePluginAction(key: string): PluginActionFn {
   const impl = getSdkUiRuntimeValue<(nextKey: string) => PluginActionFn>("usePluginAction");
@@ -108,7 +108,7 @@ export function usePluginAction(key: string): PluginActionFn {
  * }
  * ```
  *
- * @see PLUGIN_SPEC.md §19 — UI Extension Model
+ * @see docs/extensions/index.en.md §19 — UI Extension Model
  */
 export function useHostContext(): PluginHostContext {
   const impl = getSdkUiRuntimeValue<() => PluginHostContext>("useHostContext");
@@ -146,7 +146,7 @@ export function useHostContext(): PluginHostContext {
  * }
  * ```
  *
- * @see PLUGIN_SPEC.md §19.8 — Real-Time Streaming
+ * @see docs/extensions/index.en.md §19.8 — Real-Time Streaming
  */
 export function usePluginStream<T = unknown>(
   channel: string,

@@ -26,8 +26,8 @@
  * client factory and manifest validator — this store trusts that the caller
  * has already been authorised.
  *
- * @see PLUGIN_SPEC.md §17 — Scheduled Jobs
- * @see PLUGIN_SPEC.md §21.3 — `plugin_jobs` / `plugin_job_runs` tables
+ * @see docs/extensions/index.en.md §17 — Scheduled Jobs
+ * @see docs/extensions/index.en.md §21.3 — `plugin_jobs` / `plugin_job_runs` tables
  */
 
 import { and, desc, eq } from "drizzle-orm";

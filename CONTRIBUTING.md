@@ -4,6 +4,13 @@ Thanks for wanting to contribute!
 
 We really appreciate both small fixes and thoughtful larger changes.
 
+Canonical project documentation now lives under [`docs/`](docs/). Before a larger change, read:
+
+- [`docs/start/index.en.md`](docs/start/index.en.md)
+- [`docs/product/index.en.md`](docs/product/index.en.md)
+- [`docs/architecture/index.en.md`](docs/architecture/index.en.md)
+- [`docs/development/index.en.md`](docs/development/index.en.md)
+
 ## Two Paths to Get Your Pull Request Accepted
 
 ### Path 1: Small, Focused Changes (Fastest way to get merged)
@@ -38,6 +45,7 @@ PRs that follow this path are **much** more likely to be accepted, even when the
 - One PR = one logical change (unless it's a small related group)
 - Run tests locally first
 - Be kind in discussions 😄
+- If you change current behavior, update the canonical page in `docs/` instead of adding a new orphan markdown file elsewhere in the repo.
 
 ## Writing a Good PR message
 

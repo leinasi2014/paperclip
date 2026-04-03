@@ -2,8 +2,8 @@
  * @fileoverview Plugin UI static file serving route
  *
  * Serves plugin UI bundles from the plugin's dist/ui/ directory under the
- * `/_plugins/:pluginId/ui/*` namespace. This is specified in PLUGIN_SPEC.md
- * §19.0.3 (Bundle Serving).
+ * `/_plugins/:pluginId/ui/*` namespace. The project-level plugin overview lives
+ * in docs/extensions/index.en.md.
  *
  * Plugin UI bundles are pre-built ESM that the host serves as static assets.
  * The host dynamically imports the plugin's UI entry module from this path,
@@ -23,8 +23,7 @@
  *   with ETag-based conditional request support.
  *
  * @module server/routes/plugin-ui-static
- * @see doc/plugins/PLUGIN_SPEC.md §19.0.3 — Bundle Serving
- * @see doc/plugins/PLUGIN_SPEC.md §25.4.5 — Frontend Cache Invalidation
+ * @see docs/extensions/index.en.md for canonical plugin-system documentation
  */
 
 import { Router } from "express";
@@ -279,7 +278,7 @@ export function pluginUiStaticRoutes(db: Db, options: PluginUiStaticRouteOptions
 
     // Step 2b: Check for devUiUrl in plugin config — proxy to local dev server
     // when a plugin author has configured a dev server URL for hot-reload.
-    // See PLUGIN_SPEC.md §27.2 — Local Development Workflow
+    // See docs/extensions/index.en.md §27.2 — Local Development Workflow
     try {
       const configRow = await registry.getConfig(plugin.id);
       const devUiUrl =

@@ -52,7 +52,7 @@ export const runTranscriptFixtureEntries: TranscriptEntry[] = [
     name: "command_execution",
     toolUseId: "item_1",
     input: {
-      command: "sed -n '1,220p' doc/GOAL.md",
+      command: "sed -n '1,220p' docs/product/index.en.md",
       cwd: "/workspace/paperclip",
     },
   },
@@ -62,7 +62,7 @@ export const runTranscriptFixtureEntries: TranscriptEntry[] = [
     name: "command_execution",
     toolUseId: "item_2",
     input: {
-      command: "sed -n '1,320p' doc/SPEC-implementation.md",
+      command: "sed -n '1,320p' docs/architecture/index.en.md",
       cwd: "/workspace/paperclip",
     },
   },
@@ -70,14 +70,14 @@ export const runTranscriptFixtureEntries: TranscriptEntry[] = [
     kind: "tool_result",
     ts: "2026-03-11T15:21:19.034Z",
     toolUseId: "item_1",
-    content: "command: sed -n '1,220p' doc/GOAL.md\nstatus: completed\nexit_code: 0\n\n# Paperclip\n\nPaperclip is the backbone of the autonomous economy.",
+    content: "command: sed -n '1,220p' docs/product/index.en.md\nstatus: completed\nexit_code: 0\n\n# Product\n\nPaperclip models an AI company as a set of company-scoped entities with a human board operating above them.",
     isError: false,
   },
   {
     kind: "tool_result",
     ts: "2026-03-11T15:21:19.035Z",
     toolUseId: "item_2",
-    content: "command: sed -n '1,320p' doc/SPEC-implementation.md\nstatus: completed\nexit_code: 0\n\n# Paperclip V1 Implementation Spec\n\nPaperclip V1 must provide a full control-plane loop for autonomous agents.",
+    content: "command: sed -n '1,320p' docs/architecture/index.en.md\nstatus: completed\nexit_code: 0\n\n# Architecture\n\nThis is the current V1 implementation contract for the repository.",
     isError: false,
   },
   {

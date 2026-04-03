@@ -15,9 +15,9 @@
  * forwards to handlers that proxy the call to the relevant worker process via IPC.
  * That IPC layer is separate; this module only handles routing and filtering.
  *
- * @see PLUGIN_SPEC.md §16 — Event System
- * @see PLUGIN_SPEC.md §16.1 — Event Filtering
- * @see PLUGIN_SPEC.md §16.2 — Plugin-to-Plugin Events
+ * @see docs/extensions/index.en.md §16 — Event System
+ * @see docs/extensions/index.en.md §16.1 — Event Filtering
+ * @see docs/extensions/index.en.md §16.2 — Plugin-to-Plugin Events
  */
 
 import type { PluginEventType } from "@paperclipai/shared";

@@ -15,8 +15,8 @@
  * exports named React components that correspond to `ui.slots[].exportName`
  * in the manifest.
  *
- * @see PLUGIN_SPEC.md §19 — UI Extension Model
- * @see PLUGIN_SPEC.md §19.0.3 — Bundle Serving
+ * @see docs/extensions/index.en.md §19 — UI Extension Model
+ * @see docs/extensions/index.en.md §19.0.3 — Bundle Serving
  */
 import {
   Component,

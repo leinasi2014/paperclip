@@ -18,7 +18,7 @@ import type { PluginCategory, PluginStatus, PaperclipPluginManifestV1 } from "@p
  * `manifest_json` so the host can reconstruct capability and UI
  * slot information without loading the plugin package.
  *
- * @see PLUGIN_SPEC.md §21.3
+ * @see docs/extensions/index.en.md §21.3
  */
 export const plugins = pgTable(
   "plugins",

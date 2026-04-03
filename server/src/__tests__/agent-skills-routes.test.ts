@@ -381,23 +381,24 @@ describe("agent skill routes", () => {
         role: "ceo",
         adapterType: "claude_local",
         adapterConfig: {},
-      });
+    });
 
     expect(res.status, JSON.stringify(res.body)).toBe(201);
-    expect(mockAgentInstructionsService.materializeManagedBundle).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: "11111111-1111-4111-8111-111111111111",
-        role: "ceo",
-        adapterType: "claude_local",
-      }),
-      expect.objectContaining({
-        "AGENTS.md": expect.stringContaining("You are the CEO."),
-        "HEARTBEAT.md": expect.stringContaining("CEO Heartbeat Checklist"),
-        "SOUL.md": expect.stringContaining("CEO Persona"),
-        "TOOLS.md": expect.stringContaining("# Tools"),
-      }),
-      { entryFile: "AGENTS.md", replaceExisting: false },
-    );
+    const call = mockAgentInstructionsService.materializeManagedBundle.mock.calls[0];
+    expect(call).toBeDefined();
+    const [agentArg, filesArg, optionsArg] = call ?? [];
+    expect(agentArg).toMatchObject({
+      id: "11111111-1111-4111-8111-111111111111",
+      role: "ceo",
+      adapterType: "claude_local",
+    });
+    expect(filesArg).toMatchObject({
+      "AGENTS.md": expect.stringContaining("issue text is primarily Chinese"),
+      "HEARTBEAT.md": expect.stringContaining("Use the issue language as the default reply language"),
+      "SOUL.md": expect.stringContaining("CEO Persona"),
+      "TOOLS.md": expect.stringContaining("# Tools"),
+    });
+    expect(optionsArg).toEqual({ entryFile: "AGENTS.md", replaceExisting: false });
     expect(mockCompanyService.assignCeoAgent).toHaveBeenCalledWith(
       "company-1",
       "11111111-1111-4111-8111-111111111111",

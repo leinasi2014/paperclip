@@ -32,8 +32,8 @@
  * 4. **Persists state** — Status changes are written to the database
  *    through the plugin registry service.
  *
- * @see PLUGIN_SPEC.md §12 — Process Model
- * @see PLUGIN_SPEC.md §12.5 — Graceful Shutdown Policy
+ * @see docs/extensions/index.en.md §12 — Process Model
+ * @see docs/extensions/index.en.md §12.5 — Graceful Shutdown Policy
  */
 import { EventEmitter } from "node:events";
 import type { Db } from "@paperclipai/db";
@@ -298,8 +298,8 @@ export interface PluginLifecycleManagerOptions {
  * await lifecycle.load(pluginId);
  * ```
  *
- * @see PLUGIN_SPEC.md §21.3 — `plugins.status` column
- * @see PLUGIN_SPEC.md §12 — Process Model
+ * @see docs/extensions/index.en.md §21.3 — `plugins.status` column
+ * @see docs/extensions/index.en.md §12 — Process Model
  */
 export function pluginLifecycleManager(
   db: Db,
@@ -622,7 +622,7 @@ export function pluginLifecycleManager(
      * Upgrade a plugin to a newer version by performing a package update and
      * managing the lifecycle state transition.
      *
-     * Following PLUGIN_SPEC.md §25.3, the upgrade process:
+     * Following docs/extensions/index.en.md §25.3, the upgrade process:
      * 1. Stops the current worker process (if running).
      * 2. Fetches and validates the new plugin package via the `PluginLoader`.
      * 3. Compares the capabilities declared in the new manifest against the old one.

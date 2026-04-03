@@ -7,15 +7,15 @@
  * JSON-RPC requests over the child's stdin and reads responses from stdout.
  * Worker stderr is captured and forwarded to the host logger.
  *
- * Process Model (from PLUGIN_SPEC.md §12):
+ * Process Model (from docs/extensions/index.en.md §12):
  * - One worker process per installed plugin
  * - Failure isolation: plugin crashes do not affect the host
  * - Graceful shutdown: 10-second drain, then SIGTERM, then SIGKILL
  * - Automatic restart with exponential backoff on unexpected exits
  *
- * @see PLUGIN_SPEC.md §12 — Process Model
- * @see PLUGIN_SPEC.md §12.5 — Graceful Shutdown Policy
- * @see PLUGIN_SPEC.md §13 — Host-Worker Protocol
+ * @see docs/extensions/index.en.md §12 — Process Model
+ * @see docs/extensions/index.en.md §12.5 — Graceful Shutdown Policy
+ * @see docs/extensions/index.en.md §13 — Host-Worker Protocol
  */
 
 import { fork, type ChildProcess } from "node:child_process";

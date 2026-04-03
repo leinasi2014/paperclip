@@ -29,7 +29,7 @@ import type { PluginWebhookDeliveryStatus } from "@paperclipai/shared";
  * - `succeeded` — worker processed the payload successfully
  * - `failed` — worker returned an error or timed out
  *
- * @see PLUGIN_SPEC.md §21.3 — `plugin_webhook_deliveries`
+ * @see docs/extensions/index.en.md §21.3 — `plugin_webhook_deliveries`
  */
 export const pluginWebhookDeliveries = pgTable(
   "plugin_webhook_deliveries",

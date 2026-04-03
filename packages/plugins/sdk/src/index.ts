@@ -41,8 +41,8 @@
  * runWorker(plugin, import.meta.url);
  * ```
  *
- * @see PLUGIN_SPEC.md §14 — SDK Surface
- * @see PLUGIN_SPEC.md §29.2 — SDK Versioning
+ * @see docs/extensions/index.en.md §14 — SDK Surface
+ * @see docs/extensions/index.en.md §29.2 — SDK Versioning
  */
 
 import "./protocol-governance.js";
@@ -258,7 +258,7 @@ export type {
  *
  * Plugin authors do not need to add a separate `zod` dependency.
  *
- * @see PLUGIN_SPEC.md §14.1 — Example SDK Shape
+ * @see docs/extensions/index.en.md §14.1 — Example SDK Shape
  *
  * @example
  * ```ts

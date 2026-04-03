@@ -1,0 +1,546 @@
+
+> paperclip@ dev D:\Source\workspace\paperclip
+> node ./server/node_modules/tsx/dist/cli.mjs ./scripts/dev-runner.ts watch
+
+[paperclip] dev mode: local_trusted (default)
+[paperclip] building plugin sdk...
+
+> @paperclipai/plugin-sdk@1.0.0 build D:\Source\workspace\paperclip\packages\plugins\sdk
+> pnpm --filter @paperclipai/shared build && tsc
+
+
+> @paperclipai/shared@0.3.1 build D:\Source\workspace\paperclip\packages\shared
+> tsc
+
+
+> @paperclipai/server@0.3.1 dev:watch D:\Source\workspace\paperclip\server
+> pnpm run preflight:workspace-links && cross-env PAPERCLIP_MIGRATION_PROMPT=never PAPERCLIP_MIGRATION_AUTO_APPLY=true tsx ./scripts/dev-watch.ts
+
+
+> @paperclipai/server@0.3.1 preflight:workspace-links D:\Source\workspace\paperclip\server
+> tsx ../scripts/ensure-workspace-package-links.ts
+
+[17:15:07] [32mINFO[39m: [36mUsing external PostgreSQL via DATABASE_URL/config[39m
+
+[36m██████╗  █████╗ ██████╗ ███████╗██████╗  ██████╗██╗     ██╗██████╗ [0m
+[36m██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝██║     ██║██╔══██╗[0m
+[36m██████╔╝███████║██████╔╝█████╗  ██████╔╝██║     ██║     ██║██████╔╝[0m
+[36m██╔═══╝ ██╔══██║██╔═══╝ ██╔══╝  ██╔══██╗██║     ██║     ██║██╔═══╝ [0m
+[36m██║     ██║  ██║██║     ███████╗██║  ██║╚██████╗███████╗██║██║     [0m
+[36m╚═╝     ╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝╚═╝╚═╝     [0m
+[34m  ───────────────────────────────────────────────────────[0m
+[2mMode            [0m [33mexternal-postgres[0m  |  [36mvite-dev-middleware[0m
+[2mDeploy          [0m local_trusted (private)
+[2mAuth            [0m [32mready[0m
+[2mServer          [0m 3100
+[2mAPI             [0m http://127.0.0.1:3100/api [2m(health: http://127.0.0.1:3100/api/health)[0m
+[2mUI              [0m http://127.0.0.1:3100
+[2mDatabase        [0m postgres://paperclip:***@localhost:5432/paperclip
+[2mMigrations      [0m already applied
+[2mAgent JWT       [0m [32mimplicit local_trusted fallback[0m
+[2mHeartbeat       [0m enabled [2m(30000ms)[0m
+[2mDB Backup       [0m enabled [2m(every 60m, keep 30d)[0m
+[2mBackup Dir      [0m C:\Users\windo\.paperclip\instances\default\data\backups
+[2mConfig          [0m C:\Users\windo\.paperclip\instances\default\config.json
+[34m  ───────────────────────────────────────────────────────[0m
+
+[17:15:09] [32mINFO[39m: [36mplugin job coordinator started — listening to lifecycle events[39m [90m{"service":"plugin-job-coordinator"}[39m
+[17:15:09] [32mINFO[39m: [36mplugin job scheduler started[39m [90m{"service":"plugin-job-scheduler","tickIntervalMs":30000,"maxConcurrentJobs":10}[39m
+[17:15:09] [32mINFO[39m: [36minitializing plugin tool dispatcher[39m [90m{"service":"plugin-tool-dispatcher"}[39m
+[17:15:09] [32mINFO[39m: [36mplugin-loader: loading all ready plugins[39m [90m{"service":"plugin-loader"}[39m
+[17:15:09] [32mINFO[39m: [36mAutomatic database backups enabled[39m [90m{"intervalMinutes":60,"retentionDays":30,"backupDir":"C:\Users\windo\.paperclip\instances\default\data\backups"}[39m
+[17:15:09] [32mINFO[39m: [36mServer listening on 127.0.0.1:3100[39m
+[17:15:09] [32mINFO[39m: [36mloaded tools from ready plugins[39m [90m{"service":"plugin-tool-dispatcher","readyPlugins":0,"registeredTools":0}[39m
+[17:15:09] [32mINFO[39m: [36mplugin tool dispatcher initialized[39m [90m{"service":"plugin-tool-dispatcher","totalTools":0}[39m
+[17:15:09] [32mINFO[39m: [36mplugin-loader: no ready plugins to load[39m [90m{"service":"plugin-loader"}[39m
+[17:15:13] [32mINFO[39m: [36mGET / 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /@react-refresh 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /@vite/client 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /site.webmanifest 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/node_modules/.pnpm/vite@6.4.1_@types+node@24.12.0_jiti@2.6.1_lightningcss@1.30.2_tsx@4.21.0/node_modules/vite/dist/client/env.mjs 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/main.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /node_modules/.vite/deps/react.js?v=2b12fbdd 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /node_modules/.vite/deps/react-dom.js?v=2b12fbdd 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /node_modules/.vite/deps/react_jsx-dev-runtime.js?v=2b12fbdd 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /node_modules/.vite/deps/@tanstack_react-query.js?v=2b12fbdd 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /node_modules/.vite/deps/react-dom_client.js?v=2b12fbdd 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/App.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/context/BreadcrumbContext.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/i18n/index.ts 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/lib/router.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/context/LiveUpdatesProvider.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/context/CompanyContext.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/context/PanelContext.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/context/SidebarContext.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/context/DialogContext.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/context/ToastContext.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/context/ThemeContext.tsx 200[39m
+[17:15:14] [32mINFO[39m: [36mGET /src/components/ui/tooltip.tsx 200[39m
+[17:15:15] [32mINFO[39m: [36mGET /src/plugins/bridge-init.ts 200[39m
+[17:15:15] [32mINFO[39m: [36mGET /src/plugins/launchers.tsx 200[39m
+[17:15:15] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/node_modules/.pnpm/@mdxeditor+editor@3.52.4_@codemirror+language@6.12.1_@lezer+highlight@1.2.3_@types+react-dom@_pzhotnbszb5q3cxok3ldaus4se/node_modules/@mdxeditor/editor/dist/style.css 200[39m
+[17:15:15] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-6TMWDNAU.js?v=2b12fbdd 200[39m
+[17:15:15] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-OS7ZSSJM.js?v=2b12fbdd 200[39m
+[17:15:16] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-OPRIRUA4.js?v=2b12fbdd 200[39m
+[17:15:16] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-6CFV7V2U.js?v=2b12fbdd 200[39m
+[17:15:16] [32mINFO[39m: [36mGET /node_modules/.vite/deps/react-i18next.js?v=2b12fbdd 200[39m
+[17:15:16] [32mINFO[39m: [36mGET /src/components/Layout.tsx 200[39m
+[17:15:16] [32mINFO[39m: [36mGET / 200[39m
+[17:15:16] [32mINFO[39m: [36mGET /src/api/health.ts 200[39m
+[17:15:16] [32mINFO[39m: [36mGET /src/api/auth.ts 200[39m
+[17:15:16] [32mINFO[39m: [36mGET /src/components/ui/button.tsx 200[39m
+[17:15:16] [32mINFO[39m: [36mGET /src/components/OnboardingWizard.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /site.webmanifest 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/pages/Dashboard.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/pages/Companies.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/pages/Agents.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/pages/Projects.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/pages/Activity.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/pages/DepartmentDetail.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /@vite/client 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/main.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /@react-refresh 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/pages/Costs.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/pages/ProjectWorkspaceDetail.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/pages/ExecutionWorkspaceDetail.tsx 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/index.css 200[39m
+[17:15:17] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/node_modules/.pnpm/vite@6.4.1_@types+node@24.12.0_jiti@2.6.1_lightningcss@1.30.2_tsx@4.21.0/node_modules/vite/dist/client/env.mjs 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/lib/router.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/App.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/i18n/index.ts 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/context/CompanyContext.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/context/LiveUpdatesProvider.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/context/BreadcrumbContext.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/context/PanelContext.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/context/SidebarContext.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/context/DialogContext.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/context/ToastContext.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/context/ThemeContext.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/components/ui/tooltip.tsx 304[39m
+[17:15:17] [32mINFO[39m: [36mGET /src/plugins/bridge-init.ts 304[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/plugins/launchers.tsx 304[39m
+[17:15:18] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/node_modules/.pnpm/@mdxeditor+editor@3.52.4_@codemirror+language@6.12.1_@lezer+highlight@1.2.3_@types+react-dom@_pzhotnbszb5q3cxok3ldaus4se/node_modules/@mdxeditor/editor/dist/style.css 304[39m
+[17:15:18] [32mINFO[39m: [36mGET /node_modules/.vite/deps/react-router-dom.js?v=2b12fbdd 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/lib/company-routes.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/components/ui/button.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/components/OnboardingWizard.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/components/Layout.tsx 304[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/api/auth.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Companies.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Dashboard.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/api/health.ts 304[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Agents.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/AgentDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Projects.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/ProjectDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/ProjectWorkspaceDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Issues.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/IssueDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Routines.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/RoutineDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/ExecutionWorkspaceDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Goals.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/GoalDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Approvals.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/ApprovalDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Costs.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Activity.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Departments.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/DepartmentDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Inbox.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/CompanySettings.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/CompanySkills.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/index.css 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/CompanyExport.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/CompanyImport.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/DesignGuide.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/InstanceGeneralSettings.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/InstanceSettings.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/PluginPage.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/InstanceExperimentalSettings.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/PluginManager.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/PluginSettings.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/RunTranscriptUxLab.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/OrgChart.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/NewAgent.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/SystemRollouts.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/SystemIssues.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/SystemIssueDetail.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/Auth.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/BoardClaim.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/CliAuth.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/InviteLanding.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/pages/NotFound.tsx 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/lib/queryKeys.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/lib/inbox.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/lib/onboarding-route.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /node_modules/.vite/deps/i18next.js?v=2b12fbdd 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /node_modules/.vite/deps/i18next-browser-languagedetector.js?v=2b12fbdd 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/i18n/resources.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-KNMIEJ36.js?v=2b12fbdd 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-BBTPTMGP.js?v=2b12fbdd 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/api/companies.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/api/client.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /node_modules/.vite/deps/radix-ui.js?v=2b12fbdd 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/lib/utils.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /src/plugins/bridge.ts 200[39m
+[17:15:18] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/plugins.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/plugins/slots.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/class-variance-authority.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/lucide-react.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/CompanyRail.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/Sidebar.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/InstanceSidebar.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/LanguageSwitcher.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/BreadcrumbBar.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/PropertiesPanel.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/CommandPalette.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/NewIssueDialog.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/NewProjectDialog.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/NewGoalDialog.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/NewAgentDialog.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ToastViewport.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/MobileBottomNav.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/WorktreeBanner.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/DevRestartBanner.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/hooks/useKeyboardShortcuts.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/hooks/useCompanyPageMemory.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/company-selection.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/instance-settings.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/goals.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/agents.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/issues.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/projects.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/dialog.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/popover.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/model-utils.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/agent-config-defaults.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/onboarding-goal.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/onboarding-launch.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/codex-local/src/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/cursor-local/src/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/gemini-local/src/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/AsciiArtAnimation.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/OpenCodeLogoIcon.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/HermesIcon.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/heartbeats.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/input.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/dropdown-menu.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/dashboard.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/activity.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/MetricCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/EmptyState.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/StatusIcon.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ActivityRow.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/Identity.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/timeAgo.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ActiveAgentsPanel.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ActivityCharts.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/PageSkeleton.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/StatusBadge.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/status-colors.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/EntityRow.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/PageTabBar.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/tabs.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/label-helpers.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/useAppLocale.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/agent-config-primitives.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/companySkills.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/budgets.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/instanceSettings.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/AgentConfigForm.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/MarkdownEditor.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/assets.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/BudgetPolicyCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/MarkdownBody.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/CopyText.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/AgentActionButtons.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/PackageFileTree.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ScrollToBottom.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/skeleton.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/collapsible.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/AgentIconPicker.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/transcript/RunTranscriptView.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapter-utils/src/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ExecutionWorkspaceCloseDialog.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/agent-skills-state.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/execution-workspaces.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ProjectProperties.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/InlineEditor.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/IssuesList.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/project-workspaces-tab.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/issueDetailBreadcrumb.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/separator.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/PathInstructionsModal.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/color-contrast.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/assignees.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/optimistic-issue-comments.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/hooks/useProjectOrder.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/CommentThread.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/IssueDocumentsSection.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/IssueProperties.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/IssueWorkspaceCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/LiveRunWidget.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/PriorityIcon.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/sheet.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/scroll-area.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/routines.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/recent-assignees.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/InlineEntitySelector.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/card.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/select.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/routine-trigger-patch.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ScheduleEditor.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/label.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/badge.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/GoalTree.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/approvals.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ApprovalCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/GoalProperties.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ApprovalPayload.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/textarea.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/costs.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/BillerSpendCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/BudgetIncidentCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/FinanceBillerCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/FinanceKindCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/FinanceTimelineCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ProviderQuotaCard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/hooks/useDateRange.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/departments.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/system-issues.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/temporary-workers.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/SystemIssueBadges.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/access.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/CompanyPatternIcon.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/IssueRow.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/SwipeToArchive.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/hooks/useInboxBadge.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/zip.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/company-export-selection.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/hooks/useAgentOrder.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/company-portability-sidebar.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/portable-files.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/agent-order.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/project-order.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/checkbox.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/command.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/breadcrumb.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ui/avatar.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/FilterBar.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/JsonSchemaForm.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/fixtures/runTranscriptFixtures.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ReportsToPicker.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/system-plugin-rollouts.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/inviteDiagnostics.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/common.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/agents.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/approvals.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/auth.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/costs.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/dashboard.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/departments.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/goals.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/inbox.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/issues.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/labs.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/notFound.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/plugins.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/projects.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/routines.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/settings.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/systemIssues.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/systemRollouts.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/company.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/en/workspaces.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/common.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/agents.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/approvals.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/auth.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/costs.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/dashboard.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/departments.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/goals.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/inbox.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/issues.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/labs.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/notFound.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/plugins.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/projects.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/routines.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/settings.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/systemIssues.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/systemRollouts.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/company.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/locales/zh-CN/workspaces.json?import 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/clsx.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/tailwind-merge.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/i18n/formatters.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/constants.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/api.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/agent-url-key.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/project-url-key.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/project-mentions.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/config-schema.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-KVZEDYP5.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-X5J3UFOC.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-CNYJBM5F.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/SidebarSection.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/SidebarNavItem.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/SidebarProjects.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/SidebarAgents.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/@dnd-kit_core.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/@dnd-kit_sortable.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/@dnd-kit_utilities.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/sidebarBadges.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/worktree-branding.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/company-page-memory.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/registry.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/transcript.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/transcript/useLiveRunTranscripts.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/@mdxeditor_editor.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/mention-chips.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/mention-aware-link-node.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/mention-deletion.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/api/secrets.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/claude-local/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/legacy-agent-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/react-markdown.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/remark-gfm.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/agent-icons.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapter-utils/src/session-compaction.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapter-utils/src/log-redaction.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapter-utils/src/billing.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/hooks/useAutosaveIndicator.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/groupBy.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/KanbanBoard.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/lib/comment-submit-draft.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/QuotaBar.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/ClaudeSubscriptionPanel.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/CodexSubscriptionPanel.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/cmdk.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/constants/department.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/constants/rollout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/instance.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/budget.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/company.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/department.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/company-skill.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/adapter-skills.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/company-portability.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/agent.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/project.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/issue.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/system-issue.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/work-product.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/execution-workspace.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/goal.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/approval.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/secret.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/routine.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/cost.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/finance.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/asset.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/access.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/plugin.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/shared/src/validators/plugin-rollout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/zod.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/components/BudgetSidebarMarker.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-N4NXTCWK.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-FDG6L6XV.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/claude-local/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/codex-local/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/cursor/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/gemini-local/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/hermes-local/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/opencode-local/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/pi-local/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/openclaw-gateway/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/process/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/http/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/@lexical_link.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/lexical.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/local-workspace-runtime-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-NQ63QSFW.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-FYC56AK2.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-RZDOWMZ5.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-5XFBYBG2.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/claude-local/src/ui/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/codex-local/src/ui/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/codex-local/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/cursor-local/src/ui/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/cursor/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/gemini-local/src/ui/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/gemini-local/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/hermes-paperclip-adapter_ui.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/hermes-local/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/opencode-local/src/ui/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/opencode-local/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/pi-local/src/ui/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/pi-local/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/openclaw-gateway/src/ui/index.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/openclaw-gateway/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/process/parse-stdout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/process/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/process/build-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/http/parse-stdout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/http/config-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/http/build-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-MCEMWLIU.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-IFCHFTA7.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-UJRJZ2SL.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-J5ZXD2OC.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-2JQQ5YOG.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-XRTINPY3.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-D7B4C7M4.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-L3EKHO7R.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /node_modules/.vite/deps/chunk-IHHR4WOW.js?v=2b12fbdd 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/claude-local/src/ui/parse-stdout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/claude-local/src/ui/build-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/codex-local/src/ui/parse-stdout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/codex-local/src/ui/build-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/cursor-local/src/ui/parse-stdout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/cursor-local/src/ui/build-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/gemini-local/src/ui/parse-stdout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/gemini-local/src/ui/build-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/opencode-local/src/ui/parse-stdout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/opencode-local/src/ui/build-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/pi-local/src/ui/parse-stdout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/pi-local/src/ui/build-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/openclaw-gateway/src/ui/parse-stdout.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/openclaw-gateway/src/ui/build-config.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /src/adapters/runtime-json-fields.tsx 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/cursor-local/src/shared/stream.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /@fs/D:/Source/workspace/paperclip/packages/adapters/openclaw-gateway/src/shared/stream.ts 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /sw.js 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /api/auth/get-session 200[39m
+[17:15:19] [32mINFO[39m: [36mGET / 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /favicon.svg 200[39m
+[17:15:19] [32mINFO[39m: [36mGET / 200[39m
+[17:15:19] [32mINFO[39m: [36mGET /android-chrome-192x192.png 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /plugins/ui-contributions 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/live-runs 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/join-requests?status=pending_approval 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/projects 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/approvals 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/agents 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/activity 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/dashboard 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/issues?status=backlog%2Ctodo%2Cin_progress%2Cin_review%2Cblocked%2Cdone&touchedByUserId=me&inboxArchivedByUserId=me 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/issues 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/sidebar-badges 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/heartbeat-runs 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /instance/settings/general 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/live-runs?minCount=4 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /heartbeat-runs/1edadc65-ff2d-46b6-8efd-7318f085dd6e/log?offset=0&limitBytes=256000 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /heartbeat-runs/8ff7d411-4efb-4b47-8c9f-c6a936f74b36/log?offset=0&limitBytes=256000 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /heartbeat-runs/8139c465-078f-4e14-9c8b-4a47670cc6e4/log?offset=0&limitBytes=256000 200[39m
+[17:15:21] [32mINFO[39m: [36mGET /heartbeat-runs/a721ca1c-82f5-4f70-ac3b-723007ac8ed4/log?offset=0&limitBytes=256000 200[39m
+[17:15:39] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":5,"enqueued":2,"skipped":0}[39m
+[17:15:53] [32mINFO[39m: [36mGET /agents/me/inbox-lite 200[39m
+[17:15:53] [32mINFO[39m: [36mGET /companies/431f0f9c-bcf0-4f98-8d10-5fec5bf31b4a/issues?assigneeAgentId=5321b9b2-87cc-4098-a396-510ecedf5cd8&status=todo,in_progress,blocked 200[39m
+[17:15:56] [32mINFO[39m: [36mGET /agents/me/inbox-lite 200[39m
+ ELIFECYCLE  Command failed with exit code 4294967295.

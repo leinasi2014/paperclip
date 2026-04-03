@@ -20,9 +20,9 @@
  *    look up the current plugin context from a React context provider and
  *    delegate to the appropriate bridge instance.
  *
- * @see PLUGIN_SPEC.md §13.8 — `getData`
- * @see PLUGIN_SPEC.md §13.9 — `performAction`
- * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+ * @see docs/extensions/index.en.md §13.8 — `getData`
+ * @see docs/extensions/index.en.md §13.9 — `performAction`
+ * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
  */
 
 import { createContext, useCallback, useContext, useRef, useState, useEffect } from "react";

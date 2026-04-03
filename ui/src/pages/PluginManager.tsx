@@ -2,7 +2,7 @@
  * @fileoverview Plugin Manager page — admin UI for discovering,
  * installing, enabling/disabling, and uninstalling plugins.
  *
- * @see PLUGIN_SPEC.md §9 — Plugin Marketplace / Manager
+ * @see docs/extensions/index.en.md §9 — Plugin Marketplace / Manager
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -92,7 +92,7 @@ function getRequiredSystemPluginKind(plugin: PluginRecord): RequiredSystemPlugin
  *   `queryKeys.plugins.all` so the list refreshes automatically.
  *
  * @see PluginSettings — linked from the Settings icon on each plugin row.
- * @see doc/plugins/PLUGIN_SPEC.md §3 — Plugin Lifecycle for status semantics.
+ * @see docs/extensions/index.en.md for plugin lifecycle and package-level docs.
  */
 export function PluginManager() {
   const { t } = useTranslation("plugins");

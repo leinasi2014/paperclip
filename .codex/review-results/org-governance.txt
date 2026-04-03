@@ -1,0 +1,30 @@
+**Findings**
+
+1. 严重：`CEO-only` 的恢复权和关闭权，直接覆盖了现有的 `board override`，最高治理权不一致。  
+定位：[SPEC-implementation.md](/D:/Source/workspace/paperclip/doc/SPEC-implementation.md#L400)，[SPEC-implementation.md](/D:/Source/workspace/paperclip/doc/SPEC-implementation.md#L642)，[2026-04-02-department-minister-and-subagent-org-model.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-department-minister-and-subagent-org-model.md#L421)，[2026-04-02-department-minister-and-subagent-org-model.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-department-minister-and-subagent-org-model.md#L666)，[2026-04-02-execution-improvement-plugin.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-execution-improvement-plugin.md#L330)，[2026-04-02-system-self-evolution-and-hot-update.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-system-self-evolution-and-hot-update.md#L346)  
+原因：当前项目基线明确写的是 board 对全局有 full read/write，且可随时 override。新方案却把系统 issue 的 `done`、`resume` 写成只有 CEO 能做。这样一来，只要 CEO 自身失效、卡住，或恰好是事故责任方，human operator 虽然会被抄送提醒，但没有明确可执行的 override 路径，顶层治理会直接卡死。
+
+2. 严重：系统 issue 的治理状态机被写成强约束，但在 plugin-only MVP 阶段并没有对应的 core 语义，实际会退化成“约定俗成”。  
+定位：[2026-04-02-department-minister-and-subagent-org-model.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-department-minister-and-subagent-org-model.md#L369)，[2026-04-02-execution-improvement-plugin.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-execution-improvement-plugin.md#L584)，[2026-04-02-execution-improvement-plugin.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-execution-improvement-plugin.md#L598)，[2026-04-02-system-self-evolution-and-hot-update.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-system-self-evolution-and-hot-update.md#L404)，[2026-04-02-system-self-evolution-and-hot-update.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-system-self-evolution-and-hot-update.md#L416)，[SPEC-implementation.md](/D:/Source/workspace/paperclip/doc/SPEC-implementation.md#L188)  
+原因：部门文档已经把 `CEO intake`、`pending_review`、`review_passed`、`ready_to_resume`、`CEO-only final closure` 写成治理主链；但执行插件和热更新文档又明确说，MVP 现在仍然只是通过现有 issue/project API 落地，真正的一等 system issue 语义以后才补 core。也就是说，在最早上线的版本里，最关键的审批/恢复/关闭门禁并不能被系统真正 enforce，只能靠插件和操作习惯自觉遵守，这会形成 shadow governance。
+
+3. 高：部门级封锁的触发权，在文档之间是冲突的。  
+定位：[2026-04-02-execution-improvement-plugin.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-execution-improvement-plugin.md#L322)，[2026-04-02-system-self-evolution-and-hot-update.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-system-self-evolution-and-hot-update.md#L71)，[2026-04-02-system-self-evolution-and-hot-update.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-system-self-evolution-and-hot-update.md#L251)  
+原因：执行插件文档写的是，插件在规则命中时可以“recommend or trigger department-level blocking”；热更新文档又写，是否扩大 blocking scope 属于 CEO 责任。两者不是同一件事。一个是插件可直接冻结部门，一个是 CEO 决定是否扩大封锁。这里如果不统一，事故发生时就会出现责任链分叉：到底是插件先斩后奏，还是 CEO 先审批再冻结，审计、回滚、问责都会对不上。
+
+4. 高：部门责任边界不是一等归属，而是靠 minister/temporary worker 的“参与关系”推断，这和“先归部门、后派执行”的主张冲突。  
+定位：[2026-04-02-department-minister-and-subagent-org-model.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-department-minister-and-subagent-org-model.md#L113)，[2026-04-02-department-minister-and-subagent-org-model.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-department-minister-and-subagent-org-model.md#L268)，[2026-04-02-department-minister-and-subagent-org-model.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-department-minister-and-subagent-org-model.md#L721)，[SPEC-implementation.md](/D:/Source/workspace/paperclip/doc/SPEC-implementation.md#L188)  
+原因：文档一方面要求“所有 issue 必须先进入一个 department，再交给执行层”，另一方面又把 department work surface 定义成 issue filter，并包含“minister 或临时工是 participants 的 issue”。这会让同一个 issue 同时出现在多个部门视图里，但 accept/reject/needs_clarification/review/resume 理论上只能有一个主责部门。文档自己也承认“精确状态模型”和“多部门顺序参与”还没定。在当前单 assignee issue 模型下，这不是小缺口，而是责任链还没被唯一化。
+
+5. 高：部长更替时的恢复规则前后互相抵消，容易把已经退回 `CEO intake` 的事项又按旧归属自动推回去。  
+定位：[2026-04-02-department-minister-and-subagent-org-model.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-department-minister-and-subagent-org-model.md#L131)，[2026-04-02-department-minister-and-subagent-org-model.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-department-minister-and-subagent-org-model.md#L152)，[SPEC-implementation.md](/D:/Source/workspace/paperclip/doc/SPEC-implementation.md#L31)  
+原因：同一节里先说，部长离任后 unfinished issues 要退回 `CEO intake`，并标记为需要 reassignment 或 renewed acceptance；后面又说，新部长上任后这些 issue 应该自动回到原部门，临时工也自动回到 `resumable`。这实际上把“重新 triage/重新接单”的治理动作又按旧边界自动恢复了，和当前基线里“Recovery stays manual/explicit”是反着的。更糟的是，临时工先回到可恢复态，部长的重新 `accept` 却还没发生，执行面和治理面会脱节。
+
+**Open Questions**
+
+- [2026-04-02-department-minister-and-subagent-org-model.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-department-minister-and-subagent-org-model.md#L443) 与 [2026-04-02-execution-improvement-plugin.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-execution-improvement-plugin.md#L407) 里的 review function，是否必须与实施方隔离？现在“dual-hatted relevant type owner”这句话允许把 review gate 退化成自审。
+- [2026-04-02-skills-system-plugin.md](/D:/Source/workspace/paperclip/doc/plans/2026-04-02-skills-system-plugin.md#L409) 里 Promotion Gate 的最终审批主体是谁？是 CEO、board，还是另一个专门 approver？它和 parent system issue 的 closure authority 怎么对齐？
+- 如果 board override 仍然保留，系统 issue 上 board 能直接做哪些动作？`resume`、`close`、`rollback promoted skill` 是否都保留硬 override？
+- 多部门顺序参与一个 issue 时，哪个字段或哪个状态机代表“当前主责 department”？如果没有这一点，部长 accept/reject 和后续 review/resume 很难做到可审计的一致性。
+
+本次仅审阅文档，未修改代码。

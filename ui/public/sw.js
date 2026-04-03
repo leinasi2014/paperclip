@@ -22,21 +22,25 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Network-first for everything — cache is only an offline fallback
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok && url.origin === self.location.origin) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        }
-        return response;
-      })
-      .catch(() => {
-        if (request.mode === "navigate") {
-          return caches.match("/") || new Response("Offline", { status: 503 });
-        }
-        return caches.match(request);
-      })
-  );
+  // Network-first for everything — cache is only an offline fallback.
+  event.respondWith((async () => {
+    try {
+      const response = await fetch(request);
+      if (response.ok && url.origin === self.location.origin) {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+      }
+      return response;
+    } catch {
+      if (request.mode === "navigate") {
+        return (await caches.match("/"))
+          ?? new Response("Offline", {
+            status: 503,
+            headers: { "Content-Type": "text/plain; charset=utf-8" },
+          });
+      }
+
+      return (await caches.match(request)) ?? Response.error();
+    }
+  })());
 });

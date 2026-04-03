@@ -1,0 +1,115 @@
+[paperclip-playwright] data dir: D:\Source\workspace\paperclip\.tmp\auth-static-release-smoke-data
+[paperclip-playwright] port: 3236
+[paperclip-playwright] deployment mode: authenticated/private
+
+> @paperclipai/server@0.3.1 dev D:\Source\workspace\paperclip\server
+> pnpm run preflight:workspace-links && tsx src/index.ts
+
+
+> @paperclipai/server@0.3.1 preflight:workspace-links D:\Source\workspace\paperclip\server
+> tsx ../scripts/ensure-workspace-package-links.ts
+
+[07:03:06] [32mINFO[39m: [36mUsing embedded PostgreSQL because no DATABASE_URL set (dataDir=D:\Source\workspace\paperclip\.tmp\auth-static-release-smoke-data\instances\default\db, port=54329)[39m
+[07:03:11] [32mINFO[39m: [36mCreated embedded PostgreSQL database: paperclip[39m
+[07:03:11] [32mINFO[39m: [36mDetected first-run embedded PostgreSQL setup; applying pending migrations automatically[39m
+[07:03:11] [32mINFO[39m: [36mApplying 54 pending migrations for Embedded PostgreSQL[39m [90m{"pendingMigrations":["0000_mature_masked_marvel.sql","0001_fast_northstar.sql","0002_big_zaladane.sql","0003_shallow_quentin_quire.sql","0004_issue_identifiers.sql","0005_chief_luke_cage.sql","0006_overjoyed_mister_sinister.sql","0007_new_quentin_quire.sql","0008_amused_zzzax.sql","0009_fast_jackal.sql","0010_stale_justin_hammer.sql","0011_windy_corsair.sql","0012_perpetual_ser_duncan.sql","0013_dashing_wasp.sql","0014_many_mikhail_rasputin.sql","0015_project_color_archived.sql","0016_agent_icon.sql","0017_tiresome_gabe_jones.sql","0018_flat_sleepwalker.sql","0019_public_victor_mancha.sql","0020_white_anita_blake.sql","0021_chief_vindicator.sql","0022_company_brand_color.sql","0023_fair_lethal_legion.sql","0024_far_beast.sql","0025_nasty_salo.sql","0026_lying_pete_wisdom.sql","0027_tranquil_tenebrous.sql","0028_harsh_goliath.sql","0029_plugin_tables.sql","0030_rich_magneto.sql","0031_zippy_magma.sql","0032_pretty_doctor_octopus.sql","0033_shiny_black_tarantula.sql","0034_fat_dormammu.sql","0035_marvelous_satana.sql","0036_cheerful_nitro.sql","0037_friendly_eddie_brock.sql","0038_careless_iron_monger.sql","0039_fat_magneto.sql","0040_eager_shotgun.sql","0041_curly_maria_hill.sql","0042_spotty_the_renegades.sql","0043_reflective_captain_universe.sql","0044_illegal_toad.sql","0045_workable_shockwave.sql","0046_smooth_sentinels.sql","0047_dusty_the_twelve.sql","0048_burly_joshua_kane.sql","0049_blushing_mother_askani.sql","0050_steady_issue_intake.sql","0051_free_required_system_rollouts.sql","0052_abandoned_meltdown.sql","0053_harden_required_plugins_and_governance.sql"]}[39m
+
+[36m██████╗  █████╗ ██████╗ ███████╗██████╗  ██████╗██╗     ██╗██████╗ [0m
+[36m██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝██║     ██║██╔══██╗[0m
+[36m██████╔╝███████║██████╔╝█████╗  ██████╔╝██║     ██║     ██║██████╔╝[0m
+[36m██╔═══╝ ██╔══██║██╔═══╝ ██╔══╝  ██╔══██╗██║     ██║     ██║██╔═══╝ [0m
+[36m██║     ██║  ██║██║     ███████╗██║  ██║╚██████╗███████╗██║██║     [0m
+[36m╚═╝     ╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝╚═╝╚═╝     [0m
+[34m  ───────────────────────────────────────────────────────[0m
+[2mMode            [0m [32membedded-postgres[0m  |  [35mstatic-ui[0m
+[2mDeploy          [0m authenticated (private)
+[2mAuth            [0m [32mready[0m
+[2mServer          [0m 3236
+[2mAPI             [0m http://127.0.0.1:3236/api [2m(health: http://127.0.0.1:3236/api/health)[0m
+[2mUI              [0m http://127.0.0.1:3236
+[2mDatabase        [0m D:\Source\workspace\paperclip\.tmp\auth-static-release-smoke-data\instances\default\db [2m(pg:54329)[0m
+[2mMigrations      [0m applied (pending migrations)
+[2mAgent JWT       [0m [32mset[0m
+[2mHeartbeat       [0m enabled [2m(30000ms)[0m
+[2mDB Backup       [0m enabled [2m(every 60m, keep 30d)[0m
+[2mBackup Dir      [0m D:\Source\workspace\paperclip\.tmp\auth-static-release-smoke-data\instances\default\data\backups
+[2mConfig          [0m D:\Source\workspace\paperclip\.tmp\auth-static-release-smoke-data\instances\default\config.json
+[34m  ───────────────────────────────────────────────────────[0m
+
+[07:03:12] [32mINFO[39m: [36mEmbedded PostgreSQL ready[39m
+[07:03:13] [32mINFO[39m: [36mAuthenticated mode auth origin configuration[39m [90m{"authBaseUrlMode":"auto","authPublicBaseUrl":"http://localhost:3236","trustedOrigins":["https://localhost","http://localhost","https://127.0.0.1","http://127.0.0.1"],"trustedOriginsSource":{"derived":4,"env":0}}[39m
+[07:03:13] [32mINFO[39m: [36mplugin job coordinator started — listening to lifecycle events[39m [90m{"service":"plugin-job-coordinator"}[39m
+[07:03:13] [32mINFO[39m: [36mplugin job scheduler started[39m [90m{"service":"plugin-job-scheduler","tickIntervalMs":30000,"maxConcurrentJobs":10}[39m
+[07:03:13] [32mINFO[39m: [36minitializing plugin tool dispatcher[39m [90m{"service":"plugin-tool-dispatcher"}[39m
+[07:03:13] [32mINFO[39m: [36mplugin-loader: loading all ready plugins[39m [90m{"service":"plugin-loader"}[39m
+[07:03:13] [32mINFO[39m: [36mAutomatic database backups enabled[39m [90m{"intervalMinutes":60,"retentionDays":30,"backupDir":"D:\Source\workspace\paperclip\.tmp\auth-static-release-smoke-data\instances\default\data\backups"}[39m
+[07:03:13] [32mINFO[39m: [36mServer listening on 127.0.0.1:3236[39m
+[07:03:13] [32mINFO[39m: [36mloaded tools from ready plugins[39m [90m{"service":"plugin-tool-dispatcher","readyPlugins":0,"registeredTools":0}[39m
+[07:03:13] [32mINFO[39m: [36mplugin tool dispatcher initialized[39m [90m{"service":"plugin-tool-dispatcher","totalTools":0}[39m
+[07:03:13] [32mINFO[39m: [36mplugin-loader: no ready plugins to load[39m [90m{"service":"plugin-loader"}[39m
+[07:03:13] [32mINFO[39m: [36mplugin-loader: fetching plugin from npm[39m [90m{"service":"plugin-loader","spec":"@paperclipai/plugin-execution-improvement","installDir":"C:\Users\windo\.paperclip\plugins"}[39m
+[07:03:13] [32mINFO[39m: [36mplugin-loader: fetching plugin from npm[39m [90m{"service":"plugin-loader","spec":"@paperclipai/plugin-skills-system","installDir":"C:\Users\windo\.paperclip\plugins"}[39m
+[07:03:15] [32mINFO[39m: [36mGET / 200[39m
+[07:03:42] [32mINFO[39m: [36mPOST /api/auth/sign-up/email 200[39m
+[07:03:45] [33mWARN[39m: [36mPOST /invites/pcp_bootstrap_20fc14fb82d51f12b41600fb5d989e000403546e806fadd6/accept 403[39m [90m{"reqBody":{"requestType":"human"}}[39m
+[07:03:45] [32mINFO[39m: [36mGET /api/auth/get-session 200[39m
+[07:04:03] [32mINFO[39m: [36mPOST /api/auth/sign-in/email 200[39m
+[07:04:05] [32mINFO[39m: [36mPOST /invites/pcp_bootstrap_66f4607f3c2d1fc9c37faa3857a4fd489af070094823834c/accept 202[39m
+[07:04:05] [32mINFO[39m: [36mGET /api/auth/get-session 200[39m
+[07:04:22] [32mINFO[39m: [36mGET / 200[39m
+[07:04:22] [32mINFO[39m: [36mGET /assets/index-DK0Yc7Hi.css 200[39m
+[07:04:22] [32mINFO[39m: [36mGET /assets/index-By0uoQ52.js 200[39m
+[07:04:22] [32mINFO[39m: [36mGET /sw.js 200[39m
+[07:04:22] [33mWARN[39m: [36mGET /api/auth/get-session 401[39m [90m{"routePath":"/api/auth/get-session"}[39m
+[07:04:22] [32mINFO[39m: [36mGET / 200[39m
+[07:04:22] [33mWARN[39m: [36mGET /api/companies 403[39m [90m{"routePath":"/"}[39m
+[07:04:22] [32mINFO[39m: [36mPOST /api/auth/sign-in/email 200[39m
+[07:04:22] [32mINFO[39m: [36mGET /api/auth/get-session 200[39m
+[07:04:22] [32mINFO[39m: [36mGET / 200[39m
+[07:04:23] [32mINFO[39m: [36mPOST / 201[39m
+[07:04:23] [32mINFO[39m: [36mGET / 200[39m
+[07:04:23] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/adapters/claude_local/models 200[39m
+[07:04:34] [32mINFO[39m: [36mPOST /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/adapters/claude_local/test-environment 200[39m
+[07:04:34] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/adapters/claude_local/models 304[39m
+[07:04:34] [32mINFO[39m: [36mPOST /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/agents 201[39m
+[07:04:34] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/adapters/claude_local/models 304[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/goals 200[39m
+[07:04:35] [32mINFO[39m: [36mPOST /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/projects 201[39m
+[07:04:35] [32mINFO[39m: [36mPOST /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/issues 201[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/projects 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/join-requests?status=pending_approval 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/dashboard 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/issues?status=backlog%2Ctodo%2Cin_progress%2Cin_review%2Cblocked%2Cdone&touchedByUserId=me&inboxArchivedByUserId=me 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/heartbeat-runs 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/agents 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/issues 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/dashboard 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/approvals 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/live-runs 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /plugins/ui-contributions 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/sidebar-badges 200[39m
+[07:04:35] [32mINFO[39m: [36mGET / 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/agents 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/issues 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/heartbeat-runs?agentId=10df2746-7b49-4e2f-91a8-44f411f2020a 200[39m
+[07:04:35] [32mINFO[39m: [36mGET /issues/REL-1 200[39m
+[07:05:17] [32mINFO[39m: [36mGET /agents/me 200[39m
+[07:05:28] [32mINFO[39m: [36mGET /issues/acb6abc4-05e9-4dcc-b151-2124fd9c7447/heartbeat-context 200[39m
+[07:05:46] [32mINFO[39m: [36mPOST /issues/acb6abc4-05e9-4dcc-b151-2124fd9c7447/checkout 200[39m
+[07:06:00] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/agents 200[39m
+[07:06:34] [32mINFO[39m: [36mPUT /issues/acb6abc4-05e9-4dcc-b151-2124fd9c7447/documents/plan 201[39m
+[07:06:46] [32mINFO[39m: [36mGET /llms/agent-configuration.txt 200[39m
+[07:06:55] [32mINFO[39m: [36mGET /llms/agent-configuration/claude_local.txt 200[39m
+[07:07:03] [32mINFO[39m: [36mGET /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/agent-configurations 200[39m
+[07:07:08] [32mINFO[39m: [36mGET /llms/agent-icons.txt 200[39m
+[07:07:32] [32mINFO[39m: [36mPOST /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/agent-hires 201[39m
+[07:07:52] [32mINFO[39m: [36mPOST /issues/acb6abc4-05e9-4dcc-b151-2124fd9c7447/comments 201[39m
+[07:08:06] [32mINFO[39m: [36mPOST /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/issues 201[39m
+[07:08:21] [32mINFO[39m: [36mPOST /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/issues 201[39m
+[07:08:37] [32mINFO[39m: [36mPOST /companies/51529006-9ec2-4de5-890f-e4a9c8c8a33c/issues 201[39m
+[07:08:58] [32mINFO[39m: [36mPATCH /issues/acb6abc4-05e9-4dcc-b151-2124fd9c7447 200[39m
+[07:09:06] [32mINFO[39m: [36mPOST /issues/acb6abc4-05e9-4dcc-b151-2124fd9c7447/release 200[39m
+[07:09:20] [32mINFO[39m: [36mPATCH /issues/acb6abc4-05e9-4dcc-b151-2124fd9c7447 200[39m
+D:\Source\workspace\paperclip\server:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @paperclipai/server@0.3.1 dev: `pnpm run preflight:workspace-links && tsx src/index.ts`
+Exit status 4294967295

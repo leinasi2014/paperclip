@@ -6,8 +6,8 @@
  *
  * The worker-side SDK is available from `@paperclipai/plugin-sdk` (root).
  *
- * @see PLUGIN_SPEC.md §19.0.1 — Plugin UI SDK
- * @see PLUGIN_SPEC.md §29.2 — SDK Versioning
+ * @see docs/extensions/index.en.md §19.0.1 — Plugin UI SDK
+ * @see docs/extensions/index.en.md §29.2 — SDK Versioning
  *
  * @example
  * ```tsx

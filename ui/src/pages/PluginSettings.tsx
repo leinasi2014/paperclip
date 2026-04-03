@@ -55,8 +55,7 @@ import {
  * - `pluginId` — UUID of the plugin to display.
  *
  * @see PluginManager — parent list page.
- * @see doc/plugins/PLUGIN_SPEC.md §13 — Plugin Health Checks.
- * @see doc/plugins/PLUGIN_SPEC.md §19.8 — Plugin Settings UI.
+ * @see docs/extensions/index.en.md for plugin health and settings documentation.
  */
 export function PluginSettings() {
   const { t } = useTranslation("plugins");

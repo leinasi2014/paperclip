@@ -20,6 +20,8 @@ npx @paperclipai/create-paperclip-plugin @acme/my-plugin \
 Supported templates: `default`, `connector`, `workspace`  
 Supported categories: `connector`, `workspace`, `automation`, `ui`
 
+Canonical plugin-system overview: [../../../docs/extensions/index.en.md](../../../docs/extensions/index.en.md)
+
 Generates:
 - typed manifest + worker entrypoint
 - example UI widget using the supported `@paperclipai/plugin-sdk/ui` hooks

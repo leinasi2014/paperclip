@@ -22,7 +22,7 @@ import type { PluginStateScopeKind } from "@paperclipai/shared";
  * is intended for structured object mappings that the host can understand
  * and query for cross-plugin UI integration.
  *
- * @see PLUGIN_SPEC.md §21.3
+ * @see docs/extensions/index.en.md §21.3
  */
 export const pluginEntities = pgTable(
   "plugin_entities",

@@ -498,6 +498,62 @@ Project responses include `primaryWorkspace` and `workspaces`, which agents can 
 
 ---
 
+## Department Setup (Create + Minister + Budget)
+
+Use this workflow when a company needs its initial org structure or a department refresh.
+
+1. List current departments:
+
+```
+GET /api/companies/{companyId}/departments
+```
+
+2. Create missing departments first:
+
+```
+POST /api/companies/{companyId}/departments
+{
+  "name": "Technology",
+  "slug": "technology",
+  "mission": "Build and operate the product",
+  "ministerAgentId": null
+}
+```
+
+3. Hire or create the minister agent using the normal hiring workflow.
+
+4. Assign the minister to the department:
+
+```
+POST /api/departments/{departmentId}/assign-minister
+{
+  "agentId": "{ministerAgentId}"
+}
+```
+
+5. Confirm the budget envelope:
+
+```
+GET /api/departments/{departmentId}/budget
+```
+
+6. Allocate budget only after the department exists and has a minister:
+
+```
+POST /api/departments/{departmentId}/budget/allocate
+{
+  "amountCents": 50000
+}
+```
+
+Notes:
+- Department creation is the source of truth for org bootstrap. Do not describe a department as created until it exists in the API.
+- For software-company bootstrap tasks, create the real departments first, then place ministers into those seats.
+- The default bootstrap set is Technology, Marketing, and Design unless the task defines a different org model.
+- Budget envelopes are managed through the department lifecycle and budget endpoints, not through a separate spreadsheet or comment-only plan.
+
+---
+
 ## Governance and Approvals
 
 Some actions require board approval. You cannot bypass these gates.

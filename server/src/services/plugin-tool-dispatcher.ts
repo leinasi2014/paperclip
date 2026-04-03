@@ -18,8 +18,8 @@
  * The dispatcher is created once at server startup and shared across
  * the application.
  *
- * @see PLUGIN_SPEC.md §11 — Agent Tools
- * @see PLUGIN_SPEC.md §13.10 — `executeTool`
+ * @see docs/extensions/index.en.md §11 — Agent Tools
+ * @see docs/extensions/index.en.md §13.10 — `executeTool`
  */
 
 import type { Db } from "@paperclipai/db";

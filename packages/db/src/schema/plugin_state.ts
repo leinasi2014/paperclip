@@ -31,7 +31,7 @@ import { plugins } from "./plugins.js";
  * The `namespace` column defaults to `"default"` and can be used to
  * logically group keys without polluting the root namespace.
  *
- * @see PLUGIN_SPEC.md §21.3 — `plugin_state`
+ * @see docs/extensions/index.en.md §21.3 — `plugin_state`
  */
 export const pluginState = pgTable(
   "plugin_state",

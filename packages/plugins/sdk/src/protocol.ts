@@ -10,8 +10,8 @@
  * - Typed method maps for host→worker and worker→host calls
  * - Helper functions for creating well-formed messages
  *
- * @see PLUGIN_SPEC.md §12.1 — Process Model
- * @see PLUGIN_SPEC.md §13 — Host-Worker Protocol
+ * @see docs/extensions/index.en.md §12.1 — Process Model
+ * @see docs/extensions/index.en.md §13 — Host-Worker Protocol
  * @see https://www.jsonrpc.org/specification
  */
 
@@ -176,7 +176,7 @@ export type JsonRpcErrorCode =
  * These live in the JSON-RPC "server error" reserved range (-32000 to -32099)
  * as specified by JSON-RPC 2.0 for implementation-defined server errors.
  *
- * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+ * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
  */
 export const PLUGIN_RPC_ERROR_CODES = {
   /** The worker process is not running or not reachable. */
@@ -203,7 +203,7 @@ export type PluginRpcErrorCode =
 /**
  * Input for the `initialize` RPC method.
  *
- * @see PLUGIN_SPEC.md §13.1 — `initialize`
+ * @see docs/extensions/index.en.md §13.1 — `initialize`
  */
 export interface InitializeParams {
   /** Full plugin manifest snapshot. */
@@ -234,7 +234,7 @@ export interface InitializeResult {
 /**
  * Input for the `configChanged` RPC method.
  *
- * @see PLUGIN_SPEC.md §13.4 — `configChanged`
+ * @see docs/extensions/index.en.md §13.4 — `configChanged`
  */
 export interface ConfigChangedParams {
   /** The newly resolved configuration. */
@@ -244,7 +244,7 @@ export interface ConfigChangedParams {
 /**
  * Input for the `validateConfig` RPC method.
  *
- * @see PLUGIN_SPEC.md §13.3 — `validateConfig`
+ * @see docs/extensions/index.en.md §13.3 — `validateConfig`
  */
 export interface ValidateConfigParams {
   /** The configuration to validate. */
@@ -254,7 +254,7 @@ export interface ValidateConfigParams {
 /**
  * Input for the `onEvent` RPC method.
  *
- * @see PLUGIN_SPEC.md §13.5 — `onEvent`
+ * @see docs/extensions/index.en.md §13.5 — `onEvent`
  */
 export interface OnEventParams {
   /** The domain event to deliver. */
@@ -264,7 +264,7 @@ export interface OnEventParams {
 /**
  * Input for the `runJob` RPC method.
  *
- * @see PLUGIN_SPEC.md §13.6 — `runJob`
+ * @see docs/extensions/index.en.md §13.6 — `runJob`
  */
 export interface RunJobParams {
   /** Job execution context. */
@@ -274,7 +274,7 @@ export interface RunJobParams {
 /**
  * Input for the `getData` RPC method.
  *
- * @see PLUGIN_SPEC.md §13.8 — `getData`
+ * @see docs/extensions/index.en.md §13.8 — `getData`
  */
 export interface GetDataParams {
   /** Plugin-defined data key (e.g. `"sync-health"`). */
@@ -288,7 +288,7 @@ export interface GetDataParams {
 /**
  * Input for the `performAction` RPC method.
  *
- * @see PLUGIN_SPEC.md §13.9 — `performAction`
+ * @see docs/extensions/index.en.md §13.9 — `performAction`
  */
 export interface PerformActionParams {
   /** Plugin-defined action key (e.g. `"resync"`). */
@@ -302,7 +302,7 @@ export interface PerformActionParams {
 /**
  * Input for the `executeTool` RPC method.
  *
- * @see PLUGIN_SPEC.md §13.10 — `executeTool`
+ * @see docs/extensions/index.en.md §13.10 — `executeTool`
  */
 export interface ExecuteToolParams {
   /** Tool name (without plugin namespace prefix). */
@@ -358,27 +358,27 @@ export interface PluginRenderCloseEvent {
  * ensure type safety across the IPC boundary.
  */
 export interface HostToWorkerMethods {
-  /** @see PLUGIN_SPEC.md §13.1 */
+  /** @see docs/extensions/index.en.md §13.1 */
   initialize: [params: InitializeParams, result: InitializeResult];
-  /** @see PLUGIN_SPEC.md §13.2 */
+  /** @see docs/extensions/index.en.md §13.2 */
   health: [params: Record<string, never>, result: PluginHealthDiagnostics];
-  /** @see PLUGIN_SPEC.md §12.5 */
+  /** @see docs/extensions/index.en.md §12.5 */
   shutdown: [params: Record<string, never>, result: void];
-  /** @see PLUGIN_SPEC.md §13.3 */
+  /** @see docs/extensions/index.en.md §13.3 */
   validateConfig: [params: ValidateConfigParams, result: PluginConfigValidationResult];
-  /** @see PLUGIN_SPEC.md §13.4 */
+  /** @see docs/extensions/index.en.md §13.4 */
   configChanged: [params: ConfigChangedParams, result: void];
-  /** @see PLUGIN_SPEC.md §13.5 */
+  /** @see docs/extensions/index.en.md §13.5 */
   onEvent: [params: OnEventParams, result: void];
-  /** @see PLUGIN_SPEC.md §13.6 */
+  /** @see docs/extensions/index.en.md §13.6 */
   runJob: [params: RunJobParams, result: void];
-  /** @see PLUGIN_SPEC.md §13.7 */
+  /** @see docs/extensions/index.en.md §13.7 */
   handleWebhook: [params: PluginWebhookInput, result: void];
-  /** @see PLUGIN_SPEC.md §13.8 */
+  /** @see docs/extensions/index.en.md §13.8 */
   getData: [params: GetDataParams, result: unknown];
-  /** @see PLUGIN_SPEC.md §13.9 */
+  /** @see docs/extensions/index.en.md §13.9 */
   performAction: [params: PerformActionParams, result: unknown];
-  /** @see PLUGIN_SPEC.md §13.10 */
+  /** @see docs/extensions/index.en.md §13.10 */
   executeTool: [params: ExecuteToolParams, result: ToolResult];
 }
 

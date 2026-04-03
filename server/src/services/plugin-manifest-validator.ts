@@ -6,7 +6,7 @@
  * a result union) and a throwing `parseOrThrow()` for HTTP error
  * propagation at install time.
  *
- * @see PLUGIN_SPEC.md §10 — Plugin Manifest
+ * @see docs/extensions/index.en.md §10 — Plugin Manifest
  * @see packages/shared/src/validators/plugin.ts — Zod schema definition
  */
 import { pluginManifestV1Schema } from "@paperclipai/shared";
@@ -57,7 +57,7 @@ export type ManifestParseResult = ManifestParseSuccess | ManifestParseFailure;
 /**
  * Service for parsing and validating plugin manifests.
  *
- * @see PLUGIN_SPEC.md §10 — Plugin Manifest
+ * @see docs/extensions/index.en.md §10 — Plugin Manifest
  */
 export interface PluginManifestValidator {
   /**

@@ -20,9 +20,9 @@
  * 4. **Shutdown** — `shutdownAll()` gracefully stops all active workers
  *    and unregisters runtime hooks.
  *
- * @see PLUGIN_SPEC.md §8 — Plugin Discovery
- * @see PLUGIN_SPEC.md §10 — Package Contract
- * @see PLUGIN_SPEC.md §12 — Process Model
+ * @see docs/extensions/index.en.md §8 — Plugin Discovery
+ * @see docs/extensions/index.en.md §10 — Package Contract
+ * @see docs/extensions/index.en.md §12 — Process Model
  */
 import { existsSync } from "node:fs";
 import { readdir, readFile, rm, stat } from "node:fs/promises";
@@ -60,7 +60,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * Naming convention for npm-published Paperclip plugins.
  * Packages matching this pattern are considered Paperclip plugins.
  *
- * @see PLUGIN_SPEC.md §10 — Package Contract
+ * @see docs/extensions/index.en.md §10 — Package Contract
  */
 export const NPM_PLUGIN_PACKAGE_PREFIX = "paperclip-plugin-";
 
@@ -68,7 +68,7 @@ export const NPM_PLUGIN_PACKAGE_PREFIX = "paperclip-plugin-";
  * Default local plugin directory.  The loader scans this directory for
  * locally-installed plugin packages.
  *
- * @see PLUGIN_SPEC.md §8.1 — On-Disk Layout
+ * @see docs/extensions/index.en.md §8.1 — On-Disk Layout
  */
 export const DEFAULT_LOCAL_PLUGIN_DIR = path.join(
   os.homedir(),
@@ -101,7 +101,7 @@ export interface DiscoveredPlugin {
 /**
  * Sources from which plugins can be discovered.
  *
- * @see PLUGIN_SPEC.md §8.1 — On-Disk Layout
+ * @see docs/extensions/index.en.md §8.1 — On-Disk Layout
  */
 export type PluginSource =
   | "local-filesystem"  // ~/.paperclip/plugins/ local directory
@@ -213,8 +213,8 @@ export interface PluginInstallOptions {
  * workers, register event subscriptions, sync jobs, register tools).
  * When omitted, the loader operates in discovery/install-only mode.
  *
- * @see PLUGIN_SPEC.md §8.3 — Install Process
- * @see PLUGIN_SPEC.md §12 — Process Model
+ * @see docs/extensions/index.en.md §8.3 — Install Process
+ * @see docs/extensions/index.en.md §12 — Process Model
  */
 export interface PluginRuntimeServices {
   /** Worker process manager for spawning and managing plugin workers. */
@@ -320,8 +320,8 @@ export interface PluginLoader {
    * @param npmSearchDirs - Optional override for node_modules directories to search.
    *   Passed through to discoverFromNpm. When omitted the defaults are used.
    *
-   * @see PLUGIN_SPEC.md §8.1 — On-Disk Layout
-   * @see PLUGIN_SPEC.md §8.3 — Install Process
+   * @see docs/extensions/index.en.md §8.1 — On-Disk Layout
+   * @see docs/extensions/index.en.md §8.3 — Install Process
    */
   discoverAll(npmSearchDirs?: string[]): Promise<PluginDiscoveryResult>;
 
@@ -355,14 +355,14 @@ export interface PluginLoader {
    * Returns null if the package is not a Paperclip plugin.
    * Throws if the package is a Paperclip plugin but the manifest is invalid.
    *
-   * @see PLUGIN_SPEC.md §10 — Package Contract
+   * @see docs/extensions/index.en.md §10 — Package Contract
    */
   loadManifest(packagePath: string): Promise<PaperclipPluginManifestV1 | null>;
 
   /**
    * Install a plugin package and register it in the database.
    *
-   * Follows the install process described in PLUGIN_SPEC.md §8.3:
+   * Follows the install process described in docs/extensions/index.en.md §8.3:
    * 1. Resolve npm package / local path.
    * 2. Install into the plugin directory (npm install).
    * 3. Read and validate plugin manifest.
@@ -374,7 +374,7 @@ export interface PluginLoader {
    * Worker spawning and lifecycle management are handled by the caller
    * (pluginLifecycleManager and the server startup orchestration).
    *
-   * @see PLUGIN_SPEC.md §8.3 — Install Process
+   * @see docs/extensions/index.en.md §8.3 — Install Process
    */
   installPlugin(options: PluginInstallOptions): Promise<DiscoveredPlugin>;
 
@@ -387,7 +387,7 @@ export interface PluginLoader {
    * 3. Updates the existing plugin record instead of creating a new one.
    * 4. Returns the old and new manifests for capability comparison.
    *
-   * @see PLUGIN_SPEC.md §25.3 — Upgrade Lifecycle
+   * @see docs/extensions/index.en.md §25.3 — Upgrade Lifecycle
    */
   upgradePlugin(pluginId: string, options: Omit<PluginInstallOptions, "installDir">): Promise<{
     oldManifest: PaperclipPluginManifestV1;
@@ -437,8 +437,8 @@ export interface PluginLoader {
    *
    * @returns Aggregated results for all attempted plugin loads.
    *
-   * @see PLUGIN_SPEC.md §8.4 — Server-Start Plugin Loading
-   * @see PLUGIN_SPEC.md §12 — Process Model
+   * @see docs/extensions/index.en.md §8.4 — Server-Start Plugin Loading
+   * @see docs/extensions/index.en.md §12 — Process Model
    */
   loadAll(): Promise<PluginLoadAllResult>;
 
@@ -457,7 +457,7 @@ export interface PluginLoader {
    * @param pluginId - UUID of the plugin to activate
    * @returns The activation result for this plugin
    *
-   * @see PLUGIN_SPEC.md §8.3 — Install Process
+   * @see docs/extensions/index.en.md §8.3 — Install Process
    */
   loadSingle(pluginId: string): Promise<PluginLoadResult>;
 
@@ -474,7 +474,7 @@ export interface PluginLoader {
    * @param pluginId - UUID of the plugin to deactivate
    * @param pluginKey - The plugin key (manifest ID) for scoped cleanup
    *
-   * @see PLUGIN_SPEC.md §8.5 — Uninstall Process
+   * @see docs/extensions/index.en.md §8.5 — Uninstall Process
    */
   unloadSingle(pluginId: string, pluginKey: string): Promise<void>;
 
@@ -503,7 +503,7 @@ export interface PluginLoader {
  * Check whether a package name matches the Paperclip plugin naming convention.
  * Accepts both the "paperclip-plugin-" prefix and scoped "@scope/plugin-" packages.
  *
- * @see PLUGIN_SPEC.md §10 — Package Contract
+ * @see docs/extensions/index.en.md §10 — Package Contract
  */
 export function isPluginPackageName(name: string): boolean {
   if (name.startsWith(NPM_PLUGIN_PACKAGE_PREFIX)) return true;
@@ -539,7 +539,7 @@ async function readPackageJson(
  * The spec defines a "paperclipPlugin" key in package.json with a "manifest"
  * subkey pointing to the manifest module.  This helper resolves the path.
  *
- * @see PLUGIN_SPEC.md §10 — Package Contract
+ * @see docs/extensions/index.en.md §10 — Package Contract
  */
 function resolveManifestPath(
   packageRoot: string,
@@ -724,9 +724,9 @@ export function getPluginUiContributionMetadata(
  * await loader.shutdownAll();
  * ```
  *
- * @see PLUGIN_SPEC.md §8.1 — On-Disk Layout
- * @see PLUGIN_SPEC.md §8.3 — Install Process
- * @see PLUGIN_SPEC.md §12 — Process Model
+ * @see docs/extensions/index.en.md §8.1 — On-Disk Layout
+ * @see docs/extensions/index.en.md §8.3 — Install Process
+ * @see docs/extensions/index.en.md §12 — Process Model
  */
 export function pluginLoader(
   db: Db,
@@ -1880,7 +1880,7 @@ export function pluginLoader(
  * We check the local plugin directory (where the package was installed) and
  * also the package directory if it was a local-path install.
  *
- * @see PLUGIN_SPEC.md §10 — Package Contract
+ * @see docs/extensions/index.en.md §10 — Package Contract
  */
 function resolveWorkerEntrypoint(
   plugin: PluginRecord & { packagePath?: string | null },

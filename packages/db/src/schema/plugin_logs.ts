@@ -19,7 +19,7 @@ import { plugins } from "./plugins.js";
  * the worker process. A capped retention policy can be applied via
  * periodic cleanup (e.g. delete rows older than 7 days).
  *
- * @see PLUGIN_SPEC.md §26 — Observability
+ * @see docs/extensions/index.en.md §26 — Observability
  */
 export const pluginLogs = pgTable(
   "plugin_logs",

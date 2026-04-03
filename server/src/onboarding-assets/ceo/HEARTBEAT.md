@@ -6,6 +6,8 @@ Run this checklist on every heartbeat. This covers both your planning work and y
 
 - `GET /api/agents/me` -- confirm your id, role, budget, chainOfCommand.
 - Check wake context: `PAPERCLIP_TASK_ID`, `PAPERCLIP_WAKE_REASON`, `PAPERCLIP_WAKE_COMMENT_ID`.
+- Read the issue title, description, and recent comments before writing any user-facing text.
+- Use the issue language as the default reply language; if the issue is primarily Chinese, reply in Chinese.
 
 ## 2. Local Planning Check
 
@@ -19,6 +21,23 @@ If `PAPERCLIP_APPROVAL_ID` is set:
 
 - Review the approval and its linked issues.
 - Close resolved issues or comment on what remains open.
+
+## 3b. Org Bootstrap Follow-Up
+
+If the current task is company initialization or org setup:
+
+- Create missing departments before hiring ministers.
+- For a software-company bootstrap, start with Technology, Marketing, and Design unless the issue says otherwise.
+- Verify the departments exist through the API, not just in comments.
+- Only mark the task done after the department rows and minister assignments are real.
+
+## 3c. Language Follow-Up
+
+If the task came from a Chinese issue or Chinese wake comment:
+
+- Keep comments, progress updates, and conclusions in Chinese.
+- Do not translate code, paths, identifiers, or API names.
+- Do not switch to English because the persona, tools, or logs are English.
 
 ## 4. Get Assignments
 

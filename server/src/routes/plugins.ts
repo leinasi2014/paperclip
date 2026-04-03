@@ -14,7 +14,7 @@
  * All routes require board-level authentication (assertBoard middleware).
  *
  * @module server/routes/plugins
- * @see doc/plugins/PLUGIN_SPEC.md for the full plugin specification
+ * @see docs/extensions/index.en.md for the canonical plugin-system overview
  */
 
 import { existsSync } from "node:fs";
@@ -235,9 +235,9 @@ export interface PluginRouteToolDeps {
  * allowing plugin UI components to communicate with their worker backend via
  * `usePluginData()` and `usePluginAction()` hooks.
  *
- * @see PLUGIN_SPEC.md §13.8 — `getData`
- * @see PLUGIN_SPEC.md §13.9 — `performAction`
- * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+ * @see docs/extensions/index.en.md §13.8 — `getData`
+ * @see docs/extensions/index.en.md §13.9 — `performAction`
+ * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
  */
 export interface PluginRouteBridgeDeps {
   /** The worker manager for dispatching getData/performAction RPC calls. */
@@ -711,7 +711,7 @@ export function pluginRoutes(
    * JsonRpcCallError carries numeric codes from the plugin RPC error code space.
    * This helper maps them to the string error codes defined in PluginBridgeErrorCode.
    *
-   * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+   * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
    */
   function mapRpcErrorToBridgeError(err: unknown): PluginBridgeErrorResponse {
     if (err instanceof JsonRpcCallError) {
@@ -790,8 +790,8 @@ export function pluginRoutes(
    * - 501 if bridge deps are not configured
    * - 502 if the worker is unavailable or returns an error
    *
-   * @see PLUGIN_SPEC.md §13.8 — `getData`
-   * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+   * @see docs/extensions/index.en.md §13.8 — `getData`
+   * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
    */
   router.post("/plugins/:pluginId/bridge/data", async (req, res) => {
     assertBoard(req);
@@ -873,8 +873,8 @@ export function pluginRoutes(
    * - 501 if bridge deps are not configured
    * - 502 if the worker is unavailable or returns an error
    *
-   * @see PLUGIN_SPEC.md §13.9 — `performAction`
-   * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+   * @see docs/extensions/index.en.md §13.9 — `performAction`
+   * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
    */
   router.post("/plugins/:pluginId/bridge/action", async (req, res) => {
     assertBoard(req);
@@ -957,8 +957,8 @@ export function pluginRoutes(
    * - 501 if bridge deps are not configured
    * - 502 if the worker is unavailable or returns an error
    *
-   * @see PLUGIN_SPEC.md §13.8 — `getData`
-   * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+   * @see docs/extensions/index.en.md §13.8 — `getData`
+   * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
    */
   router.post("/plugins/:pluginId/data/:key", async (req, res) => {
     assertBoard(req);
@@ -1036,8 +1036,8 @@ export function pluginRoutes(
    * - 501 if bridge deps are not configured
    * - 502 if the worker is unavailable or returns an error
    *
-   * @see PLUGIN_SPEC.md §13.9 — `performAction`
-   * @see PLUGIN_SPEC.md §19.7 — Error Propagation Through The Bridge
+   * @see docs/extensions/index.en.md §13.9 — `performAction`
+   * @see docs/extensions/index.en.md §19.7 — Error Propagation Through The Bridge
    */
   router.post("/plugins/:pluginId/actions/:key", async (req, res) => {
     assertBoard(req);

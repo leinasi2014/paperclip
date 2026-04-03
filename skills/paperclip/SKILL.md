@@ -131,6 +131,61 @@ Workspace rules:
 - For repo-only setup, omit `cwd` and provide `repoUrl`.
 - Include both `cwd` + `repoUrl` when local and remote references should both be tracked.
 
+## Department Setup Workflow (CEO/Manager Common Path)
+
+Use this when a company needs its initial org structure or a department reset.
+
+1. Inspect existing departments:
+
+```bash
+GET /api/companies/{companyId}/departments
+```
+
+2. Create any missing departments before hiring their ministers:
+
+```bash
+POST /api/companies/{companyId}/departments
+{
+  "name": "Technology",
+  "slug": "technology",
+  "mission": "Build and operate the product",
+  "ministerAgentId": null
+}
+```
+
+3. Hire or create the minister agent for each department using the normal agent hiring workflow.
+
+4. Assign the minister to the department:
+
+```bash
+POST /api/departments/{departmentId}/assign-minister
+{
+  "agentId": "{ministerAgentId}"
+}
+```
+
+5. Verify the budget envelope exists and is active:
+
+```bash
+GET /api/departments/{departmentId}/budget
+```
+
+6. Allocate or adjust department budget only when the business case requires it:
+
+```bash
+POST /api/departments/{departmentId}/budget/allocate
+{
+  "amountCents": 50000
+}
+```
+
+Rules:
+
+- Do not describe departments as complete unless they exist in the API.
+- For software-company bootstrap tasks, prefer creating the real org units first, then hiring ministers into those seats.
+- The default bootstrap set is Technology, Marketing, and Design unless the task defines a different org model.
+- Treat budget envelope creation as a consequence of department lifecycle, not a separate planning artifact.
+
 ## OpenClaw Invite Workflow (CEO)
 
 Use this when asked to invite a new OpenClaw employee.

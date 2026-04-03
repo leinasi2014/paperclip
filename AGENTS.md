@@ -5,20 +5,20 @@ Guidance for human and AI contributors working in this repository.
 ## 1. Purpose
 
 Paperclip is a control plane for AI-agent companies.
-The current implementation target is V1 and is defined in `doc/SPEC-implementation.md`.
+The current implementation target is V1 and is defined in `docs/architecture/index.en.md`.
 
 ## 2. Read This First
 
 Before making changes, read in this order:
 
-1. `doc/GOAL.md`
-2. `doc/PRODUCT.md`
-3. `doc/SPEC-implementation.md`
-4. `doc/DEVELOPING.md`
-5. `doc/DATABASE.md`
+1. `docs/start/index.en.md`
+2. `docs/product/index.en.md`
+3. `docs/architecture/index.en.md`
+4. `docs/development/index.en.md`
+5. `docs/reference/index.en.md`
 
-`doc/SPEC.md` is long-horizon product context.
-`doc/SPEC-implementation.md` is the concrete V1 build contract.
+`docs/index.en.md` is the canonical documentation entrypoint.
+`docs/architecture/index.en.md` is the concrete V1 build contract.
 
 ## 3. Repo Map
 
@@ -29,7 +29,7 @@ Before making changes, read in this order:
 - `packages/adapters/`: agent adapter implementations (Claude, Codex, Cursor, etc.)
 - `packages/adapter-utils/`: shared adapter utilities
 - `packages/plugins/`: plugin system packages
-- `doc/`: operational and product docs
+- `docs/`: canonical project docs
 
 ## 4. Dev Setup (Auto DB)
 
@@ -79,10 +79,10 @@ If you change schema/API behavior, update all impacted layers:
 - Activity logging for mutating actions
 
 4. Do not replace strategic docs wholesale unless asked.
-Prefer additive updates. Keep `doc/SPEC.md` and `doc/SPEC-implementation.md` aligned.
+Prefer additive updates. Keep `docs/product/index.en.md` and `docs/architecture/index.en.md` aligned with the code.
 
 5. Keep plan docs dated and centralized.
-New plan documents belong in `doc/plans/` and should use `YYYY-MM-DD-slug.md` filenames.
+New plan documents belong in `docs/plans/` and should use `YYYY-MM-DD-slug.md` filenames.
 
 6. Enforce file size discipline.
 For repo-tracked source and test files, new files and modified files must stay at or below `1000` lines.
@@ -162,7 +162,7 @@ When adding endpoints:
 
 A change is done when all are true:
 
-1. Behavior matches `doc/SPEC-implementation.md`
+1. Behavior matches `docs/architecture/index.en.md`
 2. Typecheck, tests, and build pass
 3. Contracts are synced across db/shared/server/ui
 4. Docs updated when behavior or commands change
