@@ -3724,3 +3724,156 @@ Migrations complete
 [09:53:26] [32mINFO[39m: [36mGET /heartbeat-runs/e83e9719-e9a4-4f54-bf69-574b0d0dd50f/events?afterSeq=0&limit=200 304[39m
 [09:55:34] [32mINFO[39m: [36mGET /issues/ZEN-1/heartbeat-context 200[39m
 [09:55:34] [32mINFO[39m: [36mGET /issues/ZEN-1 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 200[39m
+[10:16:01] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 200[39m
+[10:16:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 200[39m
+[10:16:31] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:17:01] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:17:31] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:18:01] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:18:31] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:19:01] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:19:31] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:20:01] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:20:31] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs?agentId=ee066a56-4e6f-4ee2-8a0e-6b86f2662ebf 200[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:21:01] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":4,"skipped":0}[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs?agentId=ee066a56-4e6f-4ee2-8a0e-6b86f2662ebf 304[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 200[39m
+[10:21:01] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 200[39m
+[10:21:31] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":4,"skipped":0}[39m
+[10:21:40] [32mINFO[39m: [36mGET /agents/me/inbox-lite 200[39m
+[10:21:40] [32mINFO[39m: [36mGET /agents/me 200[39m
+[10:21:55] [32mINFO[39m: [36mGET /agents/me/inbox-lite 200[39m
+[10:21:55] [32mINFO[39m: [36mGET /agents/me 200[39m
+[10:21:55] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:21:55] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:21:55] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs?agentId=ee066a56-4e6f-4ee2-8a0e-6b86f2662ebf 200[39m
+[10:21:55] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:21:55] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:21:55] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:21:55] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 200[39m
+[10:21:55] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 200[39m
+[10:21:57] [32mINFO[39m: [36mGET /agents/me 200[39m
+[10:21:58] [32mINFO[39m: [36mGET /agents/me/inbox-lite 200[39m
+[10:22:01] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":3,"skipped":0}[39m
+[10:22:10] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/issues?assigneeAgentId=1561cc47-b521-469c-930b-2a8fc175f47f&status=todo,in_progress,blocked 200[39m
+[10:22:15] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/issues?assigneeAgentId=f3ccb98b-9d87-4483-8bc2-4715fa677e32&status=todo,in_progress,blocked 200[39m
+[10:22:26] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:22:26] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:22:26] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:22:26] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:22:26] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:22:26] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 200[39m
+[10:22:26] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 200[39m
+[10:22:27] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:22:27] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:22:27] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:22:27] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:22:27] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:22:27] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 200[39m
+[10:22:27] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 200[39m
+[10:22:31] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":1,"skipped":0}[39m
+[10:22:50] [32mINFO[39m: [36mGET /agents/me/inbox-lite 200[39m
+[10:22:50] [32mINFO[39m: [36mGET /agents/me 200[39m
+[10:23:01] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":4,"enqueued":1,"skipped":0}[39m
+[10:23:11] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 200[39m
+[10:23:11] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:23:11] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 200[39m
+[10:23:11] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:23:11] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:23:12] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 200[39m
+[10:23:12] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 200[39m
+[10:33:28] [32mINFO[39m: [36mGET /api/auth/get-session 304[39m
+[10:33:28] [32mINFO[39m: [36mGET / 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 304[39m
+[10:33:28] [32mINFO[39m: [36mGET / 200[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/join-requests?status=pending_approval 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /plugins/ui-contributions 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/projects 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /instance/settings/general 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/approvals 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/issues?status=backlog%2Ctodo%2Cin_progress%2Cin_review%2Cblocked%2Cdone&touchedByUserId=me&inboxArchivedByUserId=me 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs?agentId=ee066a56-4e6f-4ee2-8a0e-6b86f2662ebf 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/budgets/overview 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /heartbeat-runs/e83e9719-e9a4-4f54-bf69-574b0d0dd50f/issues 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /heartbeat-runs/e83e9719-e9a4-4f54-bf69-574b0d0dd50f 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /agents/ceo?companyId=de027883-c6a3-4603-8a78-3888a69cd23e 200[39m
+[10:33:28] [32mINFO[39m: [36mGET /heartbeat-runs/e83e9719-e9a4-4f54-bf69-574b0d0dd50f/workspace-operations 304[39m
+[10:33:28] [32mINFO[39m: [36mGET /heartbeat-runs/e83e9719-e9a4-4f54-bf69-574b0d0dd50f/events?afterSeq=0&limit=200 304[39m
+[10:33:31] [32mINFO[39m: [36mAutomatic database backup complete: C:\Users\windo\.paperclip\instances\default\data\backups\paperclip-20260403-183331.sql (1.1M)[39m [90m{"backupFile":"C:\Users\windo\.paperclip\instances\default\data\backups\paperclip-20260403-183331.sql","sizeBytes":1101035,"prunedCount":0,"backupDir":"C:\Users\windo\.paperclip\instances\default\data\backups","retentionDays":30}[39m
+[10:41:06] [32mINFO[39m: [36mGET / 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /api/auth/get-session 304[39m
+[10:41:06] [32mINFO[39m: [36mGET / 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/live-runs 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/approvals 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/join-requests?status=pending_approval 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /plugins/ui-contributions 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /instance/settings/general 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/projects 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/agents 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/dashboard 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/issues?status=backlog%2Ctodo%2Cin_progress%2Cin_review%2Cblocked%2Cdone&touchedByUserId=me&inboxArchivedByUserId=me 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/budgets/overview 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/heartbeat-runs?agentId=ee066a56-4e6f-4ee2-8a0e-6b86f2662ebf 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /heartbeat-runs/e83e9719-e9a4-4f54-bf69-574b0d0dd50f 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/sidebar-badges 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /agents/ceo?companyId=de027883-c6a3-4603-8a78-3888a69cd23e 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /heartbeat-runs/e83e9719-e9a4-4f54-bf69-574b0d0dd50f/issues 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /heartbeat-runs/e83e9719-e9a4-4f54-bf69-574b0d0dd50f/events?afterSeq=0&limit=200 304[39m
+[10:41:06] [32mINFO[39m: [36mGET /heartbeat-runs/e83e9719-e9a4-4f54-bf69-574b0d0dd50f/workspace-operations 304[39m
+[10:41:27] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/budgets/overview 304[39m
+[10:41:32] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/labels 304[39m
+[10:41:32] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/issues 304[39m
+[10:41:33] [32mINFO[39m: [36mGET /agents/ee066a56-4e6f-4ee2-8a0e-6b86f2662ebf/runtime-state?companyId=de027883-c6a3-4603-8a78-3888a69cd23e 200[39m
+[10:41:33] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/budgets/overview 304[39m
+[10:41:33] [32mINFO[39m: [36mGET /companies/de027883-c6a3-4603-8a78-3888a69cd23e/issues?participantAgentId=ee066a56-4e6f-4ee2-8a0e-6b86f2662ebf 304[39m
