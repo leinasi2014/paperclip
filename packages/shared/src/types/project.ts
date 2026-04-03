@@ -1,4 +1,5 @@
 import type { PauseReason, ProjectStatus } from "../constants.js";
+import type { SystemProjectKind } from "../constants.js";
 import type {
   ProjectExecutionWorkspacePolicy,
   ProjectWorkspaceRuntimeConfig,
@@ -71,6 +72,8 @@ export interface Project {
   codebase: ProjectCodebase;
   workspaces: ProjectWorkspace[];
   primaryWorkspace: ProjectWorkspace | null;
+  isSystemProject?: boolean;
+  systemProjectKind?: SystemProjectKind | null;
   archivedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

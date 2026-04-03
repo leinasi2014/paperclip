@@ -56,6 +56,11 @@ const mockApprovalService = vi.hoisted(() => ({
   getById: vi.fn(),
 }));
 
+const mockCompanyService = vi.hoisted(() => ({
+  getEffectiveCeoAgentId: vi.fn(),
+  assignCeoAgent: vi.fn(),
+}));
+
 const mockBudgetService = vi.hoisted(() => ({
   upsertPolicy: vi.fn(),
 }));
@@ -93,6 +98,7 @@ vi.mock("../services/index.js", () => ({
   agentInstructionsService: () => mockAgentInstructionsService,
   accessService: () => mockAccessService,
   approvalService: () => mockApprovalService,
+  companyService: () => mockCompanyService,
   companySkillService: () => mockCompanySkillService,
   budgetService: () => mockBudgetService,
   heartbeatService: () => mockHeartbeatService,
@@ -173,6 +179,8 @@ describe("agent permission routes", () => {
     mockAccessService.listPrincipalGrants.mockResolvedValue([]);
     mockAccessService.ensureMembership.mockResolvedValue(undefined);
     mockAccessService.setPrincipalPermission.mockResolvedValue(undefined);
+    mockCompanyService.getEffectiveCeoAgentId.mockResolvedValue(null);
+    mockCompanyService.assignCeoAgent.mockResolvedValue(undefined);
     mockCompanySkillService.listRuntimeSkillEntries.mockResolvedValue([]);
     mockCompanySkillService.resolveRequestedSkillKeys.mockImplementation(async (_companyId, requested) => requested);
     mockBudgetService.upsertPolicy.mockResolvedValue(undefined);

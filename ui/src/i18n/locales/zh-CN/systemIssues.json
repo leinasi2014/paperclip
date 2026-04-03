@@ -1,0 +1,79 @@
+{
+  "breadcrumbs": {
+    "title": "系统议题"
+  },
+  "title": "系统议题",
+  "description": "共享系统项目中的执行、技能与治理问题。",
+  "loading": "正在加载系统议题...",
+  "empty": {
+    "selectCompany": "请选择公司以查看系统议题。",
+    "noIssues": "还没有系统议题。"
+  },
+  "errors": {
+    "notFound": "未找到系统议题",
+    "loadFailed": "加载系统议题失败。"
+  },
+  "labels": {
+    "severity": "严重程度",
+    "workflow": "流程状态",
+    "department": "归属部门",
+    "minister": "部长",
+    "ceoIntake": "CEO intake",
+    "blockRecommended": "建议阻断",
+    "sourceIssue": "底层议题",
+    "ministerDecision": "部长接单",
+    "reviewReady": "待审查",
+    "resumeReady": "待恢复"
+  },
+  "sections": {
+    "overview": "总览",
+    "details": "详情",
+    "relatedIssues": "相关系统议题"
+  },
+  "types": {
+    "execution": "执行",
+    "skill": "技能",
+    "governance": "治理"
+  },
+  "severity": {
+    "critical": "严重",
+    "high": "高",
+    "medium": "中",
+    "low": "低"
+  },
+  "workflow": {
+    "open": "打开",
+    "triaging": "分诊中",
+    "in_progress": "处理中",
+    "pending_review": "待审查",
+    "review_passed": "审查通过",
+    "ready_to_resume": "待恢复",
+    "done": "已完成"
+  },
+  "intake": {
+    "accept": "已接受",
+    "reject": "已拒绝",
+    "needs_clarification": "需要澄清"
+  },
+  "summary": {
+    "total": "总数",
+    "critical": "严重",
+    "blocked": "建议阻断",
+    "ceoIntake": "在 CEO intake 中"
+  },
+  "detail": {
+    "titleFallback": "未命名系统议题",
+    "descriptionFallback": "暂无描述。",
+    "departmentFallback": "尚未路由",
+    "ministerFallback": "未指派",
+    "decisionFallback": "尚未记录决定",
+    "viewIssue": "打开议题",
+    "viewDepartment": "打开部门",
+    "budgetTitle": "预算包",
+    "budgetNotFound": "还没有部门预算。",
+    "monthlyLimit": "月度额度",
+    "reserved": "已预留",
+    "spent": "已花费",
+    "maxWorkers": "临时工上限"
+  }
+}

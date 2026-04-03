@@ -9,6 +9,13 @@ import type {
   IssueComment,
   Agent,
   Goal,
+  SystemIssue,
+  CompanySkillListItem,
+  CompanySkillCandidate,
+  CompanySkillPromotionRequest,
+  ListSystemIssuesQuery,
+  UpsertCompanySkillCandidate,
+  CreateCompanySkillPromotionRequest,
 } from "@paperclipai/shared";
 import type {
   EventFilter,
@@ -52,6 +59,9 @@ export interface TestHarness {
     issueComments?: IssueComment[];
     agents?: Agent[];
     goals?: Goal[];
+    systemIssues?: SystemIssue[];
+    companySkillCandidates?: CompanySkillCandidate[];
+    companySkillPromotionRequests?: CompanySkillPromotionRequest[];
   }): void;
   setConfig(config: Record<string, unknown>): void;
   /** Dispatch a host or plugin event to registered handlers. */
@@ -143,6 +153,9 @@ export function createTestHarness(options: TestHarnessOptions): TestHarness {
   const agents = new Map<string, Agent>();
   const goals = new Map<string, Goal>();
   const projectWorkspaces = new Map<string, PluginWorkspace[]>();
+  const systemIssues = new Map<string, SystemIssue>();
+  const companySkillCandidates = new Map<string, CompanySkillCandidate>();
+  const companySkillPromotionRequests = new Map<string, CompanySkillPromotionRequest>();
 
   const sessions = new Map<string, AgentSession>();
   const sessionEventCallbacks = new Map<string, (event: AgentSessionEvent) => void>();
@@ -595,6 +608,154 @@ export function createTestHarness(options: TestHarnessOptions): TestHarness {
         return updated;
       },
     },
+    systemIssues: {
+      async list(input) {
+        requireCapability(manifest, capabilitySet, "systemIssues.read");
+        const companyId = requireCompanyId(input.companyId);
+        let out = [...systemIssues.values()].filter((issue) => issue.companyId === companyId);
+        const filters = input.filters ?? {};
+        if (filters.type) out = out.filter((issue) => issue.systemIssueType === filters.type);
+        if (filters.severity) out = out.filter((issue) => issue.systemIssueSeverity === filters.severity);
+        if (filters.workflowState) out = out.filter((issue) => issue.systemIssueWorkflowState === filters.workflowState);
+        if (filters.owningDepartmentId !== undefined) {
+          out = out.filter((issue) => issue.owningDepartmentId === filters.owningDepartmentId);
+        }
+        if (filters.inCeoIntake !== undefined) {
+          out = out.filter((issue) => issue.isInCeoIntake === filters.inCeoIntake);
+        }
+        if (filters.blockRecommended !== undefined) {
+          out = out.filter((issue) => issue.blockRecommended === filters.blockRecommended);
+        }
+        return out;
+      },
+      async get(systemIssueId, companyId) {
+        requireCapability(manifest, capabilitySet, "systemIssues.read");
+        const issue = systemIssues.get(systemIssueId);
+        return isInCompany(issue, companyId) ? issue : null;
+      },
+      async create(input) {
+        requireCapability(manifest, capabilitySet, "systemIssues.create");
+        const now = new Date();
+        const record: SystemIssue = {
+          id: randomUUID(),
+          companyId: input.companyId,
+          projectId: null,
+          projectWorkspaceId: null,
+          goalId: null,
+          parentId: null,
+          title: input.title,
+          description: input.description ?? null,
+          status: "backlog",
+          priority: input.priority ?? "medium",
+          assigneeAgentId: null,
+          assigneeUserId: null,
+          checkoutRunId: null,
+          executionRunId: null,
+          executionAgentNameKey: null,
+          executionLockedAt: null,
+          createdByAgentId: null,
+          createdByUserId: null,
+          issueNumber: null,
+          identifier: null,
+          requestDepth: 0,
+          billingCode: null,
+          assigneeAdapterOverrides: null,
+          executionWorkspaceId: null,
+          executionWorkspacePreference: null,
+          executionWorkspaceSettings: null,
+          startedAt: null,
+          completedAt: null,
+          cancelledAt: null,
+          hiddenAt: null,
+          createdAt: now,
+          updatedAt: now,
+          systemIssueType: input.systemIssueType,
+          systemIssueSeverity: input.systemIssueSeverity,
+          systemIssueWorkflowState: "open",
+          blockRecommended: Boolean(input.blockRecommended),
+          isInCeoIntake: true,
+        };
+        systemIssues.set(record.id, record);
+        return record;
+      },
+      async setBlockRecommendation(systemIssueId, companyId, blockRecommended) {
+        requireCapability(manifest, capabilitySet, "systemIssues.recommendBlock");
+        const issue = systemIssues.get(systemIssueId);
+        if (!isInCompany(issue, companyId)) throw new Error(`System issue not found: ${systemIssueId}`);
+        const updated: SystemIssue = {
+          ...issue,
+          blockRecommended,
+          updatedAt: new Date(),
+        } as SystemIssue;
+        systemIssues.set(systemIssueId, updated);
+        return updated;
+      },
+    },
+    companySkills: {
+      async listApproved(companyId) {
+        requireCapability(manifest, capabilitySet, "companySkills.read");
+        requireCompanyId(companyId);
+        return [];
+      },
+      async listCandidates(companyId) {
+        requireCapability(manifest, capabilitySet, "companySkills.read");
+        const cid = requireCompanyId(companyId);
+        return [...companySkillCandidates.values()].filter((candidate) => candidate.companyId === cid);
+      },
+      async createOrUpdateCandidate(companyId, input) {
+        requireCapability(manifest, capabilitySet, "companySkills.candidates.write");
+        const cid = requireCompanyId(companyId);
+        const existing = [...companySkillCandidates.values()].find(
+          (candidate) => candidate.companyId === cid && candidate.skillKey === input.skillKey,
+        );
+        const now = new Date();
+        const record: CompanySkillCandidate = existing
+          ? { ...existing, sourcePluginKey: existing.sourcePluginKey, slug: input.slug, name: input.name, description: input.description ?? null, markdown: input.markdown, metadata: input.metadata ?? null, updatedAt: now }
+          : {
+              id: randomUUID(),
+              companyId: cid,
+              sourcePluginKey: manifest.id,
+              skillKey: input.skillKey,
+              slug: input.slug,
+              name: input.name,
+              description: input.description ?? null,
+              markdown: input.markdown,
+              metadata: input.metadata ?? null,
+              createdAt: now,
+              updatedAt: now,
+            };
+        companySkillCandidates.set(record.id, record);
+        return record;
+      },
+      async createPromotionRequest(companyId, input) {
+        requireCapability(manifest, capabilitySet, "companySkills.promotionRequests.write");
+        const cid = requireCompanyId(companyId);
+        const candidate = companySkillCandidates.get(input.candidateId);
+        if (!isInCompany(candidate, cid)) {
+          throw new Error(`Company skill candidate not found: ${input.candidateId}`);
+        }
+        const record: CompanySkillPromotionRequest = {
+          id: randomUUID(),
+          companyId: cid,
+          candidateId: input.candidateId,
+          sourcePluginKey: manifest.id,
+          status: "pending",
+          note: input.note ?? null,
+          approvedByUserId: null,
+          approvedAt: null,
+          rejectedAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        companySkillPromotionRequests.set(record.id, record);
+        return record;
+      },
+      async listPromotionRequests(companyId) {
+        requireCapability(manifest, capabilitySet, "companySkills.read");
+        const cid = requireCompanyId(companyId);
+        return [...companySkillPromotionRequests.values()].filter((request) => request.companyId === cid);
+      },
+    },
     data: {
       register(key, handler) {
         dataHandlers.set(key, handler);
@@ -660,6 +821,9 @@ export function createTestHarness(options: TestHarnessOptions): TestHarness {
       }
       for (const row of input.agents ?? []) agents.set(row.id, row);
       for (const row of input.goals ?? []) goals.set(row.id, row);
+      for (const row of input.systemIssues ?? []) systemIssues.set(row.id, row);
+      for (const row of input.companySkillCandidates ?? []) companySkillCandidates.set(row.id, row);
+      for (const row of input.companySkillPromotionRequests ?? []) companySkillPromotionRequests.set(row.id, row);
     },
     setConfig(config) {
       currentConfig = { ...config };

@@ -8,7 +8,7 @@ import {
   updateCompanyBrandingSchema,
   updateCompanySchema,
 } from "@paperclipai/shared";
-import { forbidden } from "../errors.js";
+import { forbidden, unprocessable } from "../errors.js";
 import { validate } from "../middleware/validate.js";
 import {
   accessService,
@@ -17,6 +17,8 @@ import {
   companyPortabilityService,
   companyService,
   logActivity,
+  requiredSystemPluginService,
+  systemProjectService,
 } from "../services/index.js";
 import type { StorageService } from "../storage/types.js";
 import { assertBoard, assertCompanyAccess, getActorInfo } from "./authz.js";
@@ -28,6 +30,8 @@ export function companyRoutes(db: Db, storage?: StorageService) {
   const portability = companyPortabilityService(db, storage);
   const access = accessService(db);
   const budgets = budgetService(db);
+  const systemProjects = systemProjectService(db);
+  const requiredSystemPlugins = requiredSystemPluginService(db);
 
   async function assertCanUpdateBranding(req: Request, companyId: string) {
     assertCompanyAccess(req, companyId);
@@ -216,6 +220,8 @@ export function companyRoutes(db: Db, storage?: StorageService) {
       throw forbidden("Instance admin required");
     }
     const company = await svc.create(req.body);
+    await systemProjects.ensureCanonical(company.id);
+    await requiredSystemPlugins.ensureCompanySettings(company.id);
     await access.ensureMembership(company.id, "user", req.actor.userId ?? "local-board", "owner", "active");
     await logActivity(db, {
       companyId: company.id,
@@ -264,6 +270,14 @@ export function companyRoutes(db: Db, storage?: StorageService) {
       body = updateCompanySchema.parse(req.body);
     }
 
+    if (req.actor.type === "board" && body.ceoAgentId !== undefined) {
+      if (body.ceoAgentId === null) {
+        throw unprocessable("Clearing the CEO seat is not supported from this endpoint");
+      }
+      await svc.assignCeoAgent(companyId, String(body.ceoAgentId));
+      delete body.ceoAgentId;
+    }
+
     const company = await svc.update(companyId, body);
     if (!company) {
       res.status(404).json({ error: "Company not found" });
@@ -281,6 +295,35 @@ export function companyRoutes(db: Db, storage?: StorageService) {
       details: body,
     });
     res.json(company);
+  });
+
+  router.post("/:companyId/system-project/reconcile", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    assertBoard(req);
+    const company = await svc.getById(companyId);
+    if (!company) {
+      res.status(404).json({ error: "Company not found" });
+      return;
+    }
+
+    const project = await systemProjects.reconcile(companyId);
+    const actor = getActorInfo(req);
+    await logActivity(db, {
+      companyId,
+      actorType: actor.actorType,
+      actorId: actor.actorId,
+      agentId: actor.agentId,
+      runId: actor.runId,
+      action: "project.system_reconciled",
+      entityType: "project",
+      entityId: project.id,
+      details: {
+        systemProjectKind: project.systemProjectKind,
+      },
+    });
+
+    res.json(project);
   });
 
   router.patch("/:companyId/branding", validate(updateCompanyBrandingSchema), async (req, res) => {

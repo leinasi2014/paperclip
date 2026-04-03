@@ -22,6 +22,8 @@ import {
   companySkills,
   costEvents,
   createDb,
+  departmentBudgetEnvelopes,
+  departments,
   documents,
   documentRevisions,
   executionWorkspaces,
@@ -118,12 +120,14 @@ describeEmbeddedPostgres("companyService.remove", () => {
     await db.delete(budgetPolicies);
     await db.delete(companySecretVersions);
     await db.delete(companySecrets);
+    await db.delete(departmentBudgetEnvelopes);
     await db.delete(agentConfigRevisions);
     await db.delete(activityLog);
     await db.delete(heartbeatRuns);
     await db.delete(agentWakeupRequests);
     await db.delete(agentApiKeys);
     await db.delete(agentRuntimeState);
+    await db.delete(departments);
     await db.delete(projects);
     await db.delete(goals);
     await db.delete(joinRequests);
@@ -152,6 +156,7 @@ describeEmbeddedPostgres("companyService.remove", () => {
     const otherProjectId = randomUUID();
     const projectWorkspaceId = randomUUID();
     const issueId = randomUUID();
+    const departmentId = randomUUID();
     const wakeupRequestId = randomUUID();
     const heartbeatRunId = randomUUID();
     const executionWorkspaceId = randomUUID();
@@ -256,6 +261,21 @@ describeEmbeddedPostgres("companyService.remove", () => {
         leadAgentId: otherAgentId,
       },
     ]);
+
+    await db.insert(departments).values({
+      id: departmentId,
+      companyId,
+      name: "Platform",
+      slug: "platform",
+      status: "frozen_unstaffed",
+    });
+    await db.insert(departmentBudgetEnvelopes).values({
+      departmentId,
+      companyId,
+      monthlyLimitCents: 250_000,
+      reservedCents: 10_000,
+      status: "reserved_only",
+    });
 
     await db.insert(projectGoals).values({ projectId, goalId, companyId });
     await db.insert(projectWorkspaces).values({
@@ -825,6 +845,8 @@ describeEmbeddedPostgres("companyService.remove", () => {
     await expect(db.select().from(issueLabels).where(eq(issueLabels.companyId, companyId))).resolves.toHaveLength(0);
     await expect(db.select().from(companySecrets).where(eq(companySecrets.companyId, companyId))).resolves.toHaveLength(0);
     await expect(db.select().from(companySecretVersions).where(eq(companySecretVersions.secretId, secretId))).resolves.toHaveLength(0);
+    await expect(db.select().from(departments).where(eq(departments.companyId, companyId))).resolves.toHaveLength(0);
+    await expect(db.select().from(departmentBudgetEnvelopes).where(eq(departmentBudgetEnvelopes.companyId, companyId))).resolves.toHaveLength(0);
     await expect(db.select().from(routines).where(eq(routines.companyId, companyId))).resolves.toHaveLength(0);
     await expect(db.select().from(routineTriggers).where(eq(routineTriggers.companyId, companyId))).resolves.toHaveLength(0);
     await expect(db.select().from(routineRuns).where(eq(routineRuns.companyId, companyId))).resolves.toHaveLength(0);

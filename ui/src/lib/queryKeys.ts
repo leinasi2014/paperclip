@@ -4,6 +4,13 @@ export const queryKeys = {
     detail: (id: string) => ["companies", id] as const,
     stats: ["companies", "stats"] as const,
   },
+  departments: {
+    list: (companyId: string) => ["departments", companyId] as const,
+    detail: (departmentId: string) => ["departments", "detail", departmentId] as const,
+    budget: (departmentId: string) => ["departments", "budget", departmentId] as const,
+    temporaryWorkers: (departmentId: string) =>
+      ["departments", "temporary-workers", departmentId] as const,
+  },
   companySkills: {
     list: (companyId: string) => ["company-skills", companyId] as const,
     detail: (companyId: string, skillId: string) => ["company-skills", companyId, skillId] as const,
@@ -52,6 +59,35 @@ export const queryKeys = {
     liveRuns: (issueId: string) => ["issues", "live-runs", issueId] as const,
     activeRun: (issueId: string) => ["issues", "active-run", issueId] as const,
     workProducts: (issueId: string) => ["issues", "work-products", issueId] as const,
+  },
+  systemIssues: {
+    list: (
+      companyId: string,
+      filters?: {
+        type?: string;
+        severity?: string;
+        workflowState?: string;
+        owningDepartmentId?: string;
+        inCeoIntake?: boolean;
+        blockRecommended?: boolean;
+      },
+    ) => ["system-issues", companyId, filters ?? {}] as const,
+    detail: (issueId: string) => ["system-issues", "detail", issueId] as const,
+  },
+  systemPluginRollouts: {
+    list: (
+      filters?: {
+        pluginId?: string;
+        pluginKey?: string;
+        status?: string;
+        limit?: number;
+        offset?: number;
+      },
+    ) => ["system-plugin-rollouts", filters ?? {}] as const,
+    detail: (rolloutId: string) => ["system-plugin-rollouts", "detail", rolloutId] as const,
+  },
+  systemPlugins: {
+    status: (companyId?: string) => ["system-plugins", "status", companyId ?? "__instance__"] as const,
   },
   routines: {
     list: (companyId: string) => ["routines", companyId] as const,

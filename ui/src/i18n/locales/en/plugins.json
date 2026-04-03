@@ -7,6 +7,7 @@
   "loading": "Loading plugins...",
   "error": "Failed to load plugins.",
   "title": "Plugin Manager",
+  "description": "Install, inspect, and maintain instance plugins and required system plugins.",
   "actions": {
     "installPlugin": "Install Plugin",
     "install": "Install",
@@ -47,8 +48,17 @@
     "alphaDescription": "The plugin runtime and API surface are still changing. Expect breaking changes while this feature settles."
   },
   "sections": {
+    "requiredSystem": "Required System Plugins",
     "available": "Available Plugins",
     "installed": "Installed Plugins"
+  },
+  "system": {
+    "requiredBadge": "Required system",
+    "executionImprovement": "Execution Improvement",
+    "skillsSystem": "Skills System",
+    "managedByCore": "This plugin is treated as required system infrastructure. It remains visible, but disable and uninstall are blocked in the manager.",
+    "disableBlocked": "Required system plugins cannot be disabled here.",
+    "uninstallBlocked": "Required system plugins cannot be uninstalled here."
   },
   "states": {
     "loadingExamples": "Loading bundled examples...",
@@ -64,6 +74,8 @@
     "disabled": "Disabled",
     "upgrade_pending": "Upgrade pending",
     "uninstalled": "Uninstalled",
+    "degraded": "Degraded",
+    "missing": "Missing",
     "ready": "ready",
     "error": "error"
   },

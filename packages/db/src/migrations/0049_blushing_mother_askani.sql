@@ -1,0 +1,3 @@
+-- Reserved no-op migration.
+-- The A.5 hardening SQL was consolidated into 0048_burly_joshua_kane.sql
+-- so the migration journal remains contiguous for existing dev/test metadata.

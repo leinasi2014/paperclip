@@ -23,6 +23,10 @@ const mockAccessService = vi.hoisted(() => ({
 const mockApprovalService = vi.hoisted(() => ({
   create: vi.fn(),
 }));
+const mockCompanyService = vi.hoisted(() => ({
+  getEffectiveCeoAgentId: vi.fn(),
+  assignCeoAgent: vi.fn(),
+}));
 const mockBudgetService = vi.hoisted(() => ({}));
 const mockHeartbeatService = vi.hoisted(() => ({}));
 const mockIssueApprovalService = vi.hoisted(() => ({
@@ -62,6 +66,7 @@ vi.mock("../services/index.js", () => ({
   agentInstructionsService: () => mockAgentInstructionsService,
   accessService: () => mockAccessService,
   approvalService: () => mockApprovalService,
+  companyService: () => mockCompanyService,
   companySkillService: () => mockCompanySkillService,
   budgetService: () => mockBudgetService,
   heartbeatService: () => mockHeartbeatService,
@@ -154,6 +159,8 @@ describe("agent skill routes", () => {
             : value,
         ),
     );
+    mockCompanyService.getEffectiveCeoAgentId.mockResolvedValue(null);
+    mockCompanyService.assignCeoAgent.mockResolvedValue(undefined);
     mockAdapter.listSkills.mockResolvedValue({
       adapterType: "claude_local",
       supported: true,
@@ -359,6 +366,14 @@ describe("agent skill routes", () => {
   });
 
   it("materializes the bundled CEO instruction set for default CEO agents", async () => {
+    mockAgentService.update.mockImplementationOnce(async (_id: string, patch: Record<string, unknown>) => ({
+      ...makeAgent("claude_local"),
+      role: "ceo",
+      adapterConfig: patch.adapterConfig ?? {},
+      runtimeConfig: {},
+      permissions: null,
+    }));
+
     const res = await request(createApp())
       .post("/api/companies/company-1/agents")
       .send({
@@ -382,6 +397,10 @@ describe("agent skill routes", () => {
         "TOOLS.md": expect.stringContaining("# Tools"),
       }),
       { entryFile: "AGENTS.md", replaceExisting: false },
+    );
+    expect(mockCompanyService.assignCeoAgent).toHaveBeenCalledWith(
+      "company-1",
+      "11111111-1111-4111-8111-111111111111",
     );
   });
 
@@ -502,6 +521,23 @@ describe("agent skill routes", () => {
       | { payload?: { adapterConfig?: Record<string, unknown> } }
       | undefined;
     expect(approvalInput?.payload?.adapterConfig?.promptTemplate).toBeUndefined();
+  });
+
+  it("rejects creating a second CEO when the company already has one", async () => {
+    mockCompanyService.getEffectiveCeoAgentId.mockResolvedValue("existing-ceo");
+
+    const res = await request(createApp())
+      .post("/api/companies/company-1/agents")
+      .send({
+        name: "Replacement CEO",
+        role: "ceo",
+        adapterType: "claude_local",
+        adapterConfig: {},
+      });
+
+    expect(res.status, JSON.stringify(res.body)).toBe(409);
+    expect(res.body.error).toContain("Company already has a CEO");
+    expect(mockAgentService.create).not.toHaveBeenCalled();
   });
 
 });

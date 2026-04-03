@@ -25,6 +25,38 @@ export {
   type UpdateCompanyBranding,
 } from "./company.js";
 export {
+  createDepartmentSchema,
+  updateDepartmentSchema,
+  assignDepartmentMinisterSchema,
+  removeDepartmentMinisterSchema,
+  freezeDepartmentSchema,
+  unfreezeDepartmentSchema,
+  allocateDepartmentBudgetSchema,
+  createTemporaryWorkerSchema,
+  updateTemporaryWorkerPauseSchema,
+  extendTemporaryWorkerTtlSchema,
+  requestTemporaryWorkerResumeSchema,
+  approveTemporaryWorkerResumeSchema,
+  terminateTemporaryWorkerSchema,
+  reconcileTemporaryWorkerTtlSchema,
+  temporaryWorkerStatusSchema,
+  type CreateDepartment,
+  type UpdateDepartment,
+  type AssignDepartmentMinister,
+  type RemoveDepartmentMinister,
+  type FreezeDepartment,
+  type UnfreezeDepartment,
+  type AllocateDepartmentBudget,
+  type CreateTemporaryWorker,
+  type UpdateTemporaryWorkerPause,
+  type ExtendTemporaryWorkerTtl,
+  type RequestTemporaryWorkerResume,
+  type ApproveTemporaryWorkerResume,
+  type TerminateTemporaryWorker,
+  type ReconcileTemporaryWorkerTtl,
+  type TemporaryWorkerStatusInput,
+} from "./department.js";
+export {
   companySkillSourceTypeSchema,
   companySkillTrustLevelSchema,
   companySkillCompatibilitySchema,
@@ -48,6 +80,12 @@ export {
   type CompanySkillCreate,
   type CompanySkillFileUpdate,
 } from "./company-skill.js";
+export {
+  upsertCompanySkillCandidateSchema,
+  createCompanySkillPromotionRequestSchema,
+  type UpsertCompanySkillCandidate,
+  type CreateCompanySkillPromotionRequest,
+} from "./company-skill-governance.js";
 export {
   agentSkillStateSchema,
   agentSkillSyncModeSchema,
@@ -125,6 +163,8 @@ export {
   createIssueSchema,
   createIssueLabelSchema,
   updateIssueSchema,
+  routeIssueToDepartmentSchema,
+  ministerIssueIntakeSchema,
   issueExecutionWorkspaceSettingsSchema,
   checkoutIssueSchema,
   addIssueCommentSchema,
@@ -137,6 +177,8 @@ export {
   type CreateIssue,
   type CreateIssueLabel,
   type UpdateIssue,
+  type RouteIssueToDepartment,
+  type MinisterIssueIntake,
   type IssueExecutionWorkspaceSettings,
   type CheckoutIssue,
   type AddIssueComment,
@@ -146,6 +188,30 @@ export {
   type UpsertIssueDocument,
   type RestoreIssueDocumentRevision,
 } from "./issue.js";
+export {
+  createSystemIssueSchema,
+  updateSystemIssueSchema,
+  routeSystemIssueSchema,
+  setSystemIssueBlockRecommendationSchema,
+  listSystemIssuesQuerySchema,
+  startSystemIssueTriageSchema,
+  requestSystemIssueReviewSchema,
+  reviewSystemIssueSchema,
+  requestSystemIssueResumeSchema,
+  approveSystemIssueResumeSchema,
+  closeSystemIssueSchema,
+  type CreateSystemIssue,
+  type UpdateSystemIssue,
+  type RouteSystemIssue,
+  type SetSystemIssueBlockRecommendation,
+  type ListSystemIssuesQuery,
+  type StartSystemIssueTriage,
+  type RequestSystemIssueReview,
+  type ReviewSystemIssue,
+  type RequestSystemIssueResume,
+  type ApproveSystemIssueResume,
+  type CloseSystemIssue,
+} from "./system-issue.js";
 
 export {
   createIssueWorkProductSchema,
@@ -293,3 +359,19 @@ export {
   type SetPluginState,
   type ListPluginState,
 } from "./plugin.js";
+export {
+  createSystemPluginRolloutSchema,
+  listSystemPluginRolloutsQuerySchema,
+  recordSystemPluginRolloutApprovalSchema,
+  executeSystemPluginRestartPathSchema,
+  buildSystemPluginRollbackCommandSchema,
+  type CreateSystemPluginRollout,
+  type ListSystemPluginRolloutsQuery,
+  type RecordSystemPluginRolloutApproval,
+  type ExecuteSystemPluginRestartPath,
+  type BuildSystemPluginRollbackCommand,
+} from "./plugin-rollout.js";
+export {
+  reconcileRequiredSystemPluginsSchema,
+  type ReconcileRequiredSystemPlugins,
+} from "./system-plugin.js";

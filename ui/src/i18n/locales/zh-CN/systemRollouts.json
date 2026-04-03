@@ -1,0 +1,66 @@
+{
+  "breadcrumbs": {
+    "home": "控制台",
+    "rollouts": "系统发布"
+  },
+  "title": "系统发布",
+  "description": "用于 required system plugins、治理议题和当前宿主控制发布路径的最薄发布控制台。",
+  "empty": {
+    "selectCompany": "请先选择公司，再查看发布上下文。"
+  },
+  "sections": {
+    "rollouts": "最近发布",
+    "rolloutsDescription": "required system plugins 最近的受控重启路径发布记录。",
+    "requiredPlugins": "必需系统插件",
+    "requiredPluginsDescription": "由 Core 管理的系统插件健康状态与生命周期状态。"
+  },
+  "states": {
+    "loading": "正在加载发布记录...",
+    "noRollouts": "还没有发布记录。",
+    "noRequiredPlugins": "未找到必需系统插件。"
+  },
+  "actions": {
+    "approve": "批准",
+    "reject": "拒绝",
+    "executeRestartPath": "执行重启路径",
+    "prepareRollback": "准备回滚命令"
+  },
+  "toasts": {
+    "approveSucceeded": "发布已批准",
+    "rejectSucceeded": "发布已拒绝",
+    "approveFailed": "更新发布审批失败",
+    "executeSucceeded": "已执行重启路径",
+    "executeFailed": "执行重启路径失败",
+    "rollbackPrepared": "已生成回滚命令",
+    "rollbackFailed": "生成回滚命令失败"
+  },
+  "cards": {
+    "execution": {
+      "title": "执行路径",
+      "description": "系统能力当前采用的发布方式。",
+      "controller": "控制器",
+      "controllerValue": "由 Core 持有的热更新控制器",
+      "currentMode": "当前模式",
+      "currentModeValue": "受控重启路径",
+      "note": "真正的 live/candidate 双槽发布不属于 Phase A，需先满足宿主前置能力。"
+    },
+    "plugins": {
+      "title": "必需插件",
+      "description": "Execution Improvement 和 Skills System 作为 required system plugins 安装。",
+      "required": "约束",
+      "requiredValue": "可见、可配置，但不可移除",
+      "nextStep": "管理插件",
+      "nextStepValue": "打开插件管理",
+      "note": "插件管理页可查看健康状态、版本和有限运行参数配置。"
+    },
+    "incidents": {
+      "title": "治理队列",
+      "description": "关键发布与恢复决策仍然经由共享系统项目中的系统议题流转。",
+      "queue": "当前队列",
+      "queueValue": "通过系统议题进入 CEO intake",
+      "nextStep": "查看议题",
+      "nextStepValue": "打开系统议题",
+      "note": "execution incident、skill gap 和 governance blocker 会先在这里可见，再进入发布审批。"
+    }
+  }
+}

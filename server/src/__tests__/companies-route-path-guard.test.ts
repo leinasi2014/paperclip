@@ -26,6 +26,16 @@ vi.mock("../services/index.js", () => ({
   budgetService: () => ({
     upsertPolicy: vi.fn(),
   }),
+  systemProjectService: () => ({
+    ensureCanonical: vi.fn(),
+    reconcile: vi.fn(),
+  }),
+  requiredSystemPluginService: () => ({
+    listStatus: vi.fn(),
+    reconcileAll: vi.fn(),
+    ensureCompanySettings: vi.fn(),
+    definitions: [],
+  }),
   agentService: () => ({
     getById: vi.fn(),
   }),

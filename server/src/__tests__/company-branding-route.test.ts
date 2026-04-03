@@ -33,6 +33,11 @@ const mockCompanyPortabilityService = vi.hoisted(() => ({
   importBundle: vi.fn(),
 }));
 
+const mockSystemProjectService = vi.hoisted(() => ({
+  ensureCanonical: vi.fn(),
+  reconcile: vi.fn(),
+}));
+
 const mockLogActivity = vi.hoisted(() => vi.fn());
 
 vi.mock("../services/index.js", () => ({
@@ -42,6 +47,13 @@ vi.mock("../services/index.js", () => ({
   companyPortabilityService: () => mockCompanyPortabilityService,
   companyService: () => mockCompanyService,
   logActivity: mockLogActivity,
+  requiredSystemPluginService: () => ({
+    listStatus: vi.fn(),
+    reconcileAll: vi.fn(),
+    ensureCompanySettings: vi.fn(),
+    definitions: [],
+  }),
+  systemProjectService: () => mockSystemProjectService,
 }));
 
 function createCompany() {
@@ -81,6 +93,8 @@ describe("PATCH /api/companies/:companyId/branding", () => {
     mockCompanyService.update.mockReset();
     mockAgentService.getById.mockReset();
     mockLogActivity.mockReset();
+    mockSystemProjectService.ensureCanonical.mockReset();
+    mockSystemProjectService.reconcile.mockReset();
   });
 
   it("rejects non-CEO agent callers", async () => {

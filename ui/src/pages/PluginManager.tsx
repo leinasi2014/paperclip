@@ -7,13 +7,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import type { PluginRecord, PluginStatus } from "@paperclipai/shared";
+import type { PluginRecord, PluginStatus, RequiredSystemPluginStatus } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
 import { AlertTriangle, FlaskConical, Plus, Power, Puzzle, Settings, Trash } from "lucide-react";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { pluginsApi } from "@/api/plugins";
 import { queryKeys } from "@/lib/queryKeys";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,8 @@ import {
 import { useToast } from "@/context/ToastContext";
 import { cn } from "@/lib/utils";
 
+type RequiredSystemPluginKind = "executionImprovement" | "skillsSystem";
+
 function firstNonEmptyLine(value: string | null | undefined): string | null {
   if (!value) return null;
   const line = value
@@ -42,6 +45,36 @@ function firstNonEmptyLine(value: string | null | undefined): string | null {
 
 function getPluginErrorSummary(plugin: PluginRecord, fallback: string): string {
   return firstNonEmptyLine(plugin.lastError) ?? fallback;
+}
+
+function getRequiredSystemPluginKind(plugin: PluginRecord): RequiredSystemPluginKind | null {
+  const haystack = [
+    plugin.pluginKey,
+    plugin.packageName,
+    plugin.manifestJson.displayName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (
+    haystack.includes("execution-improvement")
+    || haystack.includes("execution_improvement")
+    || haystack.includes("execution improvement")
+  ) {
+    return "executionImprovement";
+  }
+
+  if (
+    haystack.includes("skills-system")
+    || haystack.includes("skill-system")
+    || haystack.includes("skills_system")
+    || haystack.includes("skills system")
+  ) {
+    return "skillsSystem";
+  }
+
+  return null;
 }
 
 /**
@@ -86,6 +119,10 @@ export function PluginManager() {
     queryKey: queryKeys.plugins.all,
     queryFn: () => pluginsApi.list(),
   });
+  const { data: requiredSystemStatuses } = useQuery({
+    queryKey: queryKeys.systemPlugins.status(selectedCompany?.id),
+    queryFn: () => pluginsApi.listRequiredSystemStatus(selectedCompany?.id),
+  });
 
   const examplesQuery = useQuery({
     queryKey: queryKeys.plugins.examples,
@@ -96,6 +133,7 @@ export function PluginManager() {
     queryClient.invalidateQueries({ queryKey: queryKeys.plugins.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.plugins.examples });
     queryClient.invalidateQueries({ queryKey: queryKeys.plugins.uiContributions });
+    queryClient.invalidateQueries({ queryKey: queryKeys.systemPlugins.status(selectedCompany?.id) });
   };
 
   const installMutation = useMutation({
@@ -146,6 +184,21 @@ export function PluginManager() {
   });
 
   const installedPlugins = plugins ?? [];
+  const requiredSystemPluginKindById = useMemo(
+    () =>
+      new Map(
+        installedPlugins
+          .map((plugin) => [plugin.id, getRequiredSystemPluginKind(plugin)] as const)
+          .filter((entry): entry is readonly [string, RequiredSystemPluginKind] => entry[1] !== null),
+      ),
+    [installedPlugins],
+  );
+  const requiredStatusRows = requiredSystemStatuses ?? [];
+  const requiredStatusByKey = useMemo(
+    () => new Map(requiredStatusRows.map((status) => [status.pluginKey, status] as const)),
+    [requiredStatusRows],
+  );
+  const regularPlugins = installedPlugins.filter((plugin) => !requiredStatusByKey.has(plugin.pluginKey as RequiredSystemPluginStatus["pluginKey"]));
   const examples = examplesQuery.data ?? [];
   const installedByPackageName = new Map(installedPlugins.map((plugin) => [plugin.packageName, plugin]));
   const examplePackageNames = new Set(examples.map((example) => example.packageName));
@@ -164,16 +217,212 @@ export function PluginManager() {
       ),
     [installedPlugins, t]
   );
+  const requiredRuntimeLabels: Record<RequiredSystemPluginStatus["runtimeStatus"], string> = {
+    ready: t("states.ready"),
+    installed: t("states.installed"),
+    degraded: t("states.degraded"),
+    missing: t("states.missing"),
+  };
 
-  if (isLoading) return <div className="p-4 text-sm text-muted-foreground">{t("loading")}</div>;
-  if (error) return <div className="p-4 text-sm text-destructive">{t("error")}</div>;
+  if (isLoading) return <PageSkeleton variant="list" />;
+
+  const renderRequiredSystemPluginRow = (status: RequiredSystemPluginStatus) => {
+    const installedPlugin = status.pluginId
+      ? installedPlugins.find((plugin) => plugin.id === status.pluginId) ?? null
+      : installedPlugins.find((plugin) => plugin.pluginKey === status.pluginKey) ?? null;
+    const requiredSystemKind =
+      installedPlugin ? getRequiredSystemPluginKind(installedPlugin) : (
+        status.pluginKey === "paperclip.execution-improvement" ? "executionImprovement" : "skillsSystem"
+      );
+    const errorText = status.bootstrapError ?? status.lastError ?? null;
+
+    return (
+      <li key={status.pluginKey}>
+        <div className="flex items-start gap-4 px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-medium">{t(`system.${requiredSystemKind}`)}</span>
+              <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300">
+                {t("system.requiredBadge")}
+              </Badge>
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {status.packageName}
+              {installedPlugin ? ` · v${installedPlugin.manifestJson.version ?? installedPlugin.version}` : ""}
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{t("system.managedByCore")}</p>
+            {errorText ? (
+              <div className="mt-3 rounded-md border border-red-500/25 bg-red-500/[0.06] px-3 py-2">
+                <div className="flex items-start gap-2 text-sm text-red-700 dark:text-red-300">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p className="break-words">{errorText}</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          <div className="flex shrink-0 self-center">
+            <div className="flex flex-col items-end gap-2">
+              <Badge
+                variant={status.runtimeStatus === "ready" ? "default" : status.runtimeStatus === "degraded" ? "destructive" : "secondary"}
+                className={cn("shrink-0", status.runtimeStatus === "ready" ? "bg-green-600 hover:bg-green-700" : "")}
+              >
+                {requiredRuntimeLabels[status.runtimeStatus]}
+              </Badge>
+              {installedPlugin ? (
+                <Button variant="outline" size="sm" className="mt-2 h-8" asChild>
+                  <Link to={`/instance/settings/plugins/${installedPlugin.id}`}>
+                    <Settings className="h-4 w-4" />
+                    {t("actions.configure")}
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </li>
+    );
+  };
+
+  const renderInstalledPluginRow = (plugin: PluginRecord) => {
+    const requiredSystemKind = requiredSystemPluginKindById.get(plugin.id) ?? null;
+    const isRequiredSystemPlugin = requiredSystemKind !== null;
+    const disableBlocked = isRequiredSystemPlugin && plugin.status === "ready";
+    const uninstallBlocked = isRequiredSystemPlugin;
+    const requiredSystemName = requiredSystemKind ? t(`system.${requiredSystemKind}`) : null;
+
+    return (
+      <li key={plugin.id}>
+        <div className="flex items-start gap-4 px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                to={`/instance/settings/plugins/${plugin.id}`}
+                className="font-medium hover:underline truncate block"
+                title={plugin.manifestJson.displayName ?? plugin.packageName}
+              >
+                {plugin.manifestJson.displayName ?? plugin.packageName}
+              </Link>
+              {examplePackageNames.has(plugin.packageName) && (
+                <Badge variant="outline">{t("states.example")}</Badge>
+              )}
+              {isRequiredSystemPlugin && (
+                <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300">
+                  {t("system.requiredBadge")}
+                </Badge>
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate" title={plugin.packageName}>
+                {plugin.packageName} · v{plugin.manifestJson.version ?? plugin.version}
+              </p>
+            </div>
+            <p className="text-sm text-muted-foreground truncate mt-0.5" title={plugin.manifestJson.description}>
+              {plugin.manifestJson.description || t("states.noDescription")}
+            </p>
+            {isRequiredSystemPlugin ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {requiredSystemName ? `${requiredSystemName} · ` : ""}
+                {t("system.managedByCore")}
+              </p>
+            ) : null}
+            {plugin.status === "error" && (
+              <div className="mt-3 rounded-md border border-red-500/25 bg-red-500/[0.06] px-3 py-2">
+                <div className="flex flex-wrap items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 text-sm font-medium text-red-700 dark:text-red-300">
+                      <AlertTriangle className="h-4 w-4 shrink-0" />
+                      <span>{t("states.pluginError")}</span>
+                    </div>
+                    <p
+                      className="mt-1 text-sm text-red-700/90 dark:text-red-200/90 break-words"
+                      title={plugin.lastError ?? undefined}
+                    >
+                      {errorSummaryByPluginId.get(plugin.id)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-red-500/30 bg-background/60 text-red-700 hover:bg-red-500/10 hover:text-red-800 dark:text-red-200 dark:hover:text-red-100"
+                    onClick={() => setErrorDetailsPlugin(plugin)}
+                  >
+                    {t("actions.viewFullError")}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex shrink-0 self-center">
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant={
+                    plugin.status === "ready"
+                      ? "default"
+                      : plugin.status === "error"
+                        ? "destructive"
+                        : "secondary"
+                  }
+                  className={cn(
+                    "shrink-0",
+                    plugin.status === "ready" ? "bg-green-600 hover:bg-green-700" : ""
+                  )}
+                >
+                  {pluginStatusLabels[plugin.status]}
+                </Badge>
+                <span title={disableBlocked ? t("system.disableBlocked") : undefined}>
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    className="h-8 w-8"
+                    title={plugin.status === "ready" ? t("actions.disable") : t("actions.enable")}
+                    onClick={() => {
+                      if (plugin.status === "ready") {
+                        disableMutation.mutate(plugin.id);
+                      } else {
+                        enableMutation.mutate(plugin.id);
+                      }
+                    }}
+                    disabled={enableMutation.isPending || disableMutation.isPending || disableBlocked}
+                  >
+                    <Power className={cn("h-4 w-4", plugin.status === "ready" ? "text-green-600" : "")} />
+                  </Button>
+                </span>
+                <span title={uninstallBlocked ? t("system.uninstallBlocked") : undefined}>
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    title={t("actions.uninstall")}
+                    onClick={() => {
+                      setUninstallPluginId(plugin.id);
+                      setUninstallPluginName(plugin.manifestJson.displayName ?? plugin.packageName);
+                    }}
+                    disabled={uninstallMutation.isPending || uninstallBlocked}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </span>
+              </div>
+              <Button variant="outline" size="sm" className="mt-2 h-8" asChild>
+                <Link to={`/instance/settings/plugins/${plugin.id}`}>
+                  <Settings className="h-4 w-4" />
+                  {t("actions.configure")}
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </li>
+    );
+  };
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Puzzle className="h-6 w-6 text-muted-foreground" />
+    <div className="space-y-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
           <h1 className="text-xl font-semibold">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
         
         <Dialog open={installDialogOpen} onOpenChange={setInstallDialogOpen}>
@@ -211,6 +460,8 @@ export function PluginManager() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {error ? <p className="text-sm text-destructive">{t("error")}</p> : null}
 
       <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
         <div className="flex items-start gap-3">
@@ -310,134 +561,42 @@ export function PluginManager() {
       </section>
 
       <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Puzzle className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-base font-semibold">{t("sections.installed")}</h2>
-        </div>
+        {requiredStatusRows.length > 0 ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Puzzle className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-base font-semibold">{t("sections.requiredSystem")}</h2>
+            </div>
+            <ul className="divide-y rounded-md border bg-card">
+              {requiredStatusRows.map(renderRequiredSystemPluginRow)}
+            </ul>
+          </div>
+        ) : null}
 
-        {!installedPlugins.length ? (
-          <Card className="bg-muted/30">
-            <CardContent className="flex flex-col items-center justify-center py-10">
-              <Puzzle className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-sm font-medium">{t("states.noPlugins")}</p>
-              <p className="text-xs text-muted-foreground mt-1">{t("states.noPluginsDescription")}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <ul className="divide-y rounded-md border bg-card">
-            {installedPlugins.map((plugin) => (
-              <li key={plugin.id}>
-                <div className="flex items-start gap-4 px-4 py-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Link
-                        to={`/instance/settings/plugins/${plugin.id}`}
-                        className="font-medium hover:underline truncate block"
-                        title={plugin.manifestJson.displayName ?? plugin.packageName}
-                      >
-                        {plugin.manifestJson.displayName ?? plugin.packageName}
-                      </Link>
-                      {examplePackageNames.has(plugin.packageName) && (
-                        <Badge variant="outline">{t("states.example")}</Badge>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate" title={plugin.packageName}>
-                        {plugin.packageName} · v{plugin.manifestJson.version ?? plugin.version}
-                      </p>
-                    </div>
-                    <p className="text-sm text-muted-foreground truncate mt-0.5" title={plugin.manifestJson.description}>
-                      {plugin.manifestJson.description || t("states.noDescription")}
-                    </p>
-                    {plugin.status === "error" && (
-                      <div className="mt-3 rounded-md border border-red-500/25 bg-red-500/[0.06] px-3 py-2">
-                        <div className="flex flex-wrap items-start gap-3">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 text-sm font-medium text-red-700 dark:text-red-300">
-                              <AlertTriangle className="h-4 w-4 shrink-0" />
-                              <span>{t("states.pluginError")}</span>
-                            </div>
-                            <p
-                              className="mt-1 text-sm text-red-700/90 dark:text-red-200/90 break-words"
-                              title={plugin.lastError ?? undefined}
-                            >
-                              {errorSummaryByPluginId.get(plugin.id)}
-                            </p>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-red-500/30 bg-background/60 text-red-700 hover:bg-red-500/10 hover:text-red-800 dark:text-red-200 dark:hover:text-red-100"
-                            onClick={() => setErrorDetailsPlugin(plugin)}
-                          >
-                            {t("actions.viewFullError")}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 self-center">
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={
-                            plugin.status === "ready"
-                              ? "default"
-                              : plugin.status === "error"
-                                ? "destructive"
-                              : "secondary"
-                          }
-                          className={cn(
-                            "shrink-0",
-                            plugin.status === "ready" ? "bg-green-600 hover:bg-green-700" : ""
-                          )}
-                        >
-                          {pluginStatusLabels[plugin.status]}
-                        </Badge>
-                        <Button
-                          variant="outline"
-                          size="icon-sm"
-                          className="h-8 w-8"
-                          title={plugin.status === "ready" ? t("actions.disable") : t("actions.enable")}
-                          onClick={() => {
-                            if (plugin.status === "ready") {
-                              disableMutation.mutate(plugin.id);
-                            } else {
-                              enableMutation.mutate(plugin.id);
-                            }
-                          }}
-                          disabled={enableMutation.isPending || disableMutation.isPending}
-                        >
-                          <Power className={cn("h-4 w-4", plugin.status === "ready" ? "text-green-600" : "")} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon-sm"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          title={t("actions.uninstall")}
-                          onClick={() => {
-                            setUninstallPluginId(plugin.id);
-                            setUninstallPluginName(plugin.manifestJson.displayName ?? plugin.packageName);
-                          }}
-                          disabled={uninstallMutation.isPending}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <Button variant="outline" size="sm" className="mt-2 h-8" asChild>
-                        <Link to={`/instance/settings/plugins/${plugin.id}`}>
-                          <Settings className="h-4 w-4" />
-                          {t("actions.configure")}
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
+
+      {!installedPlugins.length || regularPlugins.length > 0 ? (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Puzzle className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-base font-semibold">{t("sections.installed")}</h2>
+          </div>
+
+          {!installedPlugins.length ? (
+            <Card className="bg-muted/30">
+              <CardContent className="flex flex-col items-center justify-center py-10">
+                <Puzzle className="h-10 w-10 text-muted-foreground mb-4" />
+                <p className="text-sm font-medium">{t("states.noPlugins")}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("states.noPluginsDescription")}</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <ul className="divide-y rounded-md border bg-card">
+              {regularPlugins.map(renderInstalledPluginRow)}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <Dialog
         open={uninstallPluginId !== null}

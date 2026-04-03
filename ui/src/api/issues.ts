@@ -6,6 +6,7 @@ import type {
   IssueComment,
   IssueDocument,
   IssueLabel,
+  MinisterIntakeResponse,
   IssueWorkProduct,
   UpsertIssueDocument,
 } from "@paperclipai/shared";
@@ -68,6 +69,10 @@ export const issuesApi = {
     api.post<Issue>(`/companies/${companyId}/issues`, data),
   update: (id: string, data: Record<string, unknown>) =>
     api.patch<IssueUpdateResponse>(`/issues/${id}`, data),
+  routeToDepartment: (id: string, owningDepartmentId: string | null) =>
+    api.post<Issue>(`/issues/${id}/route-to-department`, { owningDepartmentId }),
+  ministerIntake: (id: string, body: { response: MinisterIntakeResponse; reason?: string | null }) =>
+    api.post<Issue>(`/issues/${id}/minister-intake`, body),
   remove: (id: string) => api.delete<Issue>(`/issues/${id}`),
   checkout: (id: string, agentId: string) =>
     api.post<Issue>(`/issues/${id}/checkout`, {

@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
+  check,
+  foreignKey,
   pgTable,
   uuid,
   text,
@@ -9,6 +11,7 @@ import {
   jsonb,
   index,
   uniqueIndex,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { agents } from "./agents.js";
 import { projects } from "./projects.js";
@@ -17,6 +20,7 @@ import { companies } from "./companies.js";
 import { heartbeatRuns } from "./heartbeat_runs.js";
 import { projectWorkspaces } from "./project_workspaces.js";
 import { executionWorkspaces } from "./execution_workspaces.js";
+import { departments } from "./departments.js";
 
 export const issues = pgTable(
   "issues",
@@ -25,6 +29,7 @@ export const issues = pgTable(
     companyId: uuid("company_id").notNull().references(() => companies.id),
     projectId: uuid("project_id").references(() => projects.id),
     projectWorkspaceId: uuid("project_workspace_id").references(() => projectWorkspaces.id, { onDelete: "set null" }),
+    owningDepartmentId: uuid("owning_department_id").references(() => departments.id, { onDelete: "set null" }),
     goalId: uuid("goal_id").references(() => goals.id),
     parentId: uuid("parent_id").references((): AnyPgColumn => issues.id),
     title: text("title").notNull(),
@@ -45,6 +50,20 @@ export const issues = pgTable(
     originId: text("origin_id"),
     originRunId: text("origin_run_id"),
     requestDepth: integer("request_depth").notNull().default(0),
+    departmentIntakeStatus: text("department_intake_status"),
+    routedByAgentId: uuid("routed_by_agent_id").references(() => agents.id, { onDelete: "set null" }),
+    routedByUserId: text("routed_by_user_id"),
+    routedAt: timestamp("routed_at", { withTimezone: true }),
+    ministerDecisionResponse: text("minister_decision_response"),
+    ministerDecisionByAgentId: uuid("minister_decision_by_agent_id").references(() => agents.id, {
+      onDelete: "set null",
+    }),
+    ministerDecisionAt: timestamp("minister_decision_at", { withTimezone: true }),
+    ministerDecisionReason: text("minister_decision_reason"),
+    systemIssueType: text("system_issue_type"),
+    systemIssueSeverity: text("system_issue_severity"),
+    systemIssueWorkflowState: text("system_issue_workflow_state"),
+    blockRecommended: boolean("block_recommended").notNull().default(false),
     billingCode: text("billing_code"),
     assigneeAdapterOverrides: jsonb("assignee_adapter_overrides").$type<Record<string, unknown>>(),
     executionWorkspaceId: uuid("execution_workspace_id")
@@ -72,10 +91,47 @@ export const issues = pgTable(
     ),
     parentIdx: index("issues_company_parent_idx").on(table.companyId, table.parentId),
     projectIdx: index("issues_company_project_idx").on(table.companyId, table.projectId),
+    owningDepartmentIdx: index("issues_company_owning_department_idx").on(table.companyId, table.owningDepartmentId),
     originIdx: index("issues_company_origin_idx").on(table.companyId, table.originKind, table.originId),
     projectWorkspaceIdx: index("issues_company_project_workspace_idx").on(table.companyId, table.projectWorkspaceId),
     executionWorkspaceIdx: index("issues_company_execution_workspace_idx").on(table.companyId, table.executionWorkspaceId),
     identifierIdx: uniqueIndex("issues_identifier_idx").on(table.identifier),
+    companyIdIdUq: uniqueIndex("issues_company_id_id_uq").on(table.companyId, table.id),
+    companyOwningDepartmentFk: foreignKey({
+      columns: [table.companyId, table.owningDepartmentId],
+      foreignColumns: [departments.companyId, departments.id],
+      name: "issues_company_owning_department_fk",
+    }),
+    companyRoutedByAgentFk: foreignKey({
+      columns: [table.companyId, table.routedByAgentId],
+      foreignColumns: [agents.companyId, agents.id],
+      name: "issues_company_routed_by_agent_fk",
+    }),
+    companyMinisterDecisionByAgentFk: foreignKey({
+      columns: [table.companyId, table.ministerDecisionByAgentId],
+      foreignColumns: [agents.companyId, agents.id],
+      name: "issues_company_minister_decision_by_agent_fk",
+    }),
+    departmentIntakeStatusChk: check(
+      "issues_department_intake_status_chk",
+      sql`${table.departmentIntakeStatus} is null or ${table.departmentIntakeStatus} in ('ceo_intake', 'routed', 'accepted', 'rejected', 'needs_clarification')`,
+    ),
+    ministerDecisionResponseChk: check(
+      "issues_minister_decision_response_chk",
+      sql`${table.ministerDecisionResponse} is null or ${table.ministerDecisionResponse} in ('accept', 'reject', 'needs_clarification')`,
+    ),
+    systemIssueTypeChk: check(
+      "issues_system_issue_type_chk",
+      sql`${table.systemIssueType} is null or ${table.systemIssueType} in ('execution', 'skill', 'governance')`,
+    ),
+    systemIssueSeverityChk: check(
+      "issues_system_issue_severity_chk",
+      sql`${table.systemIssueSeverity} is null or ${table.systemIssueSeverity} in ('critical', 'high', 'medium', 'low')`,
+    ),
+    systemIssueWorkflowStateChk: check(
+      "issues_system_issue_workflow_state_chk",
+      sql`${table.systemIssueWorkflowState} is null or ${table.systemIssueWorkflowState} in ('open', 'triaging', 'in_progress', 'pending_review', 'review_passed', 'ready_to_resume', 'done')`,
+    ),
     openRoutineExecutionIdx: uniqueIndex("issues_open_routine_execution_uq")
       .on(table.companyId, table.originKind, table.originId)
       .where(

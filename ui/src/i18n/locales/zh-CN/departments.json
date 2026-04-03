@@ -1,0 +1,52 @@
+{
+  "breadcrumbs": {
+    "title": "部门"
+  },
+  "title": "部门",
+  "description": "由单一部长负责的公司责任单元。",
+  "loading": "正在加载部门...",
+  "actions": {
+    "create": "创建部门",
+    "assignMinister": "指派部长",
+    "removeMinister": "移除部长",
+    "freeze": "冻结部门",
+    "unfreeze": "解冻部门",
+    "allocateBudget": "分配预算"
+  },
+  "fields": {
+    "name": "名称",
+    "slug": "标识",
+    "mission": "使命",
+    "minister": "部长",
+    "status": "状态",
+    "budget": "预算",
+    "maxWorkers": "临时工上限",
+    "ttlExpiresAt": "TTL 到期时间",
+    "reason": "原因",
+    "monthlyLimit": "月度额度",
+    "reserved": "已预留",
+    "spent": "已花费"
+  },
+  "empty": {
+    "selectCompany": "请选择公司以查看部门。",
+    "noDepartments": "还没有部门。",
+    "noSystemIssues": "还没有路由到该部门的系统议题。",
+    "noTemporaryWorkers": "该部门当前没有临时工。"
+  },
+  "sections": {
+    "budget": "预算包",
+    "systemIssues": "系统议题",
+    "temporaryWorkers": "临时工"
+  },
+  "detail": {
+    "missionFallback": "尚未定义使命。",
+    "ministerFallback": "未指派",
+    "budgetNotFound": "还没有预算包。",
+    "viewSystemIssue": "打开系统议题",
+    "ttlPolicy": "默认临时工 TTL：{{minutes}} 分钟"
+  },
+  "errors": {
+    "notFound": "未找到部门",
+    "budgetNotFound": "未找到部门预算"
+  }
+}

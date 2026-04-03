@@ -5,6 +5,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 IMAGE_NAME="${IMAGE_NAME:-paperclip-onboard-smoke}"
 HOST_PORT="${HOST_PORT:-3131}"
 PAPERCLIPAI_VERSION="${PAPERCLIPAI_VERSION:-latest}"
+CLAUDE_CODE_VERSION="${CLAUDE_CODE_VERSION:-latest}"
 DATA_DIR="${DATA_DIR:-$REPO_ROOT/data/docker-onboard-smoke}"
 HOST_UID="${HOST_UID:-$(id -u)}"
 SMOKE_DETACH="${SMOKE_DETACH:-false}"
@@ -16,13 +17,18 @@ SMOKE_AUTO_BOOTSTRAP="${SMOKE_AUTO_BOOTSTRAP:-true}"
 SMOKE_ADMIN_NAME="${SMOKE_ADMIN_NAME:-Smoke Admin}"
 SMOKE_ADMIN_EMAIL="${SMOKE_ADMIN_EMAIL:-smoke-admin@paperclip.local}"
 SMOKE_ADMIN_PASSWORD="${SMOKE_ADMIN_PASSWORD:-paperclip-smoke-password}"
+SMOKE_CLAUDE_CONFIG_DIR="${SMOKE_CLAUDE_CONFIG_DIR:-}"
+SMOKE_READY_TIMEOUT_SEC="${SMOKE_READY_TIMEOUT_SEC:-240}"
 CONTAINER_NAME="${IMAGE_NAME//[^a-zA-Z0-9_.-]/-}"
 LOG_PID=""
 COOKIE_JAR=""
 TMP_DIR=""
 PRESERVE_CONTAINER_ON_EXIT="false"
+DOCKER_CACHE_DIR="$REPO_ROOT/.tmp/docker-cache"
+CLAUDE_CODE_TARBALL="$DOCKER_CACHE_DIR/claude-code.tgz"
 
 mkdir -p "$DATA_DIR"
+mkdir -p "$DOCKER_CACHE_DIR"
 
 cleanup() {
   if [[ -n "$LOG_PID" ]]; then
@@ -76,6 +82,7 @@ write_metadata_file() {
     printf 'SMOKE_BASE_URL=%q\n' "$PAPERCLIP_PUBLIC_URL"
     printf 'SMOKE_ADMIN_EMAIL=%q\n' "$SMOKE_ADMIN_EMAIL"
     printf 'SMOKE_ADMIN_PASSWORD=%q\n' "$SMOKE_ADMIN_PASSWORD"
+    printf 'SMOKE_CLAUDE_CONFIG_DIR=%q\n' "$SMOKE_CLAUDE_CONFIG_DIR"
     printf 'SMOKE_CONTAINER_NAME=%q\n' "$CONTAINER_NAME"
     printf 'SMOKE_DATA_DIR=%q\n' "$DATA_DIR"
     printf 'SMOKE_IMAGE_NAME=%q\n' "$IMAGE_NAME"
@@ -238,6 +245,36 @@ auto_bootstrap_authenticated_smoke() {
   echo "    Smoke admin credentials: $SMOKE_ADMIN_EMAIL / $SMOKE_ADMIN_PASSWORD"
 }
 
+prepare_claude_code_tarball() {
+  local requested_version="$CLAUDE_CODE_VERSION"
+  local resolved_version
+  local packed_file
+
+  echo "==> Prefetching Claude Code package"
+  resolved_version="$(npm view "@anthropic-ai/claude-code@${requested_version}" version --json | tr -d '"')"
+  if [[ -z "$resolved_version" ]]; then
+    echo "Smoke bootstrap failed: could not resolve Claude Code version for ${requested_version}" >&2
+    exit 1
+  fi
+
+  packed_file="$DOCKER_CACHE_DIR/anthropic-ai-claude-code-${resolved_version}.tgz"
+  if [[ ! -f "$packed_file" ]]; then
+    rm -f "$DOCKER_CACHE_DIR"/anthropic-ai-claude-code-*.tgz "$CLAUDE_CODE_TARBALL"
+    npm pack "@anthropic-ai/claude-code@${resolved_version}" --pack-destination "$DOCKER_CACHE_DIR" >/dev/null
+  fi
+
+  if [[ ! -f "$packed_file" ]]; then
+    echo "Smoke bootstrap failed: Claude Code tarball was not created for ${resolved_version}" >&2
+    exit 1
+  fi
+
+  cp "$packed_file" "$CLAUDE_CODE_TARBALL"
+  echo "    Claude Code version: $resolved_version"
+  echo "    Claude Code tarball: $CLAUDE_CODE_TARBALL"
+}
+
+prepare_claude_code_tarball
+
 echo "==> Building onboard smoke image"
 docker build \
   --build-arg PAPERCLIPAI_VERSION="$PAPERCLIPAI_VERSION" \
@@ -253,22 +290,39 @@ echo "    Smoke auto-bootstrap: $SMOKE_AUTO_BOOTSTRAP"
 echo "    Detached mode: $SMOKE_DETACH"
 echo "    Data dir: $DATA_DIR"
 echo "    Deployment: $PAPERCLIP_DEPLOYMENT_MODE/$PAPERCLIP_DEPLOYMENT_EXPOSURE"
+if [[ -n "$SMOKE_CLAUDE_CONFIG_DIR" ]]; then
+  echo "    Claude config dir: $SMOKE_CLAUDE_CONFIG_DIR"
+fi
 if [[ "$SMOKE_DETACH" != "true" ]]; then
   echo "    Live output: onboard banner and server logs stream in this terminal (Ctrl+C to stop)"
 fi
 
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 
-docker run -d --rm \
-  --name "$CONTAINER_NAME" \
-  -p "$HOST_PORT:3100" \
-  -e HOST=0.0.0.0 \
-  -e PORT=3100 \
-  -e PAPERCLIP_DEPLOYMENT_MODE="$PAPERCLIP_DEPLOYMENT_MODE" \
-  -e PAPERCLIP_DEPLOYMENT_EXPOSURE="$PAPERCLIP_DEPLOYMENT_EXPOSURE" \
-  -e PAPERCLIP_PUBLIC_URL="$PAPERCLIP_PUBLIC_URL" \
-  -v "$DATA_DIR:/paperclip" \
-  "$IMAGE_NAME" >/dev/null
+docker_run_args=(
+  -d
+  --rm
+  --name "$CONTAINER_NAME"
+  -p "$HOST_PORT:3100"
+  -e HOST=0.0.0.0
+  -e PORT=3100
+  -e PAPERCLIP_DEPLOYMENT_MODE="$PAPERCLIP_DEPLOYMENT_MODE"
+  -e PAPERCLIP_DEPLOYMENT_EXPOSURE="$PAPERCLIP_DEPLOYMENT_EXPOSURE"
+  -e PAPERCLIP_PUBLIC_URL="$PAPERCLIP_PUBLIC_URL"
+  -e CLAUDE_HOME=/home/paperclip/.claude
+  -e CLAUDE_CONFIG_DIR=/home/paperclip/.claude
+  -v "$DATA_DIR:/paperclip"
+)
+
+if [[ -n "$SMOKE_CLAUDE_CONFIG_DIR" ]]; then
+  if [[ ! -d "$SMOKE_CLAUDE_CONFIG_DIR" ]]; then
+    echo "Smoke bootstrap failed: Claude config dir not found at $SMOKE_CLAUDE_CONFIG_DIR" >&2
+    exit 1
+  fi
+  docker_run_args+=(-v "$SMOKE_CLAUDE_CONFIG_DIR:/home/paperclip/.claude:ro")
+fi
+
+docker run "${docker_run_args[@]}" "$IMAGE_NAME" >/dev/null
 
 if [[ "$SMOKE_DETACH" != "true" ]]; then
   docker logs -f "$CONTAINER_NAME" &
@@ -278,7 +332,7 @@ fi
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/paperclip-onboard-smoke.XXXXXX")"
 COOKIE_JAR="$TMP_DIR/cookies.txt"
 
-if ! wait_for_http "$PAPERCLIP_PUBLIC_URL/api/health" 90 1; then
+if ! wait_for_http "$PAPERCLIP_PUBLIC_URL/api/health" "$SMOKE_READY_TIMEOUT_SEC" 1; then
   echo "Smoke bootstrap failed: server did not become ready at $PAPERCLIP_PUBLIC_URL/api/health" >&2
   exit 1
 fi

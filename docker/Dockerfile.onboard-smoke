@@ -1,3 +1,6 @@
+## Built by scripts/docker-onboard-smoke.sh, which prefetches the Claude Code
+## package tarball into .tmp/docker-cache/claude-code.tgz so Docker installs it
+## offline instead of stalling on npm registry fetches during image build.
 FROM ubuntu:24.04
 
 ARG NODE_MAJOR=20
@@ -32,9 +35,23 @@ RUN apt-get update \
   && chown -R paperclip:paperclip /paperclip /home/paperclip \
   && rm -rf /var/lib/apt/lists/*
 
+USER root
+COPY .tmp/docker-cache/claude-code.tgz /tmp/claude-code.tgz
+RUN mkdir -p /opt/claude-code \
+  && tar -xzf /tmp/claude-code.tgz -C /opt/claude-code \
+  && chmod +x /opt/claude-code/package/cli.js \
+  && chmod +x /opt/claude-code/package/vendor/ripgrep/*/rg* \
+  && ln -sf /opt/claude-code/package/cli.js /usr/local/bin/claude \
+  && rm -f /tmp/claude-code.tgz
+
+RUN npm install --global --omit=dev "paperclipai@${PAPERCLIPAI_VERSION}"
+
 VOLUME ["/paperclip"]
 WORKDIR /home/paperclip/workspace
 EXPOSE 3100
 USER paperclip
 
-CMD ["bash", "-lc", "set -euo pipefail; mkdir -p \"$PAPERCLIP_HOME\"; npx --yes \"paperclipai@${PAPERCLIPAI_VERSION}\" onboard --yes --data-dir \"$PAPERCLIP_HOME\""]
+ENV CLAUDE_HOME=/home/paperclip/.claude \
+  CLAUDE_CONFIG_DIR=/home/paperclip/.claude
+
+CMD ["bash", "-lc", "set -euo pipefail; mkdir -p \"$PAPERCLIP_HOME\"; paperclipai onboard --yes --data-dir \"$PAPERCLIP_HOME\""]

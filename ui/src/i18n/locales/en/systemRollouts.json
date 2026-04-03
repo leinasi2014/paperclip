@@ -1,0 +1,66 @@
+{
+  "breadcrumbs": {
+    "home": "Board",
+    "rollouts": "System Rollouts"
+  },
+  "title": "System Rollouts",
+  "description": "Thin rollout console for required system plugins, governance incidents, and the current host-controlled release path.",
+  "empty": {
+    "selectCompany": "Select a company to view rollout context."
+  },
+  "sections": {
+    "rollouts": "Recent rollouts",
+    "rolloutsDescription": "Latest controlled restart-path rollouts for required system plugins.",
+    "requiredPlugins": "Required system plugins",
+    "requiredPluginsDescription": "Health and lifecycle state for core-managed system plugins."
+  },
+  "states": {
+    "loading": "Loading rollouts...",
+    "noRollouts": "No rollouts yet.",
+    "noRequiredPlugins": "No required system plugins found."
+  },
+  "actions": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "executeRestartPath": "Execute restart path",
+    "prepareRollback": "Prepare rollback"
+  },
+  "toasts": {
+    "approveSucceeded": "Rollout approved",
+    "rejectSucceeded": "Rollout rejected",
+    "approveFailed": "Failed to update rollout approval",
+    "executeSucceeded": "Restart path executed",
+    "executeFailed": "Failed to execute restart path",
+    "rollbackPrepared": "Rollback command prepared",
+    "rollbackFailed": "Failed to prepare rollback command"
+  },
+  "cards": {
+    "execution": {
+      "title": "Execution Path",
+      "description": "Current rollout behavior for system capabilities.",
+      "controller": "Controller",
+      "controllerValue": "Core-owned hot-update controller",
+      "currentMode": "Current mode",
+      "currentModeValue": "Controlled restart path",
+      "note": "True live/candidate slot rollout stays out of Phase A until host prerequisites exist."
+    },
+    "plugins": {
+      "title": "Required Plugins",
+      "description": "Execution Improvement and Skills System are installed as required system plugins.",
+      "required": "Constraint",
+      "requiredValue": "Visible, configurable, but not removable",
+      "nextStep": "Manage plugins",
+      "nextStepValue": "Open Plugin Manager",
+      "note": "Use the plugin manager to inspect health, version, and limited runtime settings."
+    },
+    "incidents": {
+      "title": "Governance Queue",
+      "description": "Critical rollout and recovery decisions still route through the shared system issues project.",
+      "queue": "Current queue",
+      "queueValue": "CEO intake via system issues",
+      "nextStep": "Review incidents",
+      "nextStepValue": "Open System Issues",
+      "note": "Execution incidents, skill gaps, and governance blockers remain visible before any rollout approval."
+    }
+  }
+}

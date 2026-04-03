@@ -417,7 +417,7 @@ type ProjectLike = {
   targetDate: string | null;
   color: string | null;
   status: string;
-  executionWorkspacePolicy: Record<string, unknown> | null;
+  executionWorkspacePolicy: unknown | null;
   workspaces?: Array<{
     id: string;
     name: string;
@@ -433,6 +433,7 @@ type ProjectLike = {
     isPrimary: boolean;
   }>;
   metadata?: Record<string, unknown> | null;
+  isSystemProject?: boolean | null;
 };
 
 type IssueLike = {
@@ -565,6 +566,10 @@ function normalizeRoutineTriggerExtension(value: unknown): CompanyPortabilityIss
     signingMode: asString(value.signingMode),
     replayWindowSec: asInteger(value.replayWindowSec),
   };
+}
+
+function isPortableProject(project: ProjectLike) {
+  return project.isSystemProject !== true;
 }
 
 function normalizeRoutineExtension(value: unknown): CompanyPortabilityIssueRoutineManifestEntry | null {
@@ -2796,7 +2801,7 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
     const issuesSvc = issueService(db);
     const routinesSvc = routineService(db);
     const allProjectsRaw = include.projects || include.issues ? await projectsSvc.list(companyId) : [];
-    const allProjects = allProjectsRaw.filter((project) => !project.archivedAt);
+    const allProjects = allProjectsRaw.filter((project) => !project.archivedAt && isPortableProject(project));
     const allRoutines = include.issues ? await routinesSvc.list(companyId) : [];
     const projectById = new Map(allProjects.map((project) => [project.id, project]));
     const projectByReference = new Map<string, typeof allProjects[number]>();
@@ -3483,7 +3488,7 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
         if (!existingSlugToAgent.has(slug)) existingSlugToAgent.set(slug, existing);
         existingSlugs.add(slug);
       }
-      const existingProjects = await projects.list(input.target.companyId);
+      const existingProjects = (await projects.list(input.target.companyId)).filter(isPortableProject);
       for (const existing of existingProjects) {
         if (!existingProjectSlugToProject.has(existing.urlKey)) {
           existingProjectSlugToProject.set(existing.urlKey, { id: existing.id, name: existing.name });
@@ -3819,7 +3824,7 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
     const importedSlugToProjectId = new Map<string, string>();
     const importedProjectWorkspaceIdByProjectSlug = new Map<string, Map<string, string>>();
     const existingProjectSlugToId = new Map<string, string>();
-    const existingProjects = await projects.list(targetCompany.id);
+    const existingProjects = (await projects.list(targetCompany.id)).filter(isPortableProject);
     for (const existing of existingProjects) {
       existingProjectSlugToId.set(existing.urlKey, existing.id);
     }

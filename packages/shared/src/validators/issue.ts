@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "../constants.js";
+import { ISSUE_PRIORITIES, ISSUE_STATUSES, MINISTER_INTAKE_RESPONSES } from "../constants.js";
 
 const executionWorkspaceStrategySchema = z
   .object({
@@ -73,6 +73,19 @@ export const updateIssueSchema = createIssueSchema.partial().extend({
 
 export type UpdateIssue = z.infer<typeof updateIssueSchema>;
 export type IssueExecutionWorkspaceSettings = z.infer<typeof issueExecutionWorkspaceSettingsSchema>;
+
+export const routeIssueToDepartmentSchema = z.object({
+  owningDepartmentId: z.string().uuid().nullable(),
+});
+
+export type RouteIssueToDepartment = z.infer<typeof routeIssueToDepartmentSchema>;
+
+export const ministerIssueIntakeSchema = z.object({
+  response: z.enum(MINISTER_INTAKE_RESPONSES),
+  reason: z.string().trim().max(500).nullable().optional(),
+});
+
+export type MinisterIssueIntake = z.infer<typeof ministerIssueIntakeSchema>;
 
 export const checkoutIssueSchema = z.object({
   agentId: z.string().uuid(),

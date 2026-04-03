@@ -1,5 +1,6 @@
 import {
   type AnyPgColumn,
+  check,
   pgTable,
   uuid,
   text,
@@ -7,7 +8,9 @@ import {
   timestamp,
   jsonb,
   index,
+  unique,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { companies } from "./companies.js";
 
 export const agents = pgTable(
@@ -36,7 +39,16 @@ export const agents = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
+    companyIdIdUq: unique("agents_company_id_id_uq").on(table.companyId, table.id),
     companyStatusIdx: index("agents_company_status_idx").on(table.companyId, table.status),
     companyReportsToIdx: index("agents_company_reports_to_idx").on(table.companyId, table.reportsTo),
+    budgetMonthlyNonNegativeChk: check(
+      "agents_budget_monthly_non_negative_chk",
+      sql`${table.budgetMonthlyCents} >= 0`,
+    ),
+    spentMonthlyNonNegativeChk: check(
+      "agents_spent_monthly_non_negative_chk",
+      sql`${table.spentMonthlyCents} >= 0`,
+    ),
   }),
 );

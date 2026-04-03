@@ -84,6 +84,26 @@ Prefer additive updates. Keep `doc/SPEC.md` and `doc/SPEC-implementation.md` ali
 5. Keep plan docs dated and centralized.
 New plan documents belong in `doc/plans/` and should use `YYYY-MM-DD-slug.md` filenames.
 
+6. Enforce file size discipline.
+For repo-tracked source and test files, new files and modified files must stay at or below `1000` lines.
+
+This rule applies to:
+- `server/src/**`
+- `ui/src/**`
+- `packages/*/src/**`
+- `cli/src/**`
+- repo-tracked scripts such as `scripts/*.ts`, `scripts/*.js`, `scripts/*.mjs`, and `scripts/*.cjs`
+
+This rule does not apply to generated or non-source artifacts such as:
+- lockfiles
+- `packages/db/src/migrations/**`
+- migration meta snapshots
+- build output
+- images or other binary assets
+- log files
+
+Existing oversized source files are technical debt. They are not blocked retroactively until touched, but once a source/test file over `1000` lines is modified, that change must also split it back under the limit in the same PR.
+
 ## 6. Database Change Workflow
 
 When changing data model:
@@ -146,6 +166,7 @@ A change is done when all are true:
 2. Typecheck, tests, and build pass
 3. Contracts are synced across db/shared/server/ui
 4. Docs updated when behavior or commands change
+5. Any newly added or modified source/test file still complies with the `1000`-line limit rule above
 
 ## 11. Upstream Sync Workflow
 

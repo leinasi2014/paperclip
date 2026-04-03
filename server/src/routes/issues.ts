@@ -10,7 +10,9 @@ import {
   checkoutIssueSchema,
   createIssueSchema,
   linkIssueApprovalSchema,
+  ministerIssueIntakeSchema,
   issueDocumentKeySchema,
+  routeIssueToDepartmentSchema,
   restoreIssueDocumentRevisionSchema,
   updateIssueWorkProductSchema,
   upsertIssueDocumentSchema,
@@ -21,10 +23,12 @@ import { validate } from "../middleware/validate.js";
 import {
   accessService,
   agentService,
+  companyService,
   executionWorkspaceService,
   goalService,
   heartbeatService,
   issueApprovalService,
+  issueRoutingService,
   issueService,
   documentService,
   logActivity,
@@ -53,9 +57,11 @@ export function issueRoutes(db: Db, storage: StorageService) {
   const access = accessService(db);
   const heartbeat = heartbeatService(db);
   const agentsSvc = agentService(db);
+  const companiesSvc = companyService(db);
   const projectsSvc = projectService(db);
   const goalsSvc = goalService(db);
   const issueApprovalsSvc = issueApprovalService(db);
+  const issueRoutingSvc = issueRoutingService(db);
   const executionWorkspacesSvc = executionWorkspaceService(db);
   const workProductsSvc = workProductService(db);
   const documentsSvc = documentService(db);
@@ -121,6 +127,16 @@ export function issueRoutes(db: Db, storage: StorageService) {
       throw forbidden("Missing permission: tasks:assign");
     }
     throw unauthorized();
+  }
+
+  async function assertBoardOrCeo(req: Request, companyId: string) {
+    assertCompanyAccess(req, companyId);
+    if (req.actor.type === "board") return;
+    if (!req.actor.agentId) throw forbidden("Agent authentication required");
+    const effectiveCeoAgentId = await companiesSvc.getEffectiveCeoAgentId(companyId);
+    if (!effectiveCeoAgentId || effectiveCeoAgentId !== req.actor.agentId) {
+      throw forbidden("Only board users or the company CEO can route issues to departments");
+    }
   }
 
   function requireAgentRunId(req: Request, res: Response) {
@@ -1273,6 +1289,76 @@ export function issueRoutes(db: Db, storage: StorageService) {
     })();
 
     res.json({ ...issue, comment });
+  });
+
+  router.post("/issues/:id/route-to-department", validate(routeIssueToDepartmentSchema), async (req, res) => {
+    const id = req.params.id as string;
+    const existing = await svc.getById(id);
+    if (!existing) {
+      res.status(404).json({ error: "Issue not found" });
+      return;
+    }
+    await assertBoardOrCeo(req, existing.companyId);
+    const actor = getActorInfo(req);
+    const routingActor =
+      actor.actorType === "agent"
+        ? { actorType: "agent" as const, actorId: actor.actorId, agentId: actor.actorId }
+        : { actorType: "user" as const, actorId: actor.actorId };
+    const issue = await issueRoutingSvc.route(id, req.body.owningDepartmentId, routingActor);
+    await logActivity(db, {
+      companyId: issue.companyId,
+      actorType: actor.actorType,
+      actorId: actor.actorId,
+      agentId: actor.agentId,
+      runId: actor.runId,
+      action: "issue.routed_to_department",
+      entityType: "issue",
+      entityId: issue.id,
+      details: {
+        owningDepartmentId: issue.owningDepartmentId,
+        departmentIntakeStatus: issue.departmentIntakeStatus,
+        isInCeoIntake: issue.isInCeoIntake,
+      },
+    });
+    res.json(issue);
+  });
+
+  router.post("/issues/:id/minister-intake", validate(ministerIssueIntakeSchema), async (req, res) => {
+    const id = req.params.id as string;
+    const existing = await svc.getById(id);
+    if (!existing) {
+      res.status(404).json({ error: "Issue not found" });
+      return;
+    }
+    assertCompanyAccess(req, existing.companyId);
+    if (req.actor.type !== "agent" || !req.actor.agentId) {
+      throw forbidden("Only the current department minister can submit an intake decision");
+    }
+    const issue = await issueRoutingSvc.ministerIntake(
+      id,
+      req.actor.agentId,
+      req.body.response,
+      req.body.reason,
+    );
+    const actor = getActorInfo(req);
+    await logActivity(db, {
+      companyId: issue.companyId,
+      actorType: actor.actorType,
+      actorId: actor.actorId,
+      agentId: actor.agentId,
+      runId: actor.runId,
+      action: "issue.minister_intake_recorded",
+      entityType: "issue",
+      entityId: issue.id,
+      details: {
+        response: issue.ministerDecisionResponse,
+        reason: issue.ministerDecisionReason,
+        owningDepartmentId: issue.owningDepartmentId,
+        departmentIntakeStatus: issue.departmentIntakeStatus,
+        isInCeoIntake: issue.isInCeoIntake,
+      },
+    });
+    res.json(issue);
   });
 
   router.delete("/issues/:id", async (req, res) => {

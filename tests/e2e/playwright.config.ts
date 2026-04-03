@@ -1,13 +1,14 @@
 import { defineConfig } from "@playwright/test";
+import { resolveE2eBaseUrl } from "../support/browser-chain.js";
 
-const PORT = Number(process.env.PAPERCLIP_E2E_PORT ?? 3100);
-const BASE_URL = `http://127.0.0.1:${PORT}`;
+const BASE_URL = resolveE2eBaseUrl();
 
 export default defineConfig({
   testDir: ".",
   testMatch: "**/*.spec.ts",
   timeout: 60_000,
   retries: 0,
+  workers: 1,
   use: {
     baseURL: BASE_URL,
     headless: true,
@@ -20,10 +21,9 @@ export default defineConfig({
       use: { browserName: "chromium" },
     },
   ],
-  // The webServer directive starts `paperclipai run` before tests.
-  // Expects `pnpm paperclipai` to be runnable from repo root.
+  // The launcher script preconfigures an isolated data dir and port before Playwright connects.
   webServer: {
-    command: `pnpm paperclipai run`,
+    command: "node ../../scripts/playwright/e2e-webserver.mjs",
     url: `${BASE_URL}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

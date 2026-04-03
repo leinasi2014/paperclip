@@ -33,11 +33,18 @@ const mockLogActivity = vi.hoisted(() => vi.fn(async () => undefined));
 vi.mock("../services/index.js", () => ({
   accessService: () => mockAccessService,
   agentService: () => mockAgentService,
+  companyService: () => ({
+    getEffectiveCeoAgentId: vi.fn(),
+  }),
   documentService: () => ({}),
   executionWorkspaceService: () => ({}),
   goalService: () => ({}),
   heartbeatService: () => mockHeartbeatService,
   issueApprovalService: () => ({}),
+  issueRoutingService: () => ({
+    route: vi.fn(),
+    ministerIntake: vi.fn(),
+  }),
   issueService: () => mockIssueService,
   logActivity: mockLogActivity,
   projectService: () => ({}),

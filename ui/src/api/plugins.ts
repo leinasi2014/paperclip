@@ -17,6 +17,7 @@ import type {
   PluginRecord,
   PluginConfig,
   PluginStatus,
+  RequiredSystemPluginStatus,
 } from "@paperclipai/shared";
 import { api } from "./client";
 
@@ -170,6 +171,11 @@ export const pluginsApi = {
    */
   listExamples: () =>
     api.get<AvailablePluginExample[]>("/plugins/examples"),
+
+  listRequiredSystemStatus: (companyId?: string) =>
+    api.get<RequiredSystemPluginStatus[]>(
+      `/system-plugins/status${companyId ? `?companyId=${encodeURIComponent(companyId)}` : ""}`,
+    ),
 
   /**
    * Fetch a single plugin record by its UUID or plugin key.

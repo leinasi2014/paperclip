@@ -24,6 +24,8 @@ import { Approvals } from "./pages/Approvals";
 import { ApprovalDetail } from "./pages/ApprovalDetail";
 import { Costs } from "./pages/Costs";
 import { Activity } from "./pages/Activity";
+import { Departments } from "./pages/Departments";
+import { DepartmentDetail } from "./pages/DepartmentDetail";
 import { Inbox } from "./pages/Inbox";
 import { CompanySettings } from "./pages/CompanySettings";
 import { CompanySkills } from "./pages/CompanySkills";
@@ -39,6 +41,9 @@ import { PluginPage } from "./pages/PluginPage";
 import { RunTranscriptUxLab } from "./pages/RunTranscriptUxLab";
 import { OrgChart } from "./pages/OrgChart";
 import { NewAgent } from "./pages/NewAgent";
+import { SystemRollouts } from "./pages/SystemRollouts";
+import { SystemIssues } from "./pages/SystemIssues";
+import { SystemIssueDetail } from "./pages/SystemIssueDetail";
 import { AuthPage } from "./pages/Auth";
 import { BoardClaimPage } from "./pages/BoardClaim";
 import { CliAuthPage } from "./pages/CliAuth";
@@ -129,7 +134,12 @@ function boardRoutes() {
       <Route path="company/settings" element={<CompanySettings />} />
       <Route path="company/export/*" element={<CompanyExport />} />
       <Route path="company/import" element={<CompanyImport />} />
+      <Route path="departments" element={<Departments />} />
+      <Route path="departments/:departmentId" element={<DepartmentDetail />} />
+      <Route path="system-rollouts" element={<SystemRollouts />} />
       <Route path="skills/*" element={<CompanySkills />} />
+      <Route path="system-issues" element={<SystemIssues />} />
+      <Route path="system-issues/:issueId" element={<SystemIssueDetail />} />
       <Route path="settings" element={<LegacySettingsRedirect />} />
       <Route path="settings/*" element={<LegacySettingsRedirect />} />
       <Route path="plugins/:pluginId" element={<PluginPage />} />
@@ -330,11 +340,16 @@ export function App() {
             <Route path="plugins/:pluginId" element={<PluginSettings />} />
           </Route>
           <Route path="companies" element={<UnprefixedBoardRedirect />} />
+          <Route path="departments" element={<UnprefixedBoardRedirect />} />
+          <Route path="departments/:departmentId" element={<UnprefixedBoardRedirect />} />
           <Route path="issues" element={<UnprefixedBoardRedirect />} />
           <Route path="issues/:issueId" element={<UnprefixedBoardRedirect />} />
           <Route path="routines" element={<UnprefixedBoardRedirect />} />
           <Route path="routines/:routineId" element={<UnprefixedBoardRedirect />} />
           <Route path="skills/*" element={<UnprefixedBoardRedirect />} />
+          <Route path="system-rollouts" element={<UnprefixedBoardRedirect />} />
+          <Route path="system-issues" element={<UnprefixedBoardRedirect />} />
+          <Route path="system-issues/:issueId" element={<UnprefixedBoardRedirect />} />
           <Route path="settings" element={<LegacySettingsRedirect />} />
           <Route path="settings/*" element={<LegacySettingsRedirect />} />
           <Route path="agents" element={<UnprefixedBoardRedirect />} />

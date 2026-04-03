@@ -1,0 +1,79 @@
+{
+  "breadcrumbs": {
+    "title": "System Issues"
+  },
+  "title": "System Issues",
+  "description": "Company-wide execution, skill, and governance work tracked in the shared system project.",
+  "loading": "Loading system issues...",
+  "empty": {
+    "selectCompany": "Select a company to view system issues.",
+    "noIssues": "No system issues yet."
+  },
+  "errors": {
+    "notFound": "System issue not found",
+    "loadFailed": "Failed to load system issues."
+  },
+  "labels": {
+    "severity": "Severity",
+    "workflow": "Workflow",
+    "department": "Department",
+    "minister": "Minister",
+    "ceoIntake": "CEO intake",
+    "blockRecommended": "Block recommended",
+    "sourceIssue": "Underlying issue",
+    "ministerDecision": "Minister intake",
+    "reviewReady": "Ready for review",
+    "resumeReady": "Ready to resume"
+  },
+  "sections": {
+    "overview": "Overview",
+    "details": "Details",
+    "relatedIssues": "Related system issues"
+  },
+  "types": {
+    "execution": "Execution",
+    "skill": "Skill",
+    "governance": "Governance"
+  },
+  "severity": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "workflow": {
+    "open": "Open",
+    "triaging": "Triaging",
+    "in_progress": "In progress",
+    "pending_review": "Pending review",
+    "review_passed": "Review passed",
+    "ready_to_resume": "Ready to resume",
+    "done": "Done"
+  },
+  "intake": {
+    "accept": "Accepted",
+    "reject": "Rejected",
+    "needs_clarification": "Needs clarification"
+  },
+  "summary": {
+    "total": "Total",
+    "critical": "Critical",
+    "blocked": "Block recommended",
+    "ceoIntake": "In CEO intake"
+  },
+  "detail": {
+    "titleFallback": "Untitled system issue",
+    "descriptionFallback": "No description provided.",
+    "departmentFallback": "Not routed",
+    "ministerFallback": "Unassigned",
+    "decisionFallback": "No decision recorded",
+    "viewIssue": "Open issue",
+    "viewDepartment": "Open department",
+    "budgetTitle": "Budget envelope",
+    "budgetNotFound": "No department budget found yet.",
+    "monthlyLimit": "Monthly limit",
+    "reserved": "Reserved",
+    "spent": "Spent",
+    "maxWorkers": "Temporary worker limit"
+  }
+}

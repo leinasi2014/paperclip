@@ -15,9 +15,12 @@
     "dashboard": "仪表盘",
     "inbox": "收件箱",
     "issues": "议题",
+    "systemIssues": "系统议题",
+    "systemRollouts": "系统发布",
     "routines": "例行任务",
     "goals": "目标",
     "org": "组织",
+    "departments": "部门",
     "skills": "技能",
     "costs": "成本",
     "activity": "活动",
@@ -314,6 +317,7 @@
     "blocked": "已阻塞",
     "cancelled": "已取消",
     "planned": "已计划",
+    "triaging": "分诊中",
     "completed": "已完成",
     "pending": "待处理",
     "approved": "已批准",
@@ -325,7 +329,11 @@
     "revision_requested": "要求修改",
     "queued": "排队中",
     "timed_out": "已超时",
-    "archived": "已归档"
+    "archived": "已归档",
+    "review_passed": "审查通过",
+    "ready_to_resume": "待恢复",
+    "frozen_unstaffed": "冻结（空缺）",
+    "frozen_suspended": "冻结（暂停）"
   },
   "commandPalette": {
     "searchPlaceholder": "搜索议题、代理、项目...",

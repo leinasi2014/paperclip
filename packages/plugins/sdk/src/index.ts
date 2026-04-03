@@ -45,6 +45,9 @@
  * @see PLUGIN_SPEC.md §29.2 — SDK Versioning
  */
 
+import "./protocol-governance.js";
+import "./types-governance.js";
+
 // ---------------------------------------------------------------------------
 // Main factory
 // ---------------------------------------------------------------------------
@@ -184,6 +187,10 @@ export type {
   PluginMetricsClient,
   PluginLogger,
 } from "./types.js";
+export type {
+  PluginSystemIssuesClient,
+  PluginCompanySkillsClient,
+} from "./types-governance.js";
 
 // Supporting types for context clients
 export type {

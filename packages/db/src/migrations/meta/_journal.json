@@ -330,6 +330,55 @@
       "when": 1774960197878,
       "tag": "0046_smooth_sentinels",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1775133689363,
+      "tag": "0047_dusty_the_twelve",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1775137189121,
+      "tag": "0048_burly_joshua_kane",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1775137294553,
+      "tag": "0049_blushing_mother_askani",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1775145600000,
+      "tag": "0050_steady_issue_intake",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1775149200000,
+      "tag": "0051_free_required_system_rollouts",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1775143746998,
+      "tag": "0052_abandoned_meltdown",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1775203200000,
+      "tag": "0053_harden_required_plugins_and_governance",
+      "breakpoints": true
     }
   ]
 }

@@ -31,6 +31,11 @@ const mockCompanyPortabilityService = vi.hoisted(() => ({
   importBundle: vi.fn(),
 }));
 
+const mockSystemProjectService = vi.hoisted(() => ({
+  ensureCanonical: vi.fn(),
+  reconcile: vi.fn(),
+}));
+
 const mockLogActivity = vi.hoisted(() => vi.fn());
 
 vi.mock("../services/index.js", () => ({
@@ -39,6 +44,13 @@ vi.mock("../services/index.js", () => ({
   budgetService: () => mockBudgetService,
   companyPortabilityService: () => mockCompanyPortabilityService,
   companyService: () => mockCompanyService,
+  requiredSystemPluginService: () => ({
+    listStatus: vi.fn(),
+    reconcileAll: vi.fn(),
+    ensureCompanySettings: vi.fn(),
+    definitions: [],
+  }),
+  systemProjectService: () => mockSystemProjectService,
   logActivity: mockLogActivity,
 }));
 

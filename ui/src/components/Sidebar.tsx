@@ -11,6 +11,9 @@ import {
   Boxes,
   Repeat,
   Settings,
+  Building2,
+  GitBranch,
+  ShieldAlert,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -122,6 +125,9 @@ export function Sidebar() {
 
         <SidebarSection label={t("sidebar.sections.company")}>
           <SidebarNavItem to="/org" label={t("navigation.org")} icon={Network} />
+          <SidebarNavItem to="/departments" label={t("navigation.departments")} icon={Building2} />
+          <SidebarNavItem to="/system-rollouts" label={t("navigation.systemRollouts")} icon={GitBranch} />
+          <SidebarNavItem to="/system-issues" label={t("navigation.systemIssues")} icon={ShieldAlert} />
           <SidebarNavItem to="/skills" label={t("navigation.skills")} icon={Boxes} />
           <SidebarNavItem to="/costs" label={t("navigation.costs")} icon={DollarSign} />
           <SidebarNavItem to="/activity" label={t("navigation.activity")} icon={History} />

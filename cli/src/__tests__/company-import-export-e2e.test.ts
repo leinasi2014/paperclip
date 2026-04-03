@@ -412,7 +412,12 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
       apiBase,
       `/api/companies/${importedNew.company.id}/agents`,
     );
-    const importedProjects = await api<Array<{ id: string; name: string }>>(
+    const importedProjects = await api<Array<{
+      id: string;
+      name: string;
+      isSystemProject?: boolean;
+      systemProjectKind?: string | null;
+    }>>(
       apiBase,
       `/api/companies/${importedNew.company.id}/projects`,
     );
@@ -485,7 +490,12 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
       apiBase,
       `/api/companies/${importedNew.company.id}/agents`,
     );
-    const twiceImportedProjects = await api<Array<{ id: string; name: string }>>(
+    const twiceImportedProjects = await api<Array<{
+      id: string;
+      name: string;
+      isSystemProject?: boolean;
+      systemProjectKind?: string | null;
+    }>>(
       apiBase,
       `/api/companies/${importedNew.company.id}/projects`,
     );
@@ -496,7 +506,10 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
 
     expect(twiceImportedAgents).toHaveLength(2);
     expect(new Set(twiceImportedAgents.map((agent) => agent.name)).size).toBe(2);
-    expect(twiceImportedProjects).toHaveLength(2);
+    const twiceImportedBusinessProjects = twiceImportedProjects.filter(
+      (project) => project.systemProjectKind !== "execution_governance" && project.name !== "System Governance",
+    );
+    expect(twiceImportedBusinessProjects).toHaveLength(2);
     expect(twiceImportedIssues).toHaveLength(2);
 
     const zipPath = path.join(tempRoot, "exported-company.zip");

@@ -1,11 +1,20 @@
 export { companyService } from "./companies.js";
 export { companySkillService } from "./company-skills.js";
+export { companySkillGovernanceService } from "./company-skill-governance.js";
+export { departmentService } from "./departments.js";
+export { departmentBudgetService } from "./department-budgets.js";
 export { agentService, deduplicateAgentName } from "./agents.js";
 export { agentInstructionsService, syncInstructionsBundleConfigFromFilePath } from "./agent-instructions.js";
 export { assetService } from "./assets.js";
 export { documentService, extractLegacyPlanBody } from "./documents.js";
 export { projectService } from "./projects.js";
 export { issueService, type IssueFilters } from "./issues.js";
+export { issueRoutingService, isIssueInCeoIntake } from "./issue-routing.js";
+export {
+  temporaryWorkerService,
+  pauseTemporaryWorkersForDepartmentFreeze,
+  queueTemporaryWorkersForCeoResume,
+} from "./temporary-workers.js";
 export { issueApprovalService } from "./issue-approvals.js";
 export { goalService } from "./goals.js";
 export { activityService, type ActivityFilters } from "./activity.js";
@@ -18,6 +27,9 @@ export { financeService } from "./finance.js";
 export { heartbeatService } from "./heartbeat.js";
 export { dashboardService } from "./dashboard.js";
 export { sidebarBadgeService } from "./sidebar-badges.js";
+export { systemProjectService } from "./system-project.js";
+export { systemIssueService } from "./system-issues.js";
+export { requiredSystemPluginService } from "./required-system-plugins.js";
 export { accessService } from "./access.js";
 export { boardAuthService } from "./board-auth.js";
 export { instanceSettingsService } from "./instance-settings.js";

@@ -34,6 +34,7 @@ import type {
 } from "@paperclipai/shared";
 import {
   PLUGIN_STATUSES,
+  REQUIRED_SYSTEM_PLUGIN_KEYS,
 } from "@paperclipai/shared";
 import { pluginRegistryService } from "../services/plugin-registry.js";
 import { pluginLifecycleManager } from "../services/plugin-lifecycle.js";
@@ -1237,6 +1238,10 @@ export function pluginRoutes(
       res.status(404).json({ error: "Plugin not found" });
       return;
     }
+    if ((REQUIRED_SYSTEM_PLUGIN_KEYS as readonly string[]).includes(plugin.pluginKey)) {
+      res.status(409).json({ error: "Required system plugins cannot be uninstalled" });
+      return;
+    }
 
     try {
       const result = await lifecycle.unload(plugin.id, purge);
@@ -1310,6 +1315,10 @@ export function pluginRoutes(
     const plugin = await resolvePlugin(registry, pluginId);
     if (!plugin) {
       res.status(404).json({ error: "Plugin not found" });
+      return;
+    }
+    if ((REQUIRED_SYSTEM_PLUGIN_KEYS as readonly string[]).includes(plugin.pluginKey)) {
+      res.status(409).json({ error: "Required system plugins cannot be disabled" });
       return;
     }
 

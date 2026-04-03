@@ -51,6 +51,7 @@
 import type { PluginCapability } from "@paperclipai/shared";
 import type { WorkerToHostMethods, WorkerToHostMethodName } from "./protocol.js";
 import { PLUGIN_RPC_ERROR_CODES } from "./protocol.js";
+import "./protocol-governance.js";
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -197,6 +198,35 @@ export interface HostServices {
     create(params: WorkerToHostMethods["goals.create"][0]): Promise<WorkerToHostMethods["goals.create"][1]>;
     update(params: WorkerToHostMethods["goals.update"][0]): Promise<WorkerToHostMethods["goals.update"][1]>;
   };
+
+  /** Provides `systemIssues.*`. */
+  systemIssues: {
+    list(params: WorkerToHostMethods["systemIssues.list"][0]): Promise<WorkerToHostMethods["systemIssues.list"][1]>;
+    get(params: WorkerToHostMethods["systemIssues.get"][0]): Promise<WorkerToHostMethods["systemIssues.get"][1]>;
+    create(params: WorkerToHostMethods["systemIssues.create"][0]): Promise<WorkerToHostMethods["systemIssues.create"][1]>;
+    setBlockRecommendation(
+      params: WorkerToHostMethods["systemIssues.setBlockRecommendation"][0],
+    ): Promise<WorkerToHostMethods["systemIssues.setBlockRecommendation"][1]>;
+  };
+
+  /** Provides `companySkills.*`. */
+  companySkills: {
+    listApproved(
+      params: WorkerToHostMethods["companySkills.listApproved"][0],
+    ): Promise<WorkerToHostMethods["companySkills.listApproved"][1]>;
+    listCandidates(
+      params: WorkerToHostMethods["companySkills.listCandidates"][0],
+    ): Promise<WorkerToHostMethods["companySkills.listCandidates"][1]>;
+    createOrUpdateCandidate(
+      params: WorkerToHostMethods["companySkills.createOrUpdateCandidate"][0],
+    ): Promise<WorkerToHostMethods["companySkills.createOrUpdateCandidate"][1]>;
+    createPromotionRequest(
+      params: WorkerToHostMethods["companySkills.createPromotionRequest"][0],
+    ): Promise<WorkerToHostMethods["companySkills.createPromotionRequest"][1]>;
+    listPromotionRequests(
+      params: WorkerToHostMethods["companySkills.listPromotionRequests"][0],
+    ): Promise<WorkerToHostMethods["companySkills.listPromotionRequests"][1]>;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -330,6 +360,19 @@ const METHOD_CAPABILITY_MAP: Record<WorkerToHostMethodName, PluginCapability | n
   "goals.get": "goals.read",
   "goals.create": "goals.create",
   "goals.update": "goals.update",
+
+  // System Issues
+  "systemIssues.list": "systemIssues.read",
+  "systemIssues.get": "systemIssues.read",
+  "systemIssues.create": "systemIssues.create",
+  "systemIssues.setBlockRecommendation": "systemIssues.recommendBlock",
+
+  // Company Skills governance
+  "companySkills.listApproved": "companySkills.read",
+  "companySkills.listCandidates": "companySkills.read",
+  "companySkills.createOrUpdateCandidate": "companySkills.candidates.write",
+  "companySkills.createPromotionRequest": "companySkills.promotionRequests.write",
+  "companySkills.listPromotionRequests": "companySkills.read",
 };
 
 // ---------------------------------------------------------------------------
@@ -554,6 +597,37 @@ export function createHostClientHandlers(
     }),
     "goals.update": gated("goals.update", async (params) => {
       return services.goals.update(params);
+    }),
+
+    // System Issues
+    "systemIssues.list": gated("systemIssues.list", async (params) => {
+      return services.systemIssues.list(params);
+    }),
+    "systemIssues.get": gated("systemIssues.get", async (params) => {
+      return services.systemIssues.get(params);
+    }),
+    "systemIssues.create": gated("systemIssues.create", async (params) => {
+      return services.systemIssues.create(params);
+    }),
+    "systemIssues.setBlockRecommendation": gated("systemIssues.setBlockRecommendation", async (params) => {
+      return services.systemIssues.setBlockRecommendation(params);
+    }),
+
+    // Company Skills governance
+    "companySkills.listApproved": gated("companySkills.listApproved", async (params) => {
+      return services.companySkills.listApproved(params);
+    }),
+    "companySkills.listCandidates": gated("companySkills.listCandidates", async (params) => {
+      return services.companySkills.listCandidates(params);
+    }),
+    "companySkills.createOrUpdateCandidate": gated("companySkills.createOrUpdateCandidate", async (params) => {
+      return services.companySkills.createOrUpdateCandidate(params);
+    }),
+    "companySkills.createPromotionRequest": gated("companySkills.createPromotionRequest", async (params) => {
+      return services.companySkills.createPromotionRequest(params);
+    }),
+    "companySkills.listPromotionRequests": gated("companySkills.listPromotionRequests", async (params) => {
+      return services.companySkills.listPromotionRequests(params);
     }),
   };
 }

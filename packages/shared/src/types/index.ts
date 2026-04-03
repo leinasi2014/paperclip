@@ -1,4 +1,10 @@
 export type { Company } from "./company.js";
+export type {
+  Department,
+  DepartmentBudgetEnvelope,
+  MinisterIntakeDecision,
+  TemporaryWorker,
+} from "./department.js";
 export type { InstanceExperimentalSettings, InstanceGeneralSettings, InstanceSettings } from "./instance.js";
 export type {
   CompanySkillSourceType,
@@ -21,6 +27,12 @@ export type {
   CompanySkillFileDetail,
   CompanySkillFileUpdateRequest,
 } from "./company-skill.js";
+export type {
+  CompanySkillCandidateStatus,
+  CompanySkillPromotionRequestStatus,
+  CompanySkillCandidate,
+  CompanySkillPromotionRequest,
+} from "./company-skill-governance.js";
 export type {
   AgentSkillSyncMode,
   AgentSkillState,
@@ -83,6 +95,7 @@ export type {
 } from "./work-product.js";
 export type {
   Issue,
+  SystemIssue,
   IssueAssigneeAdapterOverrides,
   IssueComment,
   IssueDocument,
@@ -201,3 +214,12 @@ export type {
   PluginJobRunRecord,
   PluginWebhookDeliveryRecord,
 } from "./plugin.js";
+export type {
+  SystemPluginRollout,
+  SystemPluginRolloutApprovalRecord,
+  SystemPluginRolloutCommand,
+} from "./plugin-rollout.js";
+export type {
+  RequiredSystemPluginRuntimeStatus,
+  RequiredSystemPluginStatus,
+} from "./system-plugin.js";

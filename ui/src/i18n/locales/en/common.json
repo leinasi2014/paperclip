@@ -15,9 +15,12 @@
     "dashboard": "Dashboard",
     "inbox": "Inbox",
     "issues": "Issues",
+    "systemIssues": "System Issues",
+    "systemRollouts": "System Rollouts",
     "routines": "Routines",
     "goals": "Goals",
     "org": "Org",
+    "departments": "Departments",
     "skills": "Skills",
     "costs": "Costs",
     "activity": "Activity",
@@ -314,6 +317,7 @@
     "blocked": "Blocked",
     "cancelled": "Cancelled",
     "planned": "Planned",
+    "triaging": "Triaging",
     "completed": "Completed",
     "pending": "Pending",
     "approved": "Approved",
@@ -325,7 +329,11 @@
     "revision_requested": "Revision requested",
     "queued": "Queued",
     "timed_out": "Timed out",
-    "archived": "Archived"
+    "archived": "Archived",
+    "review_passed": "Review passed",
+    "ready_to_resume": "Ready to resume",
+    "frozen_unstaffed": "Frozen (unstaffed)",
+    "frozen_suspended": "Frozen (suspended)"
   },
   "commandPalette": {
     "searchPlaceholder": "Search issues, agents, projects...",

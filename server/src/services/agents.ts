@@ -8,6 +8,7 @@ import {
   agentRuntimeState,
   agentTaskSessions,
   agentWakeupRequests,
+  companies,
   costEvents,
   heartbeatRunEvents,
   heartbeatRuns,
@@ -473,6 +474,10 @@ export function agentService(db: Db) {
       if (!existing) return null;
 
       return db.transaction(async (tx) => {
+        await tx
+          .update(companies)
+          .set({ ceoAgentId: null, updatedAt: new Date() })
+          .where(eq(companies.ceoAgentId, id));
         await tx.update(agents).set({ reportsTo: null }).where(eq(agents.reportsTo, id));
         await tx.delete(heartbeatRunEvents).where(eq(heartbeatRunEvents.agentId, id));
         await tx.delete(agentTaskSessions).where(eq(agentTaskSessions.agentId, id));

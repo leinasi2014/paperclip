@@ -12,6 +12,11 @@ import { privateHostnameGuard, resolvePrivateHostnameAllowSet } from "./middlewa
 import { healthRoutes } from "./routes/health.js";
 import { companyRoutes } from "./routes/companies.js";
 import { companySkillRoutes } from "./routes/company-skills.js";
+import { departmentRoutes } from "./routes/departments.js";
+import { systemIssueRoutes } from "./routes/system-issues.js";
+import { systemPluginRoutes } from "./routes/system-plugins.js";
+import { systemPluginRolloutRoutes } from "./routes/system-plugin-rollouts.js";
+import { temporaryWorkerRoutes } from "./routes/temporary-workers.js";
 import { agentRoutes } from "./routes/agents.js";
 import { projectRoutes } from "./routes/projects.js";
 import { issueRoutes } from "./routes/issues.js";
@@ -45,6 +50,7 @@ import { setPluginEventBus } from "./services/activity-log.js";
 import { createPluginDevWatcher } from "./services/plugin-dev-watcher.js";
 import { createPluginHostServiceCleanup } from "./services/plugin-host-service-cleanup.js";
 import { pluginRegistryService } from "./services/plugin-registry.js";
+import { requiredSystemPluginService } from "./services/required-system-plugins.js";
 import { createHostClientHandlers } from "@paperclipai/plugin-sdk";
 import type { BetterAuthSessionResult } from "./auth/better-auth.js";
 
@@ -130,6 +136,8 @@ export async function createApp(
   // Mount API routes
   const api = Router();
   api.use(boardMutationGuard());
+  let lifecycle = undefined as unknown as ReturnType<typeof pluginLifecycleManager>;
+  let loader: ReturnType<typeof pluginLoader> | null = null;
   api.use(
     "/health",
     healthRoutes(db, {
@@ -141,6 +149,9 @@ export async function createApp(
   );
   api.use("/companies", companyRoutes(db, opts.storageService));
   api.use(companySkillRoutes(db));
+  api.use(departmentRoutes(db));
+  api.use(systemIssueRoutes(db));
+  api.use(temporaryWorkerRoutes(db));
   api.use(agentRoutes(db));
   api.use(assetRoutes(db, opts.storageService));
   api.use(projectRoutes(db));
@@ -161,7 +172,16 @@ export async function createApp(
   const eventBus = createPluginEventBus();
   setPluginEventBus(eventBus);
   const jobStore = pluginJobStore(db);
-  const lifecycle = pluginLifecycleManager(db, { workerManager });
+  const loaderProxy = new Proxy({} as ReturnType<typeof pluginLoader>, {
+    get(_target, prop, receiver) {
+      if (!loader) {
+        throw new Error(`Plugin loader accessed before initialization: ${String(prop)}`);
+      }
+      const value = Reflect.get(loader as object, prop, receiver);
+      return typeof value === "function" ? value.bind(loader) : value;
+    },
+  });
+  lifecycle = pluginLifecycleManager(db, { loader: loaderProxy, workerManager });
   const scheduler = createPluginJobScheduler({
     db,
     jobStore,
@@ -179,7 +199,7 @@ export async function createApp(
     jobStore,
   });
   const hostServiceCleanup = createPluginHostServiceCleanup(lifecycle, hostServicesDisposers);
-  const loader = pluginLoader(
+  loader = pluginLoader(
     db,
     { localPluginDir: opts.localPluginDir ?? DEFAULT_LOCAL_PLUGIN_DIR },
     {
@@ -207,6 +227,14 @@ export async function createApp(
         });
       },
     },
+  );
+  api.use(
+    systemPluginRoutes(db, { loader, lifecycle }),
+  );
+  api.use(
+    systemPluginRolloutRoutes(db, {
+      lifecycle,
+    }),
   );
   api.use(
     pluginRoutes(
@@ -297,16 +325,20 @@ export async function createApp(
       async (pluginId) => (await pluginRegistry.getById(pluginId))?.packagePath ?? null,
     )
     : null;
-  void loader.loadAll().then((result) => {
-    if (!result) return;
-    for (const loaded of result.results) {
-      if (devWatcher && loaded.success && loaded.plugin.packagePath) {
-        devWatcher.watch(loaded.plugin.id, loaded.plugin.packagePath);
+  const requiredSystemPlugins = requiredSystemPluginService(db, { loader, lifecycle });
+  void (async () => {
+    try {
+      const result = await loader.loadAll();
+      for (const loaded of result.results) {
+        if (devWatcher && loaded.success && loaded.plugin.packagePath) {
+          devWatcher.watch(loaded.plugin.id, loaded.plugin.packagePath);
+        }
       }
+      await requiredSystemPlugins.reconcileAll({ activateRuntime: true });
+    } catch (err) {
+      logger.error({ err }, "Failed to initialize plugin runtime on startup");
     }
-  }).catch((err) => {
-    logger.error({ err }, "Failed to load ready plugins on startup");
-  });
+  })();
   process.once("exit", () => {
     devWatcher?.close();
     hostServiceCleanup.disposeAll();

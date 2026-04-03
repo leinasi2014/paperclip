@@ -4,6 +4,7 @@ import enApprovals from "./locales/en/approvals.json";
 import enAuth from "./locales/en/auth.json";
 import enCosts from "./locales/en/costs.json";
 import enDashboard from "./locales/en/dashboard.json";
+import enDepartments from "./locales/en/departments.json";
 import enGoals from "./locales/en/goals.json";
 import enInbox from "./locales/en/inbox.json";
 import enIssues from "./locales/en/issues.json";
@@ -13,6 +14,8 @@ import enPlugins from "./locales/en/plugins.json";
 import enProjects from "./locales/en/projects.json";
 import enRoutines from "./locales/en/routines.json";
 import enSettings from "./locales/en/settings.json";
+import enSystemIssues from "./locales/en/systemIssues.json";
+import enSystemRollouts from "./locales/en/systemRollouts.json";
 import enCompany from "./locales/en/company.json";
 import enWorkspaces from "./locales/en/workspaces.json";
 import zhCnCommon from "./locales/zh-CN/common.json";
@@ -21,6 +24,7 @@ import zhCnApprovals from "./locales/zh-CN/approvals.json";
 import zhCnAuth from "./locales/zh-CN/auth.json";
 import zhCnCosts from "./locales/zh-CN/costs.json";
 import zhCnDashboard from "./locales/zh-CN/dashboard.json";
+import zhCnDepartments from "./locales/zh-CN/departments.json";
 import zhCnGoals from "./locales/zh-CN/goals.json";
 import zhCnInbox from "./locales/zh-CN/inbox.json";
 import zhCnIssues from "./locales/zh-CN/issues.json";
@@ -30,6 +34,8 @@ import zhCnPlugins from "./locales/zh-CN/plugins.json";
 import zhCnProjects from "./locales/zh-CN/projects.json";
 import zhCnRoutines from "./locales/zh-CN/routines.json";
 import zhCnSettings from "./locales/zh-CN/settings.json";
+import zhCnSystemIssues from "./locales/zh-CN/systemIssues.json";
+import zhCnSystemRollouts from "./locales/zh-CN/systemRollouts.json";
 import zhCnCompany from "./locales/zh-CN/company.json";
 import zhCnWorkspaces from "./locales/zh-CN/workspaces.json";
 
@@ -41,6 +47,7 @@ export const resources = {
     auth: enAuth,
     costs: enCosts,
     dashboard: enDashboard,
+    departments: enDepartments,
     goals: enGoals,
     inbox: enInbox,
     issues: enIssues,
@@ -50,6 +57,8 @@ export const resources = {
     projects: enProjects,
     routines: enRoutines,
     settings: enSettings,
+    systemIssues: enSystemIssues,
+    systemRollouts: enSystemRollouts,
     company: enCompany,
     workspaces: enWorkspaces,
   },
@@ -60,6 +69,7 @@ export const resources = {
     auth: zhCnAuth,
     costs: zhCnCosts,
     dashboard: zhCnDashboard,
+    departments: zhCnDepartments,
     goals: zhCnGoals,
     inbox: zhCnInbox,
     issues: zhCnIssues,
@@ -69,6 +79,8 @@ export const resources = {
     projects: zhCnProjects,
     routines: zhCnRoutines,
     settings: zhCnSettings,
+    systemIssues: zhCnSystemIssues,
+    systemRollouts: zhCnSystemRollouts,
     company: zhCnCompany,
     workspaces: zhCnWorkspaces,
   },

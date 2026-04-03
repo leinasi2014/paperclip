@@ -19,6 +19,8 @@ import {
   companySecrets,
   companySkills,
   costEvents,
+  departmentBudgetEnvelopes,
+  departments,
   documents,
   documentRevisions,
   executionWorkspaces,
@@ -48,10 +50,11 @@ import {
   routines,
   routineRuns,
   routineTriggers,
+  temporaryWorkers,
   workspaceOperations,
   workspaceRuntimeServices,
 } from "@paperclipai/db";
-import { notFound, unprocessable } from "../errors.js";
+import { conflict, notFound, unprocessable } from "../errors.js";
 
 export function companyService(db: Db) {
   const ISSUE_PREFIX_FALLBACK = "CMP";
@@ -65,6 +68,7 @@ export function companyService(db: Db) {
     issueCounter: companies.issueCounter,
     budgetMonthlyCents: companies.budgetMonthlyCents,
     spentMonthlyCents: companies.spentMonthlyCents,
+    ceoAgentId: companies.ceoAgentId,
     requireBoardApprovalForNewAgents: companies.requireBoardApprovalForNewAgents,
     brandColor: companies.brandColor,
     logoAssetId: companyLogos.assetId,
@@ -288,6 +292,7 @@ export function companyService(db: Db) {
         const [
           agentIds,
           projectIds,
+          departmentIds,
           goalIds,
           issueIds,
           projectWorkspaceIds,
@@ -302,6 +307,11 @@ export function companyService(db: Db) {
             .select({ id: projects.id })
             .from(projects)
             .where(eq(projects.companyId, id))
+            .then((rows) => rows.map((row) => row.id)),
+          tx
+            .select({ id: departments.id })
+            .from(departments)
+            .where(eq(departments.companyId, id))
             .then((rows) => rows.map((row) => row.id)),
           tx
             .select({ id: goals.id })
@@ -370,6 +380,13 @@ export function companyService(db: Db) {
         await tx.delete(pluginCompanySettings).where(eq(pluginCompanySettings.companyId, id));
         await tx.delete(companySkills).where(eq(companySkills.companyId, id));
         await tx.delete(projectGoals).where(eq(projectGoals.companyId, id));
+        await tx.delete(temporaryWorkers).where(eq(temporaryWorkers.companyId, id));
+        if (departmentIds.length > 0) {
+          await tx.delete(departmentBudgetEnvelopes).where(
+            inArray(departmentBudgetEnvelopes.departmentId, departmentIds),
+          );
+          await tx.delete(departments).where(inArray(departments.id, departmentIds));
+        }
         await tx.delete(companyLogos).where(eq(companyLogos.companyId, id));
         await tx.delete(labels).where(eq(labels.companyId, id));
         await tx.delete(documents).where(eq(documents.companyId, id));
@@ -425,5 +442,65 @@ export function companyService(db: Db) {
         }
         return result;
       }),
+
+    assignCeoAgent: async (companyId: string, agentId: string) =>
+      db.transaction(async (tx) => {
+        const company = await tx
+          .select({ id: companies.id, ceoAgentId: companies.ceoAgentId })
+          .from(companies)
+          .where(eq(companies.id, companyId))
+          .then((rows) => rows[0] ?? null);
+        if (!company) throw notFound("Company not found");
+
+        const agent = await tx
+          .select({ id: agents.id, companyId: agents.companyId, role: agents.role })
+          .from(agents)
+          .where(eq(agents.id, agentId))
+          .then((rows) => rows[0] ?? null);
+        if (!agent) throw notFound("Agent not found");
+        if (agent.companyId !== companyId) {
+          throw unprocessable("CEO agent must belong to the same company");
+        }
+        if (agent.role !== "ceo") {
+          throw unprocessable("Only agents with role CEO can become company CEO");
+        }
+        if (company.ceoAgentId && company.ceoAgentId !== agentId) {
+          throw conflict("Company already has a CEO");
+        }
+
+        return tx
+          .update(companies)
+          .set({ ceoAgentId: agentId, updatedAt: new Date() })
+          .where(eq(companies.id, companyId))
+          .returning()
+          .then((rows) => rows[0] ?? null);
+      }),
+
+    getEffectiveCeoAgentId: async (companyId: string) => {
+      const company = await db
+        .select({ ceoAgentId: companies.ceoAgentId })
+        .from(companies)
+        .where(eq(companies.id, companyId))
+        .then((rows) => rows[0] ?? null);
+      if (!company) return null;
+      if (company.ceoAgentId) {
+        const explicitSeat = await db
+          .select({ id: agents.id })
+          .from(agents)
+          .where(and(
+            eq(agents.id, company.ceoAgentId),
+            eq(agents.companyId, companyId),
+            eq(agents.role, "ceo"),
+          ))
+          .then((rows) => rows[0] ?? null);
+        if (explicitSeat) return explicitSeat.id;
+      }
+
+      const ceoAgents = await db
+        .select({ id: agents.id })
+        .from(agents)
+        .where(and(eq(agents.companyId, companyId), eq(agents.role, "ceo")));
+      return ceoAgents.length === 1 ? ceoAgents[0]!.id : null;
+    },
   };
 }

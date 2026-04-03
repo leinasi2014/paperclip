@@ -7,6 +7,7 @@
   "loading": "正在加载插件…",
   "error": "加载插件失败。",
   "title": "插件管理器",
+  "description": "安装、查看并维护实例插件和必需系统插件。",
   "actions": {
     "installPlugin": "安装插件",
     "install": "安装",
@@ -47,8 +48,17 @@
     "alphaDescription": "插件运行时和 API 仍在变化。功能稳定前可能会出现破坏性变更。"
   },
   "sections": {
+    "requiredSystem": "必需系统插件",
     "available": "可用插件",
     "installed": "已安装插件"
+  },
+  "system": {
+    "requiredBadge": "必需系统",
+    "executionImprovement": "执行改进",
+    "skillsSystem": "技能系统",
+    "managedByCore": "该插件被视为必需系统基础设施。它仍会显示在管理页中，但这里不能禁用或卸载。",
+    "disableBlocked": "必需系统插件不能在这里禁用。",
+    "uninstallBlocked": "必需系统插件不能在这里卸载。"
   },
   "states": {
     "loadingExamples": "正在加载内置示例…",
@@ -64,6 +74,8 @@
     "disabled": "已停用",
     "upgrade_pending": "等待升级",
     "uninstalled": "已卸载",
+    "degraded": "降级",
+    "missing": "缺失",
     "ready": "就绪",
     "error": "错误"
   },

@@ -1,4 +1,13 @@
-import type { IssueOriginKind, IssuePriority, IssueStatus } from "../constants.js";
+import type {
+  DepartmentIntakeStatus,
+  IssueOriginKind,
+  IssuePriority,
+  IssueStatus,
+  MinisterIntakeResponse,
+  SystemIssueSeverity,
+  SystemIssueType,
+  SystemIssueWorkflowState,
+} from "../constants.js";
 import type { Goal } from "./goal.js";
 import type { Project, ProjectWorkspace } from "./project.js";
 import type { ExecutionWorkspace, IssueExecutionWorkspaceSettings } from "./workspace-runtime.js";
@@ -101,6 +110,7 @@ export interface Issue {
   companyId: string;
   projectId: string | null;
   projectWorkspaceId: string | null;
+  owningDepartmentId?: string | null;
   goalId: string | null;
   parentId: string | null;
   ancestors?: IssueAncestor[];
@@ -122,6 +132,19 @@ export interface Issue {
   originId?: string | null;
   originRunId?: string | null;
   requestDepth: number;
+  departmentIntakeStatus?: DepartmentIntakeStatus | null;
+  routedByAgentId?: string | null;
+  routedByUserId?: string | null;
+  routedAt?: Date | null;
+  ministerDecisionResponse?: MinisterIntakeResponse | null;
+  ministerDecisionByAgentId?: string | null;
+  ministerDecisionAt?: Date | null;
+  ministerDecisionReason?: string | null;
+  systemIssueType?: SystemIssueType | null;
+  systemIssueSeverity?: SystemIssueSeverity | null;
+  systemIssueWorkflowState?: SystemIssueWorkflowState | null;
+  blockRecommended?: boolean;
+  isInCeoIntake?: boolean;
   billingCode: string | null;
   assigneeAdapterOverrides: IssueAssigneeAdapterOverrides | null;
   executionWorkspaceId: string | null;
@@ -146,6 +169,14 @@ export interface Issue {
   isUnreadForMe?: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface SystemIssue extends Issue {
+  systemIssueType: SystemIssueType;
+  systemIssueSeverity: SystemIssueSeverity;
+  systemIssueWorkflowState: SystemIssueWorkflowState;
+  blockRecommended: boolean;
+  isInCeoIntake: boolean;
 }
 
 export interface IssueComment {

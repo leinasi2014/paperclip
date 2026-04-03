@@ -18,6 +18,7 @@ export const updateCompanySchema = createCompanySchema
     status: z.enum(COMPANY_STATUSES).optional(),
     spentMonthlyCents: z.number().int().nonnegative().optional(),
     requireBoardApprovalForNewAgents: z.boolean().optional(),
+    ceoAgentId: z.string().uuid().nullable().optional(),
     brandColor: brandColorSchema,
     logoAssetId: logoAssetIdSchema,
   });

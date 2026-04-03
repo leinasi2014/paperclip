@@ -1,0 +1,52 @@
+{
+  "breadcrumbs": {
+    "title": "Departments"
+  },
+  "title": "Departments",
+  "description": "Company responsibility units led by a single minister.",
+  "loading": "Loading departments...",
+  "actions": {
+    "create": "Create department",
+    "assignMinister": "Assign minister",
+    "removeMinister": "Remove minister",
+    "freeze": "Freeze department",
+    "unfreeze": "Unfreeze department",
+    "allocateBudget": "Allocate budget"
+  },
+  "fields": {
+    "name": "Name",
+    "slug": "Slug",
+    "mission": "Mission",
+    "minister": "Minister",
+    "status": "Status",
+    "budget": "Budget",
+    "maxWorkers": "Temporary worker limit",
+    "ttlExpiresAt": "TTL expires",
+    "reason": "Reason",
+    "monthlyLimit": "Monthly limit",
+    "reserved": "Reserved",
+    "spent": "Spent"
+  },
+  "empty": {
+    "selectCompany": "Select a company to view departments.",
+    "noDepartments": "No departments yet.",
+    "noSystemIssues": "No system issues routed to this department yet.",
+    "noTemporaryWorkers": "No temporary workers are currently attached to this department."
+  },
+  "sections": {
+    "budget": "Budget envelope",
+    "systemIssues": "System issues",
+    "temporaryWorkers": "Temporary workers"
+  },
+  "detail": {
+    "missionFallback": "No mission defined yet.",
+    "ministerFallback": "Unassigned",
+    "budgetNotFound": "No budget envelope found yet.",
+    "viewSystemIssue": "Open system issue",
+    "ttlPolicy": "Default worker TTL: {{minutes}} minutes"
+  },
+  "errors": {
+    "notFound": "Department not found",
+    "budgetNotFound": "Department budget not found"
+  }
+}

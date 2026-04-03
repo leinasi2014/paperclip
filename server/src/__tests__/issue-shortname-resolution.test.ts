@@ -29,6 +29,9 @@ vi.mock("../services/index.js", () => ({
   agentService: () => ({
     getById: vi.fn(),
   }),
+  companyService: () => ({
+    getEffectiveCeoAgentId: vi.fn(),
+  }),
   documentService: () => ({
     getIssueDocumentPayload: vi.fn(async () => ({})),
   }),
@@ -47,6 +50,10 @@ vi.mock("../services/index.js", () => ({
     cancelRun: vi.fn(async () => null),
   }),
   issueApprovalService: () => mockIssueApprovalService,
+  issueRoutingService: () => ({
+    route: vi.fn(),
+    ministerIntake: vi.fn(),
+  }),
   issueService: () => mockIssueService,
   logActivity: vi.fn(async () => undefined),
   projectService: () => ({

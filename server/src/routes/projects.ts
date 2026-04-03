@@ -8,17 +8,18 @@ import {
   updateProjectWorkspaceSchema,
 } from "@paperclipai/shared";
 import { validate } from "../middleware/validate.js";
-import { issueService, projectService, logActivity, workspaceOperationService } from "../services/index.js";
+import { issueService, projectService, logActivity, systemProjectService, workspaceOperationService } from "../services/index.js";
 import { getStorageService } from "../storage/index.js";
 import { logger } from "../middleware/logger.js";
 import { conflict } from "../errors.js";
-import { assertCompanyAccess, getActorInfo } from "./authz.js";
+import { assertBoard, assertCompanyAccess, getActorInfo } from "./authz.js";
 import { startRuntimeServicesForWorkspaceControl, stopRuntimeServicesForProjectWorkspace } from "../services/workspace-runtime.js";
 
 export function projectRoutes(db: Db) {
   const router = Router();
   const svc = projectService(db);
   const issuesSvc = issueService(db);
+  const systemProjects = systemProjectService(db);
   const workspaceOperations = workspaceOperationService(db);
   const storage = getStorageService();
 
@@ -122,6 +123,9 @@ export function projectRoutes(db: Db) {
       return;
     }
     assertCompanyAccess(req, existing.companyId);
+    if (existing.isSystemProject && req.body.archivedAt !== undefined && req.body.archivedAt !== null) {
+      await systemProjects.assertNotSystemProject(existing.id);
+    }
     const body = { ...req.body };
     if (typeof body.archivedAt === "string") {
       body.archivedAt = new Date(body.archivedAt);
@@ -415,6 +419,7 @@ export function projectRoutes(db: Db) {
       return;
     }
     assertCompanyAccess(req, existing.companyId);
+    await systemProjects.assertNotSystemProject(id);
 
     const projectIssues = await issuesSvc.list(existing.companyId, { projectId: id });
     const attachments = (

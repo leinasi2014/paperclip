@@ -36,6 +36,7 @@ import {
   accessService,
   approvalService,
   companySkillService,
+  companyService,
   budgetService,
   heartbeatService,
   issueApprovalService,
@@ -88,6 +89,7 @@ export function agentRoutes(db: Db) {
   const svc = agentService(db);
   const access = accessService(db);
   const approvalsSvc = approvalService(db);
+  const companiesSvc = companyService(db);
   const budgets = budgetService(db);
   const heartbeat = heartbeatService(db);
   const issueApprovalsSvc = issueApprovalService(db);
@@ -210,6 +212,14 @@ export function agentRoutes(db: Db) {
       throw forbidden("Missing permission: can create agents");
     }
     return actorAgent;
+  }
+
+  async function assertCeoSeatAvailable(companyId: string, role: string | null | undefined) {
+    if (role !== "ceo") return;
+    const currentCeoAgentId = await companiesSvc.getEffectiveCeoAgentId(companyId);
+    if (currentCeoAgentId) {
+      throw conflict("Company already has a CEO");
+    }
   }
 
   async function assertCanReadConfigurations(req: Request, companyId: string) {
@@ -1286,6 +1296,7 @@ export function agentRoutes(db: Db) {
   router.post("/companies/:companyId/agent-hires", validate(createAgentHireSchema), async (req, res) => {
     const companyId = req.params.companyId as string;
     await assertCanCreateAgentsForCompany(req, companyId);
+    await assertCeoSeatAvailable(companyId, req.body.role);
     const sourceIssueIds = parseSourceIssueIds(req.body);
     const {
       desiredSkills: requestedDesiredSkills,
@@ -1438,12 +1449,17 @@ export function agentRoutes(db: Db) {
       });
     }
 
+    if (!approval && agent.role === "ceo") {
+      await companiesSvc.assignCeoAgent(companyId, agent.id);
+    }
+
     res.status(201).json({ agent, approval });
   });
 
   router.post("/companies/:companyId/agents", validate(createAgentSchema), async (req, res) => {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
+    await assertCeoSeatAvailable(companyId, req.body.role);
 
     if (req.actor.type === "agent") {
       assertBoard(req);
@@ -1517,6 +1533,10 @@ export function agentRoutes(db: Db) {
         },
         actor.actorType === "user" ? actor.actorId : null,
       );
+    }
+
+    if (agent.role === "ceo") {
+      await companiesSvc.assignCeoAgent(companyId, agent.id);
     }
 
     res.status(201).json(agent);

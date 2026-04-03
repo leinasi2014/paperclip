@@ -25,8 +25,12 @@ jobs:
         run: |
           changed="$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")"
           if printf '%s\n' "$changed" | grep -qx 'pnpm-lock.yaml'; then
-            echo "Do not commit pnpm-lock.yaml in pull requests. CI owns lockfile updates."
-            exit 1
+            if printf '%s\n' "$changed" | grep -Eq '(^package.json$|^pnpm-workspace.yaml$|^packages/.+/package.json$|^patches/)'; then
+              echo "pnpm-lock.yaml changed together with workspace/package metadata; allowing lockfile update."
+            else
+              echo "Do not commit pnpm-lock.yaml in pull requests unless workspace/package metadata changed with it."
+              exit 1
+            fi
           fi
 
       - name: Setup pnpm
@@ -39,6 +43,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
+
+      - name: Enforce changed file line limits
+        run: |
+          node scripts/check-file-line-limits.mjs \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.event.pull_request.head.sha }}"
 
       - name: Validate Dockerfile deps stage
         run: |

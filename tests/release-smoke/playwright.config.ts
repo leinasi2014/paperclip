@@ -1,7 +1,7 @@
 import { defineConfig } from "@playwright/test";
+import { resolveReleaseSmokeBaseUrl } from "../support/browser-chain.js";
 
-const BASE_URL =
-  process.env.PAPERCLIP_RELEASE_SMOKE_BASE_URL ?? "http://127.0.0.1:3232";
+const BASE_URL = resolveReleaseSmokeBaseUrl();
 
 export default defineConfig({
   testDir: ".",
