@@ -133,6 +133,18 @@ export const queryKeys = {
     schedulerHeartbeats: ["instance", "scheduler-heartbeats"] as const,
     experimentalSettings: ["instance", "experimental-settings"] as const,
   },
+  boardAssistant: {
+    settings: ["board-assistant", "settings"] as const,
+    activeBinding: ["board-assistant", "active-binding"] as const,
+    latestBindingSession: (channel: string) => ["board-assistant", "latest-binding-session", channel] as const,
+    bindingSession: (bindingSessionId: string) => ["board-assistant", "binding-session", bindingSessionId] as const,
+    requests: ["board-assistant", "requests"] as const,
+    requestDetail: (requestId: string) => ["board-assistant", "request-detail", requestId] as const,
+    memories: ["board-assistant", "memories"] as const,
+    memoryProposals: ["board-assistant", "memory-proposals"] as const,
+    threads: ["board-assistant", "threads"] as const,
+    threadMessages: (threadId: string) => ["board-assistant", "thread-messages", threadId] as const,
+  },
   health: ["health"] as const,
   secrets: {
     list: (companyId: string) => ["secrets", companyId] as const,

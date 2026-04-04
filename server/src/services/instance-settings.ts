@@ -5,6 +5,8 @@ import {
   type InstanceGeneralSettings,
   instanceExperimentalSettingsSchema,
   type InstanceExperimentalSettings,
+  boardAssistantSettingsSchema,
+  type BoardAssistantSettings,
   type PatchInstanceGeneralSettings,
   type InstanceSettings,
   type PatchInstanceExperimentalSettings,
@@ -39,11 +41,20 @@ function normalizeExperimentalSettings(raw: unknown): InstanceExperimentalSettin
   };
 }
 
+function normalizeBoardAssistantSettings(raw: unknown): BoardAssistantSettings {
+  const parsed = boardAssistantSettingsSchema.safeParse(raw ?? {});
+  if (parsed.success) {
+    return parsed.data;
+  }
+  return boardAssistantSettingsSchema.parse({});
+}
+
 function toInstanceSettings(row: typeof instanceSettings.$inferSelect): InstanceSettings {
   return {
     id: row.id,
     general: normalizeGeneralSettings(row.general),
     experimental: normalizeExperimentalSettings(row.experimental),
+    boardAssistant: normalizeBoardAssistantSettings((row as typeof row & { boardAssistant?: unknown }).boardAssistant),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -61,13 +72,14 @@ export function instanceSettingsService(db: Db) {
     const now = new Date();
     const [created] = await db
       .insert(instanceSettings)
-      .values({
-        singletonKey: DEFAULT_SINGLETON_KEY,
-        general: {},
-        experimental: {},
-        createdAt: now,
-        updatedAt: now,
-      })
+        .values({
+          singletonKey: DEFAULT_SINGLETON_KEY,
+          general: {},
+          experimental: {},
+          boardAssistant: {},
+          createdAt: now,
+          updatedAt: now,
+        })
       .onConflictDoUpdate({
         target: [instanceSettings.singletonKey],
         set: {
@@ -90,6 +102,11 @@ export function instanceSettingsService(db: Db) {
     getExperimental: async (): Promise<InstanceExperimentalSettings> => {
       const row = await getOrCreateRow();
       return normalizeExperimentalSettings(row.experimental);
+    },
+
+    getBoardAssistant: async (): Promise<BoardAssistantSettings> => {
+      const row = await getOrCreateRow();
+      return normalizeBoardAssistantSettings((row as typeof row & { boardAssistant?: unknown }).boardAssistant);
     },
 
     updateGeneral: async (patch: PatchInstanceGeneralSettings): Promise<InstanceSettings> => {
@@ -121,6 +138,27 @@ export function instanceSettingsService(db: Db) {
         .update(instanceSettings)
         .set({
           experimental: { ...nextExperimental },
+          updatedAt: now,
+        })
+        .where(eq(instanceSettings.id, current.id))
+        .returning();
+      return toInstanceSettings(updated ?? current);
+    },
+
+    updateBoardAssistant: async (patch: Partial<BoardAssistantSettings>): Promise<InstanceSettings> => {
+      const current = await getOrCreateRow();
+      const currentBoardAssistant = normalizeBoardAssistantSettings(
+        (current as typeof current & { boardAssistant?: unknown }).boardAssistant,
+      );
+      const nextBoardAssistant = normalizeBoardAssistantSettings({
+        ...currentBoardAssistant,
+        ...patch,
+      });
+      const now = new Date();
+      const [updated] = await db
+        .update(instanceSettings)
+        .set({
+          boardAssistant: { ...nextBoardAssistant },
           updatedAt: now,
         })
         .where(eq(instanceSettings.id, current.id))

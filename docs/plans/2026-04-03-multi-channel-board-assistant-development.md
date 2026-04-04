@@ -1,0 +1,508 @@
+# 多通道 Board Assistant 开发文档
+
+## 摘要
+
+- 基于 [2026-04-03-multi-channel-board-assistant.md](./2026-04-03-multi-channel-board-assistant.md) 实现 v1 的实例级 Board Assistant。
+- v1 的交付目标是：
+  - 一个实例级、可审计、可确认的 Board Assistant core
+  - 一个真实可用的 `wechat` channel plugin，使用 `weixin-ilink`
+  - 一个最小 board-only 控制面，用于绑定、请求处理、记忆审阅和基础线程控制
+- v1 不交付完整内部聊天工作台，不做多用户共享助理，不做复杂群聊/线程树。
+
+## 实现范围
+
+### 1. 数据模型
+
+- 新增实例级表：
+  - `board_assistant_bindings`
+  - `board_assistant_binding_sessions`
+  - `board_assistant_onboarding_sessions`
+  - `board_assistant_threads`
+  - `board_assistant_thread_messages`
+  - `board_assistant_requests`
+  - `board_assistant_request_targets`
+  - `board_assistant_outbox`
+  - `board_assistant_bundle_revisions`
+  - `board_assistant_memories`
+  - `board_assistant_memory_proposals`
+- 不新增跨 company `agents` 记录；assistant 仍然是实例级系统服务。
+- 新表字段要求：
+  - 所有主键使用 UUID
+  - 状态字段统一使用 shared constants 导出的枚举
+  - 重要 JSON 字段必须在 shared validators 中有对应 schema
+  - 所有表都保留 `createdAt` / `updatedAt`
+- 约束要求：
+  - `board_assistant_bindings` 在 v1 仅允许 1 条 `active` 绑定
+  - `board_assistant_binding_sessions.bindingTokenHash` 唯一
+  - `board_assistant_onboarding_sessions` 对活跃 `bindingSessionId` 唯一
+  - `board_assistant_thread_messages` 对 `(threadId, createdAt, id)` 建索引
+  - `board_assistant_requests` 对 `(channel, externalUserId, externalThreadId, externalMessageId)` 建唯一约束
+  - `board_assistant_request_targets` 对 `(requestId, targetKind, targetRef)` 建唯一约束
+  - `board_assistant_outbox` 对 `(requestId, checkpointKind, targetRef)` 建唯一约束
+  - `board_assistant_bundle_revisions` 保证同一 `bundleKind` 同时只有 1 条 `isActive=true`
+- 状态枚举要求：
+  - binding session:
+    - `pending_channel_handshake`
+    - `pending_web_confirm`
+    - `active`
+    - `expired`
+    - `cancelled`
+    - `revoked`
+  - request:
+    - `received`
+    - `clarifying`
+    - `proposed`
+    - `confirmed`
+    - `queued`
+    - `routed`
+    - `executing`
+    - `blocked`
+    - `cancelled`
+    - `expired`
+    - `done`
+    - `failed`
+  - target:
+    - `queued`
+    - `routed`
+    - `executing`
+    - `blocked`
+    - `done`
+    - `failed`
+    - `cancelled`
+  - outbox:
+    - `pending`
+    - `sending`
+    - `sent`
+    - `failed`
+  - onboarding session:
+    - `active`
+    - `completed`
+    - `expired`
+    - `cancelled`
+  - memory:
+    - `active`
+    - `suppressed`
+    - `deleted`
+  - memory proposal:
+    - `pending`
+    - `approved`
+    - `rejected`
+    - `expired`
+- thread 模型要求：
+  - 区分 `external` 和 `internal` 线程
+  - `external` 线程记录外部 channel、externalThreadId、lastInboundAt、lastOutboundAt、activeContextSummary、expiresAt
+  - `internal` 线程记录 employee/CEO 目标、threadMode、setBy、setAt、archivedAt
+- thread message 模型要求：
+  - 保存 `threadId`
+  - `authorKind`
+  - `authorRef`
+  - `direction`
+  - `content`
+  - `metadata`
+  - `createdAt`
+  - `supersedesMessageId`
+  - `supersededByMessageId`
+- onboarding session 要保存：
+  - `bindingSessionId`
+  - `externalThreadId`
+  - `currentStep`
+  - `answers`
+  - `status`
+  - `expiresAt`
+- bundle revision 要保存：
+  - `bundleKind`
+  - `revisionId`
+  - `content`
+  - `isActive`
+  - `updatedBy`
+  - `changeReason`
+- memory 要保存：
+  - `memoryKind`
+  - `summary`
+  - `sourceRefs`
+  - `confidence`
+  - `visibilityPolicy`
+  - `status`
+- message 原文保留策略：
+  - 入站原始文本与规范化载荷保留 90 天
+  - 超期后保留 request/target/outbox 的审计摘要字段
+
+### 2. Shared Contracts
+
+- 在 `packages/shared` 新增：
+  - board assistant constants
+  - board assistant types
+  - board assistant validators
+  - board assistant API path constants
+- 新增 shared 常量：
+  - binding session statuses
+  - request statuses
+  - target statuses
+  - outbox statuses
+  - thread kinds
+  - thread modes
+  - bundle kinds
+  - memory kinds
+  - memory visibility policies
+  - blocked reasons
+  - instance actions
+  - channel kinds
+- 新增 shared schema：
+  - binding create / confirm / revoke
+  - ingress payload
+  - request filters
+  - request confirm / reject
+  - memory review / delete / suppress
+  - thread mode patch
+  - destructive preview response
+  - outbox ack
+- 扩展 instance settings：
+  - 在 `general` 或新 `boardAssistant` settings 分组中增加 assistant 配置
+  - v1 推荐新增独立 `boardAssistant` JSON 分组，避免把 assistant 配置塞进 `general/experimental`
+- `boardAssistant` settings 至少包含：
+  - `enabled`
+  - `activeChannels`
+  - `autoExecutionMode`
+  - `allowProactiveBriefing`
+  - `allowAllActiveCompaniesQueryGroup`
+  - `bindingTokenTtlMinutes`
+  - `proposedTtlHours`
+  - `clarifyingTtlHours`
+  - `highSensitivityConfirmTtlHours`
+  - `ingressReplayWindowMinutes`
+  - `previousSecretGraceWindowMinutes`
+  - `outboxMaxRetries`
+  - `nudgeIntervalHours`
+  - `maxNudgesPerItem`
+- v1 默认值固定为：
+  - `bindingTokenTtlMinutes = 10`
+  - `proposedTtlHours = 24`
+  - `clarifyingTtlHours = 24`
+  - `highSensitivityConfirmTtlHours = 24`
+  - `ingressReplayWindowMinutes = 5`
+  - `previousSecretGraceWindowMinutes = 60`
+  - `outboxMaxRetries = 5`
+  - `nudgeIntervalHours = 4`
+  - `maxNudgesPerItem = 3`
+- `activeChannels` 仅表示实例已启用哪些 channel adapter，不表示同时允许多个活跃外部身份。
+- v1 的绑定模型固定为“单 Founder、单活跃外部身份、单 channel”；未来多 channel 并行绑定不在本次实现范围内。
+
+### 3. Server Core
+
+- 新增服务模块：
+  - `board-assistant-settings`
+  - `board-assistant-bindings`
+  - `board-assistant-onboarding`
+  - `board-assistant-bundles`
+  - `board-assistant-memory`
+  - `board-assistant-requests`
+  - `board-assistant-routing`
+  - `board-assistant-outbox`
+  - `board-assistant-ingress-auth`
+  - `board-assistant-company-recommendation`
+  - `board-assistant-threads`
+  - `board-assistant-thread-messages`
+- 新增 board-only 路由命名空间：
+  - `GET /api/board-assistant/settings`
+  - `PATCH /api/board-assistant/settings`
+  - `POST /api/board-assistant/bindings/sessions`
+  - `POST /api/board-assistant/bindings/sessions/:bindingSessionId/confirm`
+  - `POST /api/board-assistant/bindings/revoke`
+  - `GET /api/board-assistant/bindings/active`
+  - `GET /api/board-assistant/requests`
+  - `GET /api/board-assistant/requests/:requestId`
+  - `POST /api/board-assistant/requests/:requestId/confirm`
+  - `POST /api/board-assistant/requests/:requestId/reject`
+  - `GET /api/board-assistant/memories`
+  - `GET /api/board-assistant/memory-proposals`
+  - `POST /api/board-assistant/memory-proposals/:proposalId/approve`
+  - `POST /api/board-assistant/memory-proposals/:proposalId/reject`
+  - `POST /api/board-assistant/memories/:memoryId/suppress`
+  - `DELETE /api/board-assistant/memories/:memoryId`
+  - `GET /api/board-assistant/threads`
+  - `GET /api/board-assistant/threads/:threadId/messages`
+  - `POST /api/board-assistant/threads/:threadId/messages`
+  - `PATCH /api/board-assistant/threads/:threadId/mode`
+  - `GET /api/board-assistant/health`
+- 新增 plugin-secret 路由命名空间：
+  - `POST /api/board-assistant/channel/ingress`
+  - `GET /api/board-assistant/channel/outbox`
+  - `POST /api/board-assistant/channel/outbox/:outboxId/ack`
+  - `POST /api/board-assistant/channel/health`
+- 所有非 channel 的 `/api/board-assistant/*` 管理接口都要求 board actor，且必须具备 instance admin 权限。
+- 所有 `/api/board-assistant/channel/*` 仅接受 channel secret 鉴权，不接受 board session。
+- 绑定流程实现要求：
+  - Web 创建 binding session 时生成一次性 token，仅返回给当前 board UI 会话
+  - token 只以 hash 形式落库
+  - 外部 channel plugin 带 token 打 ingress 的绑定握手入口
+  - core 仅把该身份记成 `pending_web_confirm`
+  - 只有 Web 侧最终确认后才把 binding 置 `active`
+- onboarding 实现要求：
+  - 首次绑定转正后自动创建 `board_assistant_onboarding_session`
+  - 活跃 onboarding 进度不混入普通 request 摘要，统一走独立 onboarding session
+  - 外部消息进入时若存在活跃 onboarding session，则优先推进 onboarding
+  - onboarding 完成后写入 assistant 初始 `SOUL.md` 和 assistant settings
+- ingress 鉴权要求：
+  - 使用每个 channel 的独立 secret
+  - HMAC-SHA256 签名串固定为：
+    - `channel`
+    - `externalUserId`
+    - `externalThreadId`
+    - `externalMessageId`
+    - `timestamp`
+    - `bodyHash`
+  - core 校验：
+    - secret 正确
+    - timestamp 未超 5 分钟窗口
+    - 幂等键未重复
+- channel secret 生命周期要求：
+  - 每个 channel 只有 1 把 active secret 和最多 1 把 previous secret
+  - 轮换先生成 next secret，再由 plugin 更新，随后旧 secret 进入宽限窗口
+  - previous secret 宽限窗口结束后彻底失效
+- ingress 速率限制要求：
+  - 至少按 `channel + externalUserId` 限流
+  - 再按 `channel` 限流
+  - 命中限流直接拒绝，不创建 request
+- request 编排要求：
+  - ingress 入站先写 `received`
+  - 意图解析后进入 `clarifying` / `proposed` / `done`
+  - 写请求必须生成结构化任务卡片数据
+  - `proposed` / `clarifying` 超时进入 `expired`
+  - confirm/reject 必须幂等
+- company-scoped 执行要求：
+  - confirm 后按 target company 创建 CEO issue
+  - issue 默认落 `System Governance` project
+  - 唤醒 CEO 的等待窗口固定 5 分钟
+  - 未 claim 则 target 进入 `blocked(ceo_not_claimed)`
+  - blocked 后只允许：
+    - 发 follow-up
+    - Founder 显式重唤醒
+    - 取消 target
+- instance-scoped 执行要求：
+  - v1 只实现 `create_company` 和 `delete_company`
+  - `create_company` 调用现有 companies service
+  - `delete_company` 调用现有 companies delete 逻辑
+  - delete 前必须生成 destructive preview
+  - 若存在 `running` 或已 claim 未释放 lease 的 heartbeat run，则 blocked
+  - blocked 后等待 Founder 重新确认或取消，不自动重试
+  - `delete_company` 复用现有硬删除和级联清理语义
+  - assistant 实例级审计表不随 company 删除整体删除，只把相关引用标记为已删除 company
+- auto-execution 实现要求：
+  - 默认 `manual_confirm`
+  - `low_risk_auto` 仅允许：
+    - existing formal object `follow-up`
+    - existing formal object `clarification`
+    - reminder time update
+    - draft-only generation
+  - `enhanced_auto` 额外允许：
+    - explicit target company 的 low-risk `issue draft`
+    - explicit source object 的 `notification`
+  - 高风险动作、删除、`SOUL.md` 修改永不自动执行
+- bundle 实现要求：
+  - assistant 的 `SOUL.md / AGENTS.md / HEARTBEAT.md / TOOLS.md` 都走 revision 表
+  - `SOUL.md` 修改必须走预览 + Founder confirm
+  - 其他 3 份 v1 只读，不做聊天侧修改入口
+- memory 实现要求：
+  - 入站处理与后台整理分离
+  - 对外发送前必须经过 `memory redaction gate`
+  - gate 先走规则，再走受控改写
+  - gate 决策要留审计摘要
+  - Founder 可以查看、删除、禁写某类记忆
+  - 高敏感记忆先写入 `board_assistant_memory_proposals`
+  - Founder approve 后才写正式 memory
+  - Founder reject 后 proposal 保留审计但不写 memory
+  - v1 的 gate 规则至少包含：
+    - 私人称呼和昵称
+    - 短期情绪/状态标签
+    - 长期偏好判断
+    - 关系评价
+    - 未授权的私人记忆原文引用
+  - 是否阻断由规则层决定，不允许只依赖 LLM 自由判断
+- 活动日志要求：
+  - assistant 的绑定、解绑、确认、拒绝、记忆删除、模式切换、自动执行等都要写 activity
+  - company-scoped 写回 company activity
+  - instance-scoped 写入实例级审计并在相关 company 写 activity
+
+### 4. WeChat Channel Plugin
+
+- 新增插件包：
+  - `packages/plugins/plugin-board-assistant-wechat`
+- 插件职责固定为：
+  - QR 登录
+  - token / cursor 持久化
+  - 长轮询收消息
+  - 去重
+  - 规范化入站
+  - 调 core ingress
+  - 拉取 outbox 并回执 ack
+- 插件不负责任何正式业务决策：
+  - 不解析正式动作
+  - 不创建 request target
+  - 不创建 issue
+  - 不写最终 request 状态
+- SDK 选型固定：
+  - 使用 `weixin-ilink`
+  - 参考 `nanobot/channels/weixin.py` 的这些行为模式：
+    - `_load_state/_save_state`
+    - QR 刷新与超时
+    - long-poll 循环
+    - processed ids 去重
+    - backoff / session pause
+    - `context_token` 回声
+    - typing indicator 可先不做阻塞项
+- 插件状态持久化：
+  - cursor
+  - dedupe LRU
+  - lastPollAt
+  - loginStatus
+  - lastAckAt
+  - pendingIngressQueue
+- 插件运行时凭证持久化：
+  - `token`
+  - `baseUrl`
+  - route metadata
+- 微信运行时凭证不以明文写入 `plugin_state`
+- v1 固定为：
+  - 凭证正文使用现有 secret provider 加密存储
+  - `plugin_state` 仅保存 secret ref 与运行状态
+- 插件对外消息能力 v1 必做：
+  - 文本发送
+  - 长文本分片发送
+  - 基础 error handling
+- 插件富媒体能力 v1：
+  - 仅保留接口边界，不作为首批必须完成项
+  - 如时间允许再接 image/file upload
+- 插件 worker 行为：
+  - 启动时读取 plugin config + plugin state
+  - 若无 token，则通过设置页或 job 触发二维码登录
+  - 登录成功后将 token/baseUrl 写入加密凭证存储，并把 secret ref 写回 plugin state
+  - poll 循环拿到消息后先做本地 dedupe，再调用 core ingress
+  - outbox poll 按固定间隔拉取待发送消息
+  - 发送成功后 ack 对应 outbox
+  - ingress 调用失败时先写入 `pendingIngressQueue`，随后按原幂等键重试
+  - poll 中断或 session 失效时保留 cursor 和待发队列，重连后补偿
+
+### 5. Minimal Board UI
+
+- 新增最小 board-only 助理控制面路由：
+  - 推荐路径：`/board-assistant`
+- 页面最小模块：
+  - 概览
+  - 当前绑定状态
+  - 请求列表
+  - 请求详情侧栏
+  - 记忆提案审阅
+  - 记忆审阅
+  - 线程消息与模式切换
+- v1 不做完整聊天工作台，只做管理与确认面板。
+- UI 功能要求：
+  - 创建 binding session
+  - 展示候选绑定并最终确认
+  - 解绑活跃外部身份
+  - 列表查看 requests
+  - 在 detail 中确认、拒绝、查看 target 状态、查看 destructive preview
+  - 查看与处理 memory proposals
+  - 查看 memory 摘要、来源、删除和 suppress
+  - 查看内部线程消息，并支持 Founder 发消息
+  - 查看内部线程摘要，并切换：
+    - `旁观`
+    - `联合发言`
+    - `接管`
+- 线程模式规则：
+  - 默认 `旁观`
+  - 只有 Founder 显式操作才切换
+  - `接管` 时 UI 明确显示“助理静默”
+  - `联合发言` 时 UI 明确显示“Founder 最新消息优先”
+- 复用现有实例设置和 board-only 页面模式，不引入新的复杂全局布局。
+
+## 与现有代码对齐
+
+- companies create/delete 直接复用现有 `companies` service 语义，不重新实现一套公司生命周期。
+- instance settings 复用现有 `instanceSettings` 单例表和 routes/service 模式，但扩成独立 `boardAssistant` settings 分组。
+- activity logging 复用现有 `logActivity` 模式。
+- board-only 权限检查复用现有 `instance-settings` 路由的 instance admin 校验方式。
+- agent instruction bundle 不走 agent 本地 instructions root；assistant bundle 使用实例级 revision 表。
+- 插件实现必须贴合现有 plugin worker 架构，不允许单独绕开 plugin host 新起一个 repo 外服务。
+- 90 天原始消息保留策略必须由服务端清理任务落地：
+  - 新增 board assistant retention job
+  - 每日扫描超期请求
+  - 删除超期原始消息载荷，仅保留审计摘要字段
+
+## Public API / Types
+
+- 新增 shared public types：
+  - `BoardAssistantSettings`
+  - `BoardAssistantBinding`
+  - `BoardAssistantBindingSession`
+  - `BoardAssistantOnboardingSession`
+  - `BoardAssistantThread`
+  - `BoardAssistantThreadMessage`
+  - `BoardAssistantRequest`
+  - `BoardAssistantRequestTarget`
+  - `BoardAssistantOutboxItem`
+  - `BoardAssistantBundleRevision`
+  - `BoardAssistantMemory`
+  - `BoardAssistantMemoryProposal`
+  - `BoardAssistantDestructivePreview`
+- 新增 settings patch schema：
+  - `patchBoardAssistantSettingsSchema`
+- 新增 API client：
+  - `ui/src/api/board-assistant.ts`
+
+## 测试方案
+
+- shared
+  - constants/types/validators 编译通过
+  - settings schema 默认值和 patch 行为正确
+- db
+  - 新表唯一约束和索引工作正常
+  - migration 可应用
+- server service
+  - binding session token 单次使用、过期、替换旧 token
+  - active binding 单例约束
+  - revoke 后旧 thread 与旧 `received/clarifying/proposed` 请求失效
+  - ingress signature / replay / idempotency
+  - `received -> clarifying/proposed/done`
+  - `proposed/clarifying` 过期
+  - request confirm/reject 幂等
+  - company create/delete action 对齐现有公司逻辑
+  - `ceo_not_claimed` / `assistant_unavailable` / deletion blocked
+  - outbox retry 与 ack
+  - `SOUL.md` proposal + confirm + revision switch
+  - memory redaction gate 与 memory review/delete
+  - memory proposal approve/reject
+  - onboarding session create/resume/expire
+  - internal thread messages 与 thread mode patch
+- plugin
+  - QR login 生命周期
+  - token secret persistence + cursor persistence
+  - dedupe
+  - ingress 调用
+  - outbox send + ack
+- UI
+  - binding create/confirm/revoke
+  - request list/detail/confirm/reject
+  - memory review/delete/suppress
+  - thread mode patch
+- 集成
+  - 模拟微信消息进入 ingress，生成 request，confirm 后创建 CEO issue 或执行 company create/delete
+  - 微信 plugin 从 outbox 拉消息并发送
+
+## 实施顺序
+
+1. 创建开发文档并完成审查收口
+2. schema + shared contracts
+3. instance settings 扩展
+4. server core routes/services
+5. wechat plugin
+6. minimal UI
+7. 测试与 bug/security 复审
+
+## 默认值与非目标
+
+- v1 不做多用户共享助理。
+- v1 不做完整内部聊天主界面。
+- v1 不做飞书适配器，但 channel contract 设计必须允许后续接入。
+- v1 不把 `all-active-companies` 用于写请求。
+- v1 不允许聊天侧直接改 `AGENTS.md / HEARTBEAT.md / TOOLS.md`。
+- v1 富媒体发送不是首批阻塞项；文本链路优先打通。

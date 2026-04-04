@@ -298,6 +298,7 @@
   "instanceSettings": {
     "title": "Instance Settings",
     "general": "General",
+    "boardAssistant": "Board Assistant",
     "heartbeats": "Heartbeats",
     "experimental": "Experimental",
     "plugins": "Plugins"

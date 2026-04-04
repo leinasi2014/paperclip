@@ -32,6 +32,7 @@ export { systemIssueService } from "./system-issues.js";
 export { requiredSystemPluginService } from "./required-system-plugins.js";
 export { accessService } from "./access.js";
 export { boardAuthService } from "./board-auth.js";
+export { boardAssistantService } from "./board-assistant.js";
 export { instanceSettingsService } from "./instance-settings.js";
 export { companyPortabilityService } from "./company-portability.js";
 export { executionWorkspaceService } from "./execution-workspaces.js";

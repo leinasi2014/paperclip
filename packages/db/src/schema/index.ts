@@ -6,6 +6,19 @@ export { temporaryWorkers } from "./temporary_workers.js";
 export { authUsers, authSessions, authAccounts, authVerifications } from "./auth.js";
 export { instanceSettings } from "./instance_settings.js";
 export { instanceUserRoles } from "./instance_user_roles.js";
+export {
+  boardAssistantBindings,
+  boardAssistantBindingSessions,
+  boardAssistantOnboardingSessions,
+  boardAssistantThreads,
+  boardAssistantThreadMessages,
+  boardAssistantRequests,
+  boardAssistantRequestTargets,
+  boardAssistantOutbox,
+  boardAssistantBundleRevisions,
+  boardAssistantMemories,
+  boardAssistantMemoryProposals,
+} from "./board_assistant.js";
 export { agents } from "./agents.js";
 export { boardApiKeys } from "./board_api_keys.js";
 export { cliAuthChallenges } from "./cli_auth_challenges.js";

@@ -298,6 +298,7 @@
   "instanceSettings": {
     "title": "实例设置",
     "general": "常规",
+    "boardAssistant": "助理",
     "heartbeats": "心跳",
     "experimental": "实验功能",
     "plugins": "插件"

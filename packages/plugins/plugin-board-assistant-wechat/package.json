@@ -1,0 +1,25 @@
+{
+  "name": "@paperclipai/plugin-board-assistant-wechat",
+  "version": "0.1.0",
+  "description": "WeChat channel adapter plugin for the Board Assistant",
+  "type": "module",
+  "private": true,
+  "paperclipPlugin": {
+    "manifest": "./dist/src/manifest.js",
+    "worker": "./dist/src/worker.js"
+  },
+  "scripts": {
+    "prebuild": "node ../../../scripts/ensure-plugin-build-deps.mjs",
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "typecheck": "pnpm --filter @paperclipai/plugin-sdk build && tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@paperclipai/plugin-sdk": "workspace:*",
+    "weixin-ilink": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "typescript": "^5.7.3"
+  }
+}

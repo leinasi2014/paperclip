@@ -54,6 +54,182 @@
       "toggleLabel": "切换日志用户名隐藏"
     }
   },
+  "boardAssistant": {
+    "breadcrumb": "助理",
+    "loading": "正在加载助理设置…",
+    "title": "Board Assistant",
+    "description": "配置实例级助理，管理外部通道绑定，并审阅请求、记忆和内部线程。",
+    "errors": {
+      "load": "加载助理设置失败。",
+      "update": "更新助理设置失败。",
+      "createBinding": "创建绑定会话失败。",
+      "confirmBinding": "确认绑定会话失败。",
+      "revokeBinding": "撤销当前绑定失败。",
+      "confirmRequest": "确认请求失败。",
+      "rejectRequest": "拒绝请求失败。",
+      "approveMemory": "批准记忆提案失败。",
+      "rejectMemory": "拒绝记忆提案失败。",
+      "suppressMemory": "更新记忆状态失败。",
+      "deleteMemory": "删除记忆失败。",
+      "updateThreadMode": "更新线程模式失败。",
+      "sendThreadMessage": "发送线程消息失败。"
+    },
+    "shared": {
+      "empty": "—",
+      "yes": "是",
+      "no": "否",
+      "copy": "复制",
+      "copied": "已复制",
+      "expand": "展开",
+      "collapse": "收起"
+    },
+    "sections": {
+      "controls": "核心控制",
+      "controlsHint": "一期先收敛到全局执行策略和主动提醒行为。",
+      "binding": "通道绑定"
+    },
+    "summary": {
+      "bindingTitle": "绑定状态",
+      "bound": "已绑定",
+      "unbound": "未绑定",
+      "bindingHint": "当前还没有生效的外部创始人通道绑定。",
+      "pendingTitle": "待处理请求",
+      "pendingHint": "仍需确认、跟进或等待解阻的请求数量。",
+      "memoryTitle": "待审记忆",
+      "memoryHint": "等待你审阅的记忆提案数量。"
+    },
+    "enabled": {
+      "title": "启用助理",
+      "description": "开启或关闭实例级助理，不会清空它的长期记忆、文档修订或渠道插件状态。",
+      "toggleLabel": "切换助理启用状态"
+    },
+    "autoExecution": {
+      "title": "自动执行模式",
+      "description": "决定助理在识别出任务意图后，可以多积极地从理解推进到执行。",
+      "options": {
+        "manual_confirm": "手动确认",
+        "low_risk_auto": "低风险自动",
+        "enhanced_auto": "增强自动"
+      }
+    },
+    "proactiveBriefing": {
+      "title": "允许主动简报",
+      "description": "允许助理主动发起高价值提醒、阻塞升级和关键事件简报。",
+      "toggleLabel": "切换主动简报"
+    },
+    "queryGroup": {
+      "title": "允许活跃公司总览查询",
+      "description": "允许助理在查询场景下汇总所有活跃公司，但不会因此放开跨公司的正式写操作。",
+      "toggleLabel": "切换活跃公司总览查询"
+    },
+    "binding": {
+      "hint": "把助理绑定到创始人拥有的外部通道，并在这里持续查看最近一次握手状态。",
+      "create": "创建微信绑定会话",
+      "revoke": "撤销绑定",
+      "sessionTitle": "最近一次绑定会话",
+      "sessionHint": "先创建会话，再完成通道侧握手，最后回到控制面确认。",
+      "steps": {
+        "create": "创建会话",
+        "channel": "通道握手",
+        "confirm": "网页确认"
+      },
+      "bindingCode": "绑定码",
+      "bindingToken": "绑定令牌",
+      "expiresAt": "过期时间",
+      "refresh": "刷新状态",
+      "confirm": "网页确认",
+      "loading": "正在加载当前绑定…",
+      "loadError": "加载当前绑定失败。",
+      "empty": "当前还没有激活的外部通道绑定。",
+      "emptyTitle": "还没有已激活的创始人通道绑定",
+      "emptySteps": {
+        "create": "1. 先创建一条新的微信绑定会话。",
+        "channel": "2. 在微信侧完成扫码或输入绑定码。",
+        "confirm": "3. 回到这里确认，让助理正式接管该通道。"
+      },
+      "sessionEmpty": "当前浏览器会话里还没有创建过新的绑定会话。",
+      "noThread": "尚未记录外部线程。"
+    },
+    "tabs": {
+      "requests": "请求",
+      "memory": "记忆",
+      "threads": "线程"
+    },
+    "requests": {
+      "title": "创始人请求",
+      "hint": "在它们变成正式动作前，先审阅助理整理出的结构化请求。",
+      "empty": "当前还没有捕获到任何请求。",
+      "selectHint": "选择左侧请求后，可查看任务卡片、执行目标和可用动作。",
+      "untitled": "未命名请求",
+      "cardPayload": "任务卡片",
+      "proposedPayload": "执行载荷",
+      "card": {
+        "task": "我理解的任务",
+        "target": "目标对象",
+        "suggestedAction": "建议动作",
+        "riskLevel": "风险等级",
+        "executionMode": "执行方式",
+        "createsFormalObject": "是否创建正式对象",
+        "rationale": "理解依据",
+        "plannedCalls": "计划调用",
+        "pendingConfirmation": "待你确认",
+        "expectedOutput": "预期产出"
+      },
+      "destructivePreview": "破坏性预览",
+      "activeRuns": "活跃运行数",
+      "entityCounts": "实体数量",
+      "targets": "执行目标",
+      "noTargets": "当前还没有记录任何执行目标。",
+      "notActionable": "当前状态不可直接确认或拒绝，只能查看已整理内容。",
+      "confirmNotes": "创始人备注",
+      "confirmNotesPlaceholder": "执行前附加的可选说明。",
+      "rejectReason": "拒绝原因",
+      "rejectReasonPlaceholder": "回传给助理的可选原因。",
+      "confirm": "确认执行",
+      "reject": "拒绝请求",
+      "rewake": "重新唤醒 CEO",
+      "cancelTarget": "取消目标"
+    },
+    "memory": {
+      "proposalsTitle": "记忆提案",
+      "proposalsHint": "来自助理或后台记忆整理器的建议写入项。",
+      "proposalsEmpty": "当前没有待处理的记忆提案。",
+      "memoriesTitle": "已存记忆",
+      "memoriesHint": "助理当前可用的长期记忆，包括激活和已抑制项。",
+      "memoriesEmpty": "当前还没有已存记忆。",
+      "detailTitle": "审阅面板",
+      "detailHint": "谨慎批准提案；对不该继续影响助理的记忆做抑制或删除。",
+      "visibility": "可见性",
+      "sourceRefs": "来源引用",
+      "approve": "批准",
+      "reject": "拒绝",
+      "suppress": "抑制",
+      "restore": "恢复",
+      "delete": "删除",
+      "noProposalSelected": "请选择一个提案进行审阅。",
+      "noMemorySelected": "请选择一条记忆进行管理。"
+    },
+    "threads": {
+      "title": "内部线程",
+      "hint": "查看助理和内部角色的沟通线程，并在需要时切换线程模式。",
+      "empty": "当前还没有生成任何内部线程。",
+      "selectHint": "选择线程后，可以查看最近消息和当前模式。",
+      "noSummary": "当前还没有线程摘要。",
+      "mode": "线程模式",
+      "modeOptions": {
+        "observe": "旁观",
+        "joint_speaking": "联合发言",
+        "takeover": "接管"
+      },
+      "messagesTitle": "最近消息",
+      "messagesEmpty": "这个线程里还没有记录任何消息。",
+      "replyTitle": "创始人插话",
+      "replyHint": "这条消息会以 founder 身份写入内部线程审计记录。",
+      "replyDisabled": "v1 只允许在内部线程里手动发言，外部线程仍由助理经通道插件处理。",
+      "replyPlaceholder": "输入你要补充给助理或正式员工的话…",
+      "send": "发送消息"
+    }
+  },
   "experimental": {
     "breadcrumb": "实验性",
     "loading": "正在加载实验性设置…",

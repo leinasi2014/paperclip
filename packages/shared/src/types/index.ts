@@ -1,11 +1,28 @@
 export type { Company } from "./company.js";
 export type {
+  BoardAssistantBinding,
+  BoardAssistantBindingSession,
+  BoardAssistantBindingSessionCreateResult,
+  BoardAssistantBindingSessionConfirmResult,
+  BoardAssistantOnboardingSession,
+  BoardAssistantThread,
+  BoardAssistantThreadMessage,
+  BoardAssistantRequest,
+  BoardAssistantRequestDetail,
+  BoardAssistantRequestTarget,
+  BoardAssistantOutboxItem,
+  BoardAssistantBundleRevision,
+  BoardAssistantMemory,
+  BoardAssistantMemoryProposal,
+  BoardAssistantDestructivePreview,
+} from "./board-assistant.js";
+export type {
   Department,
   DepartmentBudgetEnvelope,
   MinisterIntakeDecision,
   TemporaryWorker,
 } from "./department.js";
-export type { InstanceExperimentalSettings, InstanceGeneralSettings, InstanceSettings } from "./instance.js";
+export type { BoardAssistantSettings, InstanceExperimentalSettings, InstanceGeneralSettings, InstanceSettings } from "./instance.js";
 export type {
   CompanySkillSourceType,
   CompanySkillTrustLevel,

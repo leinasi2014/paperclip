@@ -20,3 +20,4 @@ export { systemIssuesApi } from "./system-issues";
 export { temporaryWorkersApi } from "./temporary-workers";
 export { systemPluginRolloutsApi } from "./system-plugin-rollouts";
 export { companySkillsApi } from "./companySkills";
+export { boardAssistantApi } from "./boardAssistant";

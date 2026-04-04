@@ -379,6 +379,13 @@
       "when": 1775203200000,
       "tag": "0053_harden_required_plugins_and_governance",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1775262033906,
+      "tag": "0054_misty_tarantula",
+      "breakpoints": true
     }
   ]
 }

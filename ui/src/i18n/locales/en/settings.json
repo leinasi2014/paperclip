@@ -54,6 +54,182 @@
       "toggleLabel": "Toggle username log censoring"
     }
   },
+  "boardAssistant": {
+    "breadcrumb": "Board Assistant",
+    "loading": "Loading board assistant settings...",
+    "title": "Board Assistant",
+    "description": "Configure the instance-level assistant, manage channel binding, and review requests, memory, and internal threads.",
+    "errors": {
+      "load": "Failed to load board assistant settings.",
+      "update": "Failed to update board assistant settings.",
+      "createBinding": "Failed to create a binding session.",
+      "confirmBinding": "Failed to confirm the binding session.",
+      "revokeBinding": "Failed to revoke the active binding.",
+      "confirmRequest": "Failed to confirm the request.",
+      "rejectRequest": "Failed to reject the request.",
+      "approveMemory": "Failed to approve the memory proposal.",
+      "rejectMemory": "Failed to reject the memory proposal.",
+      "suppressMemory": "Failed to update the memory state.",
+      "deleteMemory": "Failed to delete the memory.",
+      "updateThreadMode": "Failed to update the thread mode.",
+      "sendThreadMessage": "Failed to send the thread message."
+    },
+    "shared": {
+      "empty": "—",
+      "yes": "Yes",
+      "no": "No",
+      "copy": "Copy",
+      "copied": "Copied",
+      "expand": "Expand",
+      "collapse": "Collapse"
+    },
+    "sections": {
+      "controls": "Core controls",
+      "controlsHint": "Keep v1 focused on the assistant's global execution policy and proactive behavior.",
+      "binding": "Channel binding"
+    },
+    "summary": {
+      "bindingTitle": "Binding state",
+      "bound": "Bound",
+      "unbound": "Unbound",
+      "bindingHint": "No active external founder channel is bound yet.",
+      "pendingTitle": "Pending requests",
+      "pendingHint": "Requests that still need confirmation, follow-up, or blocker resolution.",
+      "memoryTitle": "Pending memory review",
+      "memoryHint": "Memory proposals waiting for founder review."
+    },
+    "enabled": {
+      "title": "Enable Board Assistant",
+      "description": "Turns the instance-level assistant on or off without changing its stored memory, bundle revisions, or channel plugin state.",
+      "toggleLabel": "Toggle board assistant"
+    },
+    "autoExecution": {
+      "title": "Auto-execution mode",
+      "description": "Choose how aggressively the assistant may move from understanding to execution once it recognizes a task intent.",
+      "options": {
+        "manual_confirm": "Manual confirm",
+        "low_risk_auto": "Low-risk auto",
+        "enhanced_auto": "Enhanced auto"
+      }
+    },
+    "proactiveBriefing": {
+      "title": "Allow proactive briefings",
+      "description": "Lets the assistant initiate high-value reminders, blocker escalations, and key event briefings.",
+      "toggleLabel": "Toggle proactive briefings"
+    },
+    "queryGroup": {
+      "title": "Allow all-active-companies query group",
+      "description": "Lets the assistant summarize across all active companies for query flows. This does not enable cross-company write execution.",
+      "toggleLabel": "Toggle all active companies query group"
+    },
+    "binding": {
+      "hint": "Bind the assistant to a founder-owned external channel and keep the latest handshake visible in one place.",
+      "create": "Create WeChat session",
+      "revoke": "Revoke binding",
+      "sessionTitle": "Latest binding session",
+      "sessionHint": "Create a session, complete the channel handshake, then confirm it from the control plane.",
+      "steps": {
+        "create": "Create session",
+        "channel": "Channel handshake",
+        "confirm": "Web confirm"
+      },
+      "bindingCode": "Binding code",
+      "bindingToken": "Binding token",
+      "expiresAt": "Expires at",
+      "refresh": "Refresh",
+      "confirm": "Confirm in web",
+      "loading": "Loading active binding...",
+      "loadError": "Failed to load the active binding.",
+      "empty": "No active external channel is currently bound.",
+      "emptyTitle": "No active founder channel binding yet",
+      "emptySteps": {
+        "create": "1. Create a new WeChat binding session.",
+        "channel": "2. Finish the scan or code entry on the WeChat side.",
+        "confirm": "3. Return here and confirm so the assistant can take over the channel."
+      },
+      "sessionEmpty": "No recent binding session has been created in this browser session.",
+      "noThread": "No external thread recorded yet."
+    },
+    "tabs": {
+      "requests": "Requests",
+      "memory": "Memory",
+      "threads": "Threads"
+    },
+    "requests": {
+      "title": "Founder requests",
+      "hint": "Review incoming structured requests before they become formal actions.",
+      "empty": "No requests have been captured yet.",
+      "selectHint": "Select a request to inspect its card, targets, and available actions.",
+      "untitled": "Untitled request",
+      "cardPayload": "Task card",
+      "proposedPayload": "Execution payload",
+      "card": {
+        "task": "Interpreted task",
+        "target": "Target",
+        "suggestedAction": "Suggested action",
+        "riskLevel": "Risk level",
+        "executionMode": "Execution mode",
+        "createsFormalObject": "Creates formal object",
+        "rationale": "Rationale",
+        "plannedCalls": "Planned calls",
+        "pendingConfirmation": "Waiting for you",
+        "expectedOutput": "Expected output"
+      },
+      "destructivePreview": "Destructive preview",
+      "activeRuns": "Active runs",
+      "entityCounts": "Entity counts",
+      "targets": "Execution targets",
+      "noTargets": "No request targets have been recorded yet.",
+      "notActionable": "This request is not actionable in its current state. Review only.",
+      "confirmNotes": "Founder note",
+      "confirmNotesPlaceholder": "Optional context to include before execution.",
+      "rejectReason": "Reject reason",
+      "rejectReasonPlaceholder": "Optional reason sent back to the assistant.",
+      "confirm": "Confirm request",
+      "reject": "Reject request",
+      "rewake": "Rewake CEO",
+      "cancelTarget": "Cancel target"
+    },
+    "memory": {
+      "proposalsTitle": "Memory proposals",
+      "proposalsHint": "Suggestions from the assistant or background memory processor.",
+      "proposalsEmpty": "No pending memory proposals.",
+      "memoriesTitle": "Stored memory",
+      "memoriesHint": "Active and suppressed long-term memory available to the assistant.",
+      "memoriesEmpty": "No stored memories yet.",
+      "detailTitle": "Review",
+      "detailHint": "Approve proposals carefully; suppress or delete memories that should stop influencing the assistant.",
+      "visibility": "Visibility",
+      "sourceRefs": "Source refs",
+      "approve": "Approve",
+      "reject": "Reject",
+      "suppress": "Suppress",
+      "restore": "Restore",
+      "delete": "Delete",
+      "noProposalSelected": "Select a proposal to review it.",
+      "noMemorySelected": "Select a memory to manage it."
+    },
+    "threads": {
+      "title": "Internal threads",
+      "hint": "Inspect assistant conversations with internal actors and switch thread mode when needed.",
+      "empty": "No internal threads have been created yet.",
+      "selectHint": "Select a thread to inspect recent messages and mode.",
+      "noSummary": "No active context summary yet.",
+      "mode": "Thread mode",
+      "modeOptions": {
+        "observe": "Observe",
+        "joint_speaking": "Joint speaking",
+        "takeover": "Takeover"
+      },
+      "messagesTitle": "Recent messages",
+      "messagesEmpty": "No messages have been recorded for this thread yet.",
+      "replyTitle": "Founder interjection",
+      "replyHint": "This message will be written into the internal thread audit trail as a founder message.",
+      "replyDisabled": "v1 only allows manual posting in internal threads. External threads still flow through channel plugins.",
+      "replyPlaceholder": "Write what you want to add to the assistant or formal employee...",
+      "send": "Send message"
+    }
+  },
   "experimental": {
     "breadcrumb": "Experimental",
     "loading": "Loading experimental settings...",
